@@ -14,167 +14,228 @@
 
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #f7f4f1 0%, #ede8e3 100%);
             min-height: 100vh;
-            padding: 20px;
+            color: #2d3748;
         }
 
         .container {
             max-width: 800px;
             margin: 0 auto;
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(10px);
-            border-radius: 25px;
-            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.2);
-            overflow: hidden;
-            animation: slideUp 0.6s ease-out;
-        }
-
-        @keyframes slideUp {
-            from { opacity: 0; transform: translateY(30px); }
-            to { opacity: 1; transform: translateY(0); }
+            background: #ffffff;
+            min-height: 100vh;
+            box-shadow: 0 0 30px rgba(0, 0, 0, 0.05);
         }
 
         .header {
-            background: linear-gradient(135deg, #f39c12 0%, #e67e22 100%);
+            background: #3b5c6c;
             color: white;
-            padding: 40px 30px;
+            padding: 25px 20px;
             text-align: center;
+            position: sticky;
+            top: 0;
+            z-index: 100;
             position: relative;
-            overflow: hidden;
         }
 
-        .header::before {
-            content: '🏆';
+        .gopher-logo {
             position: absolute;
-            font-size: 8em;
-            opacity: 0.1;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
+            top: 15px;
+            left: 15px;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: white;
+            padding: 5px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+            z-index: 101;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .gopher-logo:hover {
+            transform: scale(1.1) rotate(-5deg);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.25);
+        }
+
+        .gopher-logo img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            border-radius: 50%;
+        }
+
+        .gopher-fallback {
+            font-size: 1.8em;
+            display: none;
         }
 
         .header h1 {
-            font-size: 2.5em;
-            margin-bottom: 10px;
-            position: relative;
-            z-index: 1;
+            font-size: 1.8em;
+            margin-bottom: 5px;
+            font-weight: 600;
         }
 
         .game-info {
             background: rgba(255, 255, 255, 0.1);
-            padding: 15px;
-            border-radius: 15px;
-            margin-top: 15px;
+            padding: 12px;
+            border-radius: 12px;
+            margin-top: 10px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            position: relative;
-            z-index: 1;
+            font-size: 0.9em;
+            flex-wrap: nowrap;
+            min-width: 0;
+        }
+
+        .game-info > div {
+            flex: 1;
+            text-align: center;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            min-width: 0;
+        }
+
+        .game-info > div:first-child {
+            text-align: left;
+        }
+
+        .game-info > div:last-child {
+            text-align: right;
         }
 
         .nav {
-            background: rgba(248, 249, 250, 0.8);
-            padding: 15px;
+            background: #ffffff;
+            padding: 0;
             display: flex;
             justify-content: center;
-            gap: 20px;
+            gap: 0;
+            border-bottom: 1px solid #e2e8f0;
+            position: sticky;
+            top: 0;
+            z-index: 99;
         }
 
         .nav-link {
             text-decoration: none;
-            color: #495057;
+            color: #64748b;
             font-weight: 600;
-            padding: 10px 20px;
-            border-radius: 20px;
+            padding: 12px 20px;
             transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            flex: 1;
+            justify-content: center;
+            border-bottom: 3px solid transparent;
+            font-size: 0.9em;
         }
 
         .nav-link:hover {
-            background: rgba(46, 204, 113, 0.1);
-            color: #2ecc71;
-            transform: translateY(-2px);
+            background: #f8fafc;
+            color: #f8c098;
+        }
+
+        .nav-link.active {
+            background: #f8fafc;
+            color: #f8c098;
+            border-bottom-color: #f8c098;
         }
 
         .results-container {
-            padding: 40px;
+            padding: 25px 20px;
+            background: #ffffff;
         }
 
         .winner-section {
             text-align: center;
-            margin-bottom: 40px;
+            margin-bottom: 25px;
         }
 
         .winner-card {
-            background: linear-gradient(135deg, #2ecc71 0%, #27ae60 100%);
-            color: white;
-            padding: 40px;
-            border-radius: 20px;
-            box-shadow: 0 20px 40px rgba(46, 204, 113, 0.3);
+            background: #f8c098;
+            color: #2d3748;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 6px 20px rgba(248, 192, 152, 0.25);
             position: relative;
             overflow: hidden;
-            transform: scale(1.05);
             animation: bounce 0.6s ease-out;
+            border: 2px solid #f2bc91;
+            max-width: 400px;
+            margin: 0 auto;
         }
 
-        /* Gleichstand-Styling */
         .winner-card.tie {
-            background: linear-gradient(135deg, #f39c12 0%, #e67e22 100%);
-            box-shadow: 0 20px 40px rgba(243, 156, 18, 0.3);
+            background: #fbbf24;
+            border-color: #f59e0b;
+            box-shadow: 0 8px 25px rgba(251, 191, 36, 0.3);
         }
 
         @keyframes bounce {
-            0%, 20%, 60%, 100% { transform: scale(1.05); }
-            40% { transform: scale(1.1); }
-            80% { transform: scale(1.03); }
+            0%, 20%, 60%, 100% { transform: scale(1); }
+            40% { transform: scale(1.02); }
+            80% { transform: scale(1.01); }
         }
 
         .winner-card::before {
             content: '👑';
             position: absolute;
-            top: -20px;
-            right: -20px;
-            font-size: 4em;
+            top: -10px;
+            right: -10px;
+            font-size: 2.5em;
             opacity: 0.3;
         }
 
+        .winner-card.tie::before {
+            content: '🤝';
+        }
+
         .winner-title {
-            font-size: 2em;
-            margin-bottom: 15px;
+            font-size: 1.3em;
+            margin-bottom: 8px;
+            font-weight: 600;
         }
 
         .winner-name {
-            font-size: 3em;
+            font-size: 1.8em;
             font-weight: bold;
-            margin-bottom: 15px;
+            margin-bottom: 8px;
         }
 
         .winner-score {
-            font-size: 1.5em;
-            opacity: 0.9;
+            font-size: 1.1em;
+            opacity: 0.8;
         }
 
         .all-results {
-            margin-top: 40px;
+            margin-top: 30px;
         }
 
         .results-title {
-            font-size: 1.8em;
-            margin-bottom: 25px;
+            font-size: 1.5em;
+            margin-bottom: 20px;
             text-align: center;
-            color: #2c3e50;
+            color: #3b5c6c;
+            font-weight: 600;
         }
 
         .results-grid {
             display: grid;
-            gap: 20px;
+            gap: 15px;
         }
 
         .result-card {
             background: white;
-            border-radius: 15px;
-            padding: 25px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            border-radius: 12px;
+            padding: 20px;
+            border: 1px solid #e2e8f0;
             transition: all 0.3s ease;
             display: flex;
             justify-content: space-between;
@@ -182,34 +243,30 @@
         }
 
         .result-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.15);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
         }
 
-        .result-card.first {
-            border: 3px solid #f39c12;
-            background: linear-gradient(135deg, #fff 0%, #fff8e1 100%);
+        .result-card.first, .result-card.tie {
+            border: 2px solid #f8c098;
+            background: #fef7ed;
         }
 
         .result-card.second {
-            border: 3px solid #95a5a6;
+            border: 2px solid #cbd5e1;
+            background: #f8fafc;
         }
 
         .result-card.third {
-            border: 3px solid #cd853f;
-        }
-
-        /* Gleichstand-Cards */
-        .result-card.tie {
-            border: 3px solid #f39c12;
-            background: linear-gradient(135deg, #fff 0%, #fff3e0 100%);
+            border: 2px solid #d6937b;
+            background: #fef7ed;
         }
 
         .result-position {
-            font-size: 2em;
+            font-size: 1.8em;
             font-weight: bold;
-            margin-right: 20px;
-            min-width: 60px;
+            margin-right: 15px;
+            min-width: 50px;
         }
 
         .result-info {
@@ -217,75 +274,114 @@
         }
 
         .result-name {
-            font-size: 1.4em;
+            font-size: 1.2em;
             font-weight: 600;
-            margin-bottom: 5px;
-            color: #2c3e50;
+            margin-bottom: 4px;
+            color: #3b5c6c;
         }
 
         .result-details {
-            color: #7f8c8d;
-            font-size: 0.9em;
+            color: #64748b;
+            font-size: 0.85em;
         }
 
         .result-score {
-            font-size: 2.5em;
+            font-size: 2em;
             font-weight: bold;
-            color: #2ecc71;
+            color: #3b5c6c;
             text-align: center;
         }
 
         .result-card.first .result-score,
         .result-card.tie .result-score {
-            color: #f39c12;
+            color: #f8c098;
         }
 
         .detailed-scores {
-            margin-top: 40px;
-            background: #f8f9fa;
-            border-radius: 15px;
-            padding: 30px;
+            margin-top: 30px;
+            background: #f8fafc;
+            border-radius: 12px;
+            padding: 25px;
+            border: 1px solid #e2e8f0;
         }
 
         .scores-table {
             width: 100%;
             border-collapse: collapse;
             background: white;
-            border-radius: 10px;
+            border-radius: 8px;
             overflow: hidden;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            border: 1px solid #e2e8f0;
         }
 
         .scores-table th {
-            background: #2c3e50;
-            color: white;
-            padding: 15px;
+            background: #f8fafc;
+            color: #3b5c6c;
+            padding: 12px;
             text-align: center;
             font-weight: 600;
+            border-bottom: 2px solid #e2e8f0;
         }
 
         .scores-table td {
-            padding: 12px;
+            padding: 10px;
             text-align: center;
-            border-bottom: 1px solid #e9ecef;
+            border-bottom: 1px solid #f1f5f9;
         }
 
         .scores-table tr:hover {
-            background: rgba(46, 204, 113, 0.05);
+            background: rgba(248, 192, 152, 0.05);
+        }
+
+        /* Track Icon Styles in Table */
+        .track-cell {
+            background: #fef7ed;
+            font-weight: 600;
+            color: #f8c098;
+            border-right: 2px solid #f8c098;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            min-width: 80px;
+        }
+
+        .track-icon-table {
+            width: 24px;
+            height: 24px;
+            background: #f1f5f9;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.9em;
+        }
+
+        .track-icon-table img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            border-radius: 2px;
+        }
+
+        .track-number {
+            font-size: 0.9em;
+            font-weight: 600;
+            color: #3b5c6c;
         }
 
         .action-buttons {
             display: flex;
-            gap: 20px;
-            margin-top: 40px;
+            gap: 15px;
+            margin-top: 30px;
         }
 
         .action-btn {
             flex: 1;
-            padding: 18px 30px;
+            padding: 15px 25px;
             border: none;
-            border-radius: 15px;
-            font-size: 1.1em;
+            border-radius: 10px;
+            font-size: 1em;
             font-weight: 600;
             cursor: pointer;
             transition: all 0.3s ease;
@@ -294,58 +390,65 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 10px;
+            gap: 8px;
         }
 
         .btn-primary {
-            background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
-            color: white;
+            background: #f8fafc;
+            color: #3b5c6c;
+            border: 2px solid #e2e8f0;
         }
 
         .btn-primary:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 10px 30px rgba(52, 152, 219, 0.4);
+            background: #e2e8f0;
+            transform: translateY(-1px);
         }
 
         .btn-success {
-            background: linear-gradient(135deg, #2ecc71 0%, #27ae60 100%);
-            color: white;
+            background: #f8c098;
+            color: #2d3748;
+            border: 2px solid #f2bc91;
         }
 
         .btn-success:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 10px 30px rgba(46, 204, 113, 0.4);
+            background: #f2bc91;
+            transform: translateY(-1px);
         }
 
         /* Mobile Optimierung */
         @media (max-width: 768px) {
-            .container {
-                margin: 10px;
-                border-radius: 20px;
-            }
-
             .results-container {
-                padding: 20px;
+                padding: 15px;
             }
 
             .winner-card {
-                padding: 30px 20px;
+                padding: 18px 15px;
             }
 
             .winner-name {
-                font-size: 2.2em;
+                font-size: 1.5em;
+            }
+
+            .winner-title {
+                font-size: 1.2em;
             }
 
             .game-info {
-                flex-direction: column;
-                gap: 10px;
+                flex-direction: row;
+                gap: 5px;
                 text-align: center;
+                font-size: 0.75em;
+                padding: 8px;
+            }
+
+            .game-info > div {
+                font-size: 0.85em;
             }
 
             .result-card {
                 flex-direction: column;
                 text-align: center;
-                gap: 15px;
+                gap: 12px;
             }
 
             .result-position {
@@ -357,12 +460,41 @@
             }
 
             .nav {
-                flex-direction: column;
-                gap: 10px;
+                font-size: 0.8em;
+            }
+
+            .nav-link {
+                padding: 10px 15px;
             }
 
             .scores-table {
-                font-size: 0.9em;
+                font-size: 0.85em;
+            }
+
+            .track-cell {
+                flex-direction: column;
+                gap: 4px;
+                padding: 8px 4px;
+            }
+
+            .track-icon-table {
+                width: 20px;
+                height: 20px;
+            }
+
+            .gopher-logo {
+                width: 40px;
+                height: 40px;
+                top: 12px;
+                left: 12px;
+            }
+
+            .header {
+                padding: 20px 15px;
+            }
+
+            .header h1 {
+                font-size: 1.5em;
             }
         }
     </style>
@@ -370,6 +502,14 @@
 <body>
     <div class="container">
         <div class="header">
+            <!-- Gopher Logo - Home Link -->
+            <a href="/" class="gopher-logo" title="Zurück zur Startseite">
+                <img src="/static/gopher_main.png" 
+                     alt="🐹 Gopher Home" 
+                     onerror="this.style.display='none'; this.parentNode.querySelector('.gopher-fallback').style.display='block';">
+                <div class="gopher-fallback">🐹</div>
+            </a>
+
             <h1>🏆 Spiel Ergebnisse</h1>
             <div class="game-info">
                 <div>📍 <strong>{{ game.place }}</strong></div>
@@ -385,96 +525,92 @@
         </div>
 
         <div class="results-container">
-            {% if results and results[0].total > 0 %}
+            <!-- Winner Section - Server-side rendered -->
+            {% if winners and winners[0].total > 0 %}
             <div class="winner-section">
-                {% set winners = results|selectattr('is_winner')|list %}
-                {% if winners|length == 1 %}
-                    <!-- Ein Gewinner -->
-                    <div class="winner-card">
+                <div class="winner-card {{ 'tie' if winners|length > 1 else '' }}">
+                    {% if winners|length > 1 %}
+                        <div class="winner-title">🤝 Gleichstand! 🤝</div>
+                        <div class="winner-name">{{ winners | map(attribute='name') | join(' & ') }}</div>
+                        <div class="winner-score">{{ winners[0].total }} Schläge</div>
+                    {% else %}
                         <div class="winner-title">🎉 Gewinner 🎉</div>
                         <div class="winner-name">{{ winners[0].name }}</div>
                         <div class="winner-score">{{ winners[0].total }} Schläge</div>
-                    </div>
-                {% elif winners|length > 1 %}
-                    <!-- Gleichstand -->
-                    <div class="winner-card tie">
-                        <div class="winner-title">🤝 Gleichstand! 🤝</div>
-                        <div class="winner-name">
-                            {% for winner in winners %}
-                                {{ winner.name }}{% if not loop.last %} & {% endif %}
-                            {% endfor %}
-                        </div>
-                        <div class="winner-score">{{ winners[0].total }} Schläge</div>
-                    </div>
-                {% endif %}
+                    {% endif %}
+                </div>
             </div>
             {% endif %}
 
+            <!-- Results Grid - Server-side rendered -->
             <div class="all-results">
                 <h2 class="results-title">📊 Endergebnis</h2>
                 <div class="results-grid">
                     {% for result in results %}
-                    <div class="result-card {% if result.is_tie %}tie{% elif loop.index == 1 and result.total > 0 %}first{% elif loop.index == 2 %}second{% elif loop.index == 3 %}third{% endif %}">
-                        <div class="result-position">
-                            {% if result.is_tie %}🤝
-                            {% elif loop.index == 1 and result.total > 0 %}🥇
-                            {% elif loop.index == 2 %}🥈
-                            {% elif loop.index == 3 %}🥉
-                            {% else %}{{ loop.index }}.{% endif %}
-                        </div>
-                        <div class="result-info">
-                            <div class="result-name">{{ result.name }}</div>
-                            <div class="result-details">
-                                {% if result.total > 0 %}
-                                    Ø {{ "%.1f"|format(result.total / game.track_count) }} pro Bahn
-                                {% else %}
-                                    Noch keine Scores
-                                {% endif %}
+                        {% set position_class = 'tie' if result.is_tie else ('first' if loop.index0 == 0 and result.total > 0 else ('second' if loop.index0 == 1 else ('third' if loop.index0 == 2 else ''))) %}
+                        {% if result.is_tie %}
+                            {% set position_emoji = '🤝' %}
+                        {% elif loop.index0 == 0 and result.total > 0 %}
+                            {% set position_emoji = '🥇' %}
+                        {% elif loop.index0 == 1 %}
+                            {% set position_emoji = '🥈' %}
+                        {% elif loop.index0 == 2 %}
+                            {% set position_emoji = '🥉' %}
+                        {% else %}
+                            {% set position_emoji = (loop.index ~ '.') %}
+                        {% endif %}
+                        
+                        <div class="result-card {{ position_class }}">
+                            <div class="result-position">{{ position_emoji }}</div>
+                            <div class="result-info">
+                                <div class="result-name">{{ result.name }}</div>
+                                <div class="result-details">
+                                    {{ ('Ø ' ~ (result.total / game.track_count) | round(1) ~ ' pro Bahn') if result.total > 0 else 'Noch keine Scores' }}
+                                </div>
+                            </div>
+                            <div class="result-score">
+                                {{ result.total if result.total > 0 else '-' }}
                             </div>
                         </div>
-                        <div class="result-score">
-                            {% if result.total > 0 %}{{ result.total }}{% else %}-{% endif %}
-                        </div>
-                    </div>
                     {% endfor %}
                 </div>
             </div>
 
-            {% if results and results[0].total > 0 %}
+            <!-- Detailed Scores Table - Conditionally rendered -->
+            {% set has_scores = results | selectattr('total', 'gt', 0) | list | length > 0 %}
+            {% if has_scores %}
             <div class="detailed-scores">
-                <h3 style="margin-bottom: 20px; text-align: center; color: #2c3e50;">📋 Detaillierte Scores</h3>
+                <h3 style="margin-bottom: 15px; text-align: center; color: #3b5c6c; font-weight: 600;">📋 Detaillierte Scores</h3>
                 <table class="scores-table">
                     <thead>
                         <tr>
                             <th>Bahn</th>
                             {% for result in results %}
-                                <th>{{ result.name }}</th>
+                            <th>{{ result.name }}</th>
                             {% endfor %}
                         </tr>
                     </thead>
                     <tbody>
                         {% for track in range(1, game.track_count + 1) %}
                         <tr>
-                            <td><strong>{{ track }}</strong></td>
+                            <td class="track-cell">
+                                <div class="track-icon-table">
+                                    <!-- Track icon will be loaded via JavaScript -->
+                                    🎯
+                                </div>
+                                <div class="track-number">{{ track }}</div>
+                            </td>
                             {% for result in results %}
-                                <td>
-                                    {% if result.scores.get(track) %}
-                                        {{ result.scores[track] }}
-                                    {% else %}
-                                        -
-                                    {% endif %}
-                                </td>
+                            <td>{{ result.scores.get(track, '-') }}</td>
                             {% endfor %}
                         </tr>
                         {% endfor %}
                         
                         <!-- Total Row -->
-                        <tr style="background: #f8f9fa; font-weight: bold;">
-                            <td><strong>Total</strong></td>
+                        <tr style="background: #f8fafc; font-weight: bold;">
+                            <td style="color: #3b5c6c; font-size: 1.1em;"><strong>Total</strong></td>
                             {% for result in results %}
-                                <td style="color: #2ecc71; font-size: 1.2em;">
-                                    {% if result.total > 0 %}{{ result.total }}{% else %}-{% endif %}
-                                </td>
+                            <td style="color: #3b5c6c; font-size: 1.1em;">{{ result.total if result.total > 0 else '-' }}</td>
                             {% endfor %}
                         </tr>
                     </tbody>
@@ -493,213 +629,109 @@
                     📜 Alle Spiele
                 </a>
             </div>
-
-            <!-- Share Results Section -->
-            <div style="margin-top: 40px; padding: 30px; background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%); border-radius: 15px; text-align: center;">
-                <h3 style="margin-bottom: 20px; color: #2c3e50;">📱 Ergebnis teilen</h3>
-                <button onclick="shareResults()" class="action-btn btn-success" style="margin: 0 auto; max-width: 300px;">
-                    📤 Teilen
-                </button>
-            </div>
-
-            <!-- Statistics Section -->
-            {% if results and results[0].total > 0 %}
-            <div style="margin-top: 40px;">
-                <h3 style="margin-bottom: 25px; text-align: center; color: #2c3e50;">📈 Spiel-Statistiken</h3>
-                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px;">
-                    {% set ns = namespace(best_track=None, worst_track=None, best_score=999, worst_score=0) %}
-                    {% for track in range(1, game.track_count + 1) %}
-                        {% set track_scores = [] %}
-                        {% for result in results %}
-                            {% if result.scores.get(track) and result.scores[track] > 0 %}
-                                {% set _ = track_scores.append(result.scores[track]) %}
-                            {% endif %}
-                        {% endfor %}
-                        {% if track_scores %}
-                            {% set avg_score = (track_scores|sum / track_scores|length) %}
-                            {% if avg_score < ns.best_score %}
-                                {% set ns.best_score = avg_score %}
-                                {% set ns.best_track = track %}
-                            {% endif %}
-                            {% if avg_score > ns.worst_score %}
-                                {% set ns.worst_score = avg_score %}
-                                {% set ns.worst_track = track %}
-                            {% endif %}
-                        {% endif %}
-                    {% endfor %}
-
-                    <div style="background: white; padding: 25px; border-radius: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); text-align: center;">
-                        <div style="font-size: 2.5em; color: #2ecc71; margin-bottom: 10px;">⭐</div>
-                        <div style="font-size: 1.2em; font-weight: 600; color: #2c3e50;">Einfachste Bahn</div>
-                        <div style="font-size: 2em; font-weight: bold; color: #2ecc71;">
-                            {% if ns.best_track %}{{ ns.best_track }}{% else %}-{% endif %}
-                        </div>
-                        {% if ns.best_track %}
-                        <div style="color: #7f8c8d; font-size: 0.9em;">Ø {{ "%.1f"|format(ns.best_score) }} Schläge</div>
-                        {% endif %}
-                    </div>
-
-                    <div style="background: white; padding: 25px; border-radius: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); text-align: center;">
-                        <div style="font-size: 2.5em; color: #e74c3c; margin-bottom: 10px;">🔥</div>
-                        <div style="font-size: 1.2em; font-weight: 600; color: #2c3e50;">Schwierigste Bahn</div>
-                        <div style="font-size: 2em; font-weight: bold; color: #e74c3c;">
-                            {% if ns.worst_track %}{{ ns.worst_track }}{% else %}-{% endif %}
-                        </div>
-                        {% if ns.worst_track %}
-                        <div style="color: #7f8c8d; font-size: 0.9em;">Ø {{ "%.1f"|format(ns.worst_score) }} Schläge</div>
-                        {% endif %}
-                    </div>
-
-                    <div style="background: white; padding: 25px; border-radius: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); text-align: center;">
-                        <div style="font-size: 2.5em; color: #3498db; margin-bottom: 10px;">⏱️</div>
-                        <div style="font-size: 1.2em; font-weight: 600; color: #2c3e50;">Spieldauer</div>
-                        <div style="font-size: 2em; font-weight: bold; color: #3498db;" id="gameDuration">-</div>
-                        <div style="color: #7f8c8d; font-size: 0.9em;">Geschätzt</div>
-                    </div>
-
-                    <div style="background: white; padding: 25px; border-radius: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); text-align: center;">
-                        <div style="font-size: 2.5em; color: #f39c12; margin-bottom: 10px;">🎯</div>
-                        <div style="font-size: 1.2em; font-weight: 600; color: #2c3e50;">Gesamt-Schläge</div>
-                        <div style="font-size: 2em; font-weight: bold; color: #f39c12;">
-                            {{ results|sum(attribute='total') }}
-                        </div>
-                        <div style="color: #7f8c8d; font-size: 0.9em;">Alle Spieler</div>
-                    </div>
-                </div>
-            </div>
-            {% endif %}
         </div>
     </div>
 
+    <!-- Game Data in HTML data attributes (SAFEST METHOD) -->
+    <div id="game-data" 
+         data-game-id="{{ game.id }}"
+         data-place="{{ game.place }}" 
+         data-place-id="{{ game.place_id or '' }}"
+         data-date="{{ game.date }}"
+         data-track-count="{{ game.track_count }}"
+         style="display: none;"></div>
+
+    <!-- JavaScript für Track Icons (Enhanced & FIXED) -->
     <script>
-        // Spieldauer schätzen (3-4 Minuten pro Bahn)
+        // Get game data from HTML data attributes (100% SAFE)
+        const gameDataElement = document.getElementById('game-data');
+        const gameData = {
+            id: parseInt(gameDataElement.dataset.gameId),
+            place: gameDataElement.dataset.place,
+            place_id: gameDataElement.dataset.placeId ? parseInt(gameDataElement.dataset.placeId) : null,
+            date: gameDataElement.dataset.date,
+            track_count: parseInt(gameDataElement.dataset.trackCount)
+        };
+
+        // Load track icons for detailed scores table - FIXED VERSION
+        async function loadTrackIcons() {
+            console.log('🎯 Loading track icons for game:', gameData.id);
+            
+            try {
+                // If we have a place_id, try to get track configuration
+                if (gameData.place_id) {
+                    const response = await fetch(`/api/places/${gameData.place_id}/tracks`);
+                    const data = await response.json();
+                    
+                    if (data.status === 'success') {
+                        console.log('✅ Track config loaded:', data.track_config.length, 'tracks');
+                        
+                        // Update track icons in table - FIXED SELECTOR
+                        const tableBody = document.querySelector('.scores-table tbody');
+                        if (!tableBody) {
+                            console.warn('⚠️ No table body found');
+                            return;
+                        }
+                        
+                        const trackRows = tableBody.querySelectorAll('tr:not(:last-child)'); // Exclude Total row
+                        console.log(`🔍 Found ${trackRows.length} track rows in table`);
+                        
+                        data.track_config.forEach(track => {
+                            // Use 0-based index for array access (track_number 1 = index 0)
+                            const rowIndex = track.track_number - 1;
+                            const targetRow = trackRows[rowIndex];
+                            
+                            if (targetRow) {
+                                const trackCell = targetRow.querySelector('.track-icon-table');
+                                if (trackCell) {
+                                    trackCell.innerHTML = `<img src="${track.icon_url}" alt="${track.track_type_name}" onerror="this.style.display='none'; this.parentNode.innerHTML='🎯';">`;
+                                    console.log(`🎯 Updated icon for Bahn ${track.track_number}: ${track.track_type_name}`);
+                                } else {
+                                    console.warn(`⚠️ Could not find track icon cell in row ${rowIndex + 1}`);
+                                }
+                            } else {
+                                console.warn(`⚠️ Could not find row for track ${track.track_number} (index ${rowIndex})`);
+                            }
+                        });
+                        
+                        return;
+                    }
+                }
+                
+                console.log('⚠️ No track config available, using default icons');
+                
+                // Fallback: Use default placeholder icons
+                document.querySelectorAll('.track-icon-table').forEach(icon => {
+                    icon.innerHTML = '<img src="/static/track-icons/bahn_placeholder.png" alt="Standard Track" onerror="this.style.display=\'none\'; this.parentNode.innerHTML=\'🎯\';">';
+                });
+                
+            } catch (error) {
+                console.error('❌ Error loading track icons:', error);
+                
+                // Error fallback: Just show emoji
+                document.querySelectorAll('.track-icon-table').forEach(icon => {
+                    icon.innerHTML = '🎯';
+                });
+            }
+        }
+
+        // Initialize when page loads
         document.addEventListener('DOMContentLoaded', function() {
-            const trackCount = {{ game.track_count }};
-            const playerCount = {{ results|length }};
-            const estimatedMinutes = Math.round(trackCount * 3.5 + playerCount * 5);
+            console.log('🚀 Results page loaded with REAL backend data!');
+            console.log('Game:', gameData);
             
-            const hours = Math.floor(estimatedMinutes / 60);
-            const minutes = estimatedMinutes % 60;
-            
-            let durationText = '';
-            if (hours > 0) {
-                durationText = `${hours}h ${minutes}min`;
+            // Check if we have a scores table (indicates scores exist)
+            const scoresTable = document.querySelector('.scores-table');
+            if (scoresTable) {
+                console.log('📊 Scores table found, loading track icons...');
+                // Small delay to ensure DOM is fully ready
+                setTimeout(loadTrackIcons, 100);
             } else {
-                durationText = `${minutes} min`;
+                console.log('📭 No scores table - no track icons needed');
             }
             
-            document.getElementById('gameDuration').textContent = durationText;
+            console.log('✅ Results page fully initialized with FIXED track icon mapping');
         });
-
-        // Share Results Function
-        async function shareResults() {
-            // Spiel-Info
-            const place = '{{ game.place }}';
-            const date = '{{ game.date }}';
-            const trackCount = {{ game.track_count }};
-            
-            // Gewinner-Info sicher laden
-            const winners = [{% for result in results %}{% if result.is_winner %}'{{ result.name }}'{% if not loop.last %}, {% endif %}{% endif %}{% endfor %}];
-            const winnerScore = {% if results and results[0].total > 0 %}{{ results[0].total }}{% else %}0{% endif %};
-            const isTie = winners.length > 1;
-
-            let shareText = `🏌️ Minigolf Ergebnis\n\n`;
-            shareText += `📍 ${place}\n`;
-            shareText += `📅 ${date}\n`;
-            shareText += `⛳ ${trackCount} Bahnen\n\n`;
-            
-            if (isTie && winnerScore > 0) {
-                shareText += `🤝 Gleichstand! ${winners.join(' & ')} mit ${winnerScore} Schlägen\n\n`;
-            } else if (winners.length === 1 && winnerScore > 0) {
-                shareText += `🏆 Gewinner: ${winners[0]}\n`;
-                shareText += `🎯 Score: ${winnerScore} Schläge\n\n`;
-            }
-            
-            shareText += `Endergebnis:\n`;
-            {% for result in results %}
-            shareText += `{% if result.is_tie %}🤝{% elif loop.index == 1 and result.total > 0 %}🥇{% elif loop.index == 2 %}🥈{% elif loop.index == 3 %}🥉{% else %}{{ loop.index }}.{% endif %} {{ result.name }}: {% if result.total > 0 %}{{ result.total }}{% else %}-{% endif %}\n`;
-            {% endfor %}
-
-            // Web Share API (falls verfügbar)
-            if (navigator.share) {
-                try {
-                    await navigator.share({
-                        title: '🏌️ Minigolf Ergebnis',
-                        text: shareText
-                    });
-                } catch (err) {
-                    console.log('Sharing canceled');
-                }
-            } else {
-                // Fallback: Copy to clipboard
-                try {
-                    await navigator.clipboard.writeText(shareText);
-                    
-                    // Visual feedback
-                    const btn = event.target;
-                    const originalText = btn.innerHTML;
-                    btn.innerHTML = '✅ Kopiert!';
-                    btn.style.background = '#2ecc71';
-                    
-                    setTimeout(() => {
-                        btn.innerHTML = originalText;
-                        btn.style.background = '';
-                    }, 2000);
-                    
-                } catch (err) {
-                    // Fallback: Show alert with text
-                    alert('Teile das Ergebnis:\n\n' + shareText);
-                }
-            }
-        }
-
-        // Konfetti-Effekt für Gewinner (optional)
-        {% if results and results[0].total > 0 %}
-        function createConfetti() {
-            const colors = ['#f39c12', '#e74c3c', '#2ecc71', '#3498db', '#9b59b6'];
-            const container = document.querySelector('.winner-card');
-            
-            if (!container) return;
-            
-            for (let i = 0; i < 50; i++) {
-                const confetti = document.createElement('div');
-                confetti.style.position = 'absolute';
-                confetti.style.width = '10px';
-                confetti.style.height = '10px';
-                confetti.style.background = colors[Math.floor(Math.random() * colors.length)];
-                confetti.style.borderRadius = '50%';
-                confetti.style.left = Math.random() * 100 + '%';
-                confetti.style.top = '-10px';
-                confetti.style.pointerEvents = 'none';
-                confetti.style.animation = `fall ${2 + Math.random() * 3}s linear forwards`;
-                
-                container.appendChild(confetti);
-                
-                setTimeout(() => {
-                    confetti.remove();
-                }, 5000);
-            }
-        }
-
-        // CSS für Konfetti-Animation hinzufügen
-        const style = document.createElement('style');
-        style.textContent = `
-            @keyframes fall {
-                0% {
-                    transform: translateY(-10px) rotate(0deg);
-                    opacity: 1;
-                }
-                100% {
-                    transform: translateY(400px) rotate(360deg);
-                    opacity: 0;
-                }
-            }
-        `;
-        document.head.appendChild(style);
-
-        // Konfetti starten nach 1 Sekunde
-        setTimeout(createConfetti, 1000);
-        {% endif %}
     </script>
 </body>
 </html>

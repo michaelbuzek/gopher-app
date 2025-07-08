@@ -5,8 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black">
-    <meta name="apple-mobile-web-app-title" content="Minigolf">
-    <title>🏌️ Minigolf Scorer</title>
+    <meta name="apple-mobile-web-app-title" content="Gopher Minigolf">
+    <title>🏌️ Gopher Minigolf</title>
     <style>
         * {
             margin: 0;
@@ -16,7 +16,7 @@
 
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #f7f4f1 0%, #ede8e3 100%);
             min-height: 100vh;
             display: flex;
             align-items: center;
@@ -25,12 +25,12 @@
         }
 
         .container {
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(10px);
-            border-radius: 25px;
-            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.2);
+            background: #3b5c6c;
+            border-radius: 24px;
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
+            border: 1px solid rgba(255, 255, 255, 0.1);
             width: 100%;
-            max-width: 500px;
+            max-width: 420px;
             overflow: hidden;
             animation: slideUp 0.6s ease-out;
         }
@@ -47,99 +47,107 @@
         }
 
         .header {
-            background: linear-gradient(135deg, #2ecc71 0%, #27ae60 100%);
+            background: #3b5c6c;
             color: white;
-            padding: 40px 30px;
+            padding: 15px 30px 12px;
             text-align: center;
             position: relative;
             overflow: hidden;
         }
 
-        .header::before {
-            content: '';
-            position: absolute;
-            top: -50%;
-            left: -50%;
-            width: 200%;
-            height: 200%;
-            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
-            animation: rotate 20s linear infinite;
+        .gopher-icon {
+            width: 50px;
+            height: 50px;
+            margin: 0 auto 8px;
+            display: block;
+            filter: drop-shadow(0 4px 8px rgba(0,0,0,0.2));
+            animation: bounce 2s ease-in-out infinite;
+            position: relative;
+            z-index: 1;
+            background-color: rgba(255,255,255,0.1);
+            border-radius: 50%;
+            object-fit: contain;
         }
 
-        @keyframes rotate {
-            from { transform: rotate(0deg); }
-            to { transform: rotate(360deg); }
+        @keyframes bounce {
+            0%, 20%, 50%, 80%, 100% {
+                transform: translateY(0);
+            }
+            40% {
+                transform: translateY(-10px);
+            }
+            60% {
+                transform: translateY(-5px);
+            }
         }
 
         .header h1 {
-            font-size: 2.5em;
-            margin-bottom: 10px;
+            font-size: 1.8em;
+            margin-bottom: 0;
             position: relative;
             z-index: 1;
-        }
-
-        .header p {
-            opacity: 0.9;
-            font-size: 1.1em;
-            position: relative;
-            z-index: 1;
+            font-weight: 700;
         }
 
         .nav {
-            background: rgba(248, 249, 250, 0.8);
-            padding: 15px;
+            background: #3b5c6c;
+            padding: 0;
             display: flex;
             justify-content: center;
-            gap: 20px;
-            border-bottom: 1px solid rgba(0,0,0,0.1);
+            gap: 0;
+            border-bottom: none;
         }
 
         .nav-link {
             text-decoration: none;
-            color: #495057;
+            color: #cbd5e0;
             font-weight: 600;
-            padding: 10px 20px;
-            border-radius: 20px;
+            padding: 16px 32px;
             transition: all 0.3s ease;
             display: flex;
             align-items: center;
             gap: 8px;
+            flex: 1;
+            justify-content: center;
+            border-bottom: 3px solid transparent;
         }
 
         .nav-link:hover {
-            background: rgba(46, 204, 113, 0.1);
-            color: #2ecc71;
-            transform: translateY(-2px);
+            background: #3b5c6c;
+            color: #f8c098;
         }
 
         .nav-link.active {
-            background: #2ecc71;
-            color: white;
+            background: #3b5c6c;
+            color: #f8c098;
+            border-bottom-color: #f8c098;
         }
 
         .form-container {
-            padding: 40px;
+            padding: 32px 24px;
+            background: #3b5c6c;
         }
 
         .form-group {
-            margin-bottom: 25px;
+            margin-bottom: 24px;
         }
 
         .form-label {
             display: block;
             margin-bottom: 8px;
             font-weight: 600;
-            color: #495057;
-            font-size: 1.1em;
+            color: #f7fafc;
+            font-size: 0.95em;
         }
 
         .form-input {
             width: 100%;
-            padding: 18px 20px;
-            border: 2px solid #e9ecef;
-            border-radius: 15px;
+            padding: 16px 20px;
+            border: 2px solid #e2e8f0;
+            border-radius: 16px;
             font-size: 16px;
-            background: white;
+            background: #ffffff;
+            color: #2d3748;
             transition: all 0.3s ease;
             -webkit-appearance: none;
             appearance: none;
@@ -147,27 +155,114 @@
 
         .form-input:focus {
             outline: none;
-            border-color: #2ecc71;
-            box-shadow: 0 0 0 4px rgba(46, 204, 113, 0.1);
-            transform: translateY(-2px);
+            border-color: #f8c098;
+            box-shadow: 0 0 0 4px rgba(248, 192, 152, 0.2);
         }
 
         .form-input:invalid {
-            border-color: #e74c3c;
+            border-color: #fc8181;
+        }
+
+        .form-input::placeholder {
+            color: #a0aec0;
+        }
+
+        /* Autocomplete Styles */
+        .autocomplete-container {
+            position: relative;
+        }
+        
+        .autocomplete-dropdown {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: white;
+            border: 2px solid #f8c098;
+            border-top: none;
+            border-radius: 0 0 16px 16px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+            z-index: 100;
+            max-height: 300px;
+            overflow-y: auto;
+            display: none;
+        }
+        
+        .autocomplete-dropdown.show {
+            display: block;
+        }
+        
+        .autocomplete-item {
+            padding: 12px 20px;
+            cursor: pointer;
+            border-bottom: 1px solid #f1f5f9;
+            transition: all 0.2s ease;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .autocomplete-item:hover,
+        .autocomplete-item.selected {
+            background: #fef7ed;
+            color: #f8c098;
+        }
+        
+        .autocomplete-item:last-child {
+            border-bottom: none;
+        }
+        
+        .place-name {
+            font-weight: 600;
+            color: #2d3748;
+        }
+        
+        .place-info {
+            font-size: 0.85em;
+            color: #64748b;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .default-badge {
+            background: #f8c098;
+            color: #2d3748;
+            padding: 2px 6px;
+            border-radius: 6px;
+            font-size: 0.7em;
+            font-weight: 600;
+        }
+        
+        .no-results {
+            padding: 15px 20px;
+            text-align: center;
+            color: #64748b;
+            font-style: italic;
+        }
+        
+        .add-place-hint {
+            background: #f8fafc;
+            border-top: 1px solid #e2e8f0;
+            padding: 12px 20px;
+            font-size: 0.85em;
+            color: #64748b;
+            text-align: center;
         }
 
         .players-container {
-            background: rgba(46, 204, 113, 0.05);
-            border-radius: 15px;
+            background: #2a4a58;
+            border-radius: 16px;
             padding: 20px;
             margin-top: 15px;
-            border: 2px dashed rgba(46, 204, 113, 0.3);
+            border: 2px dashed #3b5c6c;
             transition: all 0.3s ease;
         }
 
         .players-container.has-players {
             border-style: solid;
-            border-color: #2ecc71;
+            border-color: #f8c098;
+            background: #2a4a58;
         }
 
         .player-input {
@@ -194,18 +289,18 @@
         }
 
         .submit-btn {
-            background: linear-gradient(135deg, #2ecc71 0%, #27ae60 100%);
-            color: white;
+            background: linear-gradient(135deg, #f8c098 0%, #f2bc91 100%);
+            color: #2d3748;
             border: none;
-            padding: 20px 40px;
-            border-radius: 15px;
-            font-size: 1.2em;
-            font-weight: 600;
+            padding: 18px 40px;
+            border-radius: 16px;
+            font-size: 1.1em;
+            font-weight: 700;
             cursor: pointer;
             width: 100%;
             transition: all 0.3s ease;
             text-transform: uppercase;
-            letter-spacing: 1px;
+            letter-spacing: 0.5px;
             position: relative;
             overflow: hidden;
         }
@@ -226,8 +321,8 @@
         }
 
         .submit-btn:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 10px 30px rgba(46, 204, 113, 0.4);
+            transform: translateY(-2px);
+            box-shadow: 0 12px 24px rgba(248, 192, 152, 0.3);
         }
 
         .submit-btn:active {
@@ -244,6 +339,7 @@
             display: none;
             text-align: center;
             padding: 20px;
+            color: #f7fafc;
         }
 
         .loading.show {
@@ -251,10 +347,10 @@
         }
 
         .spinner {
-            width: 50px;
-            height: 50px;
-            border: 4px solid #f3f3f3;
-            border-top: 4px solid #2ecc71;
+            width: 40px;
+            height: 40px;
+            border: 3px solid #3b5c6c;
+            border-top: 3px solid #f8c098;
             border-radius: 50%;
             animation: spin 1s linear infinite;
             margin: 0 auto 15px;
@@ -266,17 +362,27 @@
         }
 
         .error-message {
-            background: #ffe6e6;
-            color: #c62828;
-            padding: 15px;
-            border-radius: 10px;
+            background: #2a4a58;
+            color: #fc8181;
+            padding: 16px;
+            border-radius: 12px;
             margin-bottom: 20px;
-            border: 1px solid #ffcdd2;
+            border: 1px solid #fc8181;
             display: none;
+            font-size: 0.9em;
         }
 
         .error-message.show {
             display: block;
+        }
+
+        .fallback-icon {
+            font-size: 45px;
+            margin: 0 auto 8px;
+            text-align: center;
+            animation: bounce 2s ease-in-out infinite;
+            position: relative;
+            z-index: 1;
         }
 
         /* Mobile Optimierung */
@@ -287,11 +393,18 @@
             }
             
             .header {
-                padding: 30px 20px;
+                padding: 12px 20px 10px;
+            }
+            
+            .gopher-icon {
+                width: 35px;
+                height: 35px;
+                margin-bottom: 6px;
             }
             
             .header h1 {
-                font-size: 2em;
+                font-size: 1.4em;
+                margin-bottom: 0;
             }
             
             .form-container {
@@ -299,12 +412,18 @@
             }
             
             .nav {
-                flex-direction: column;
-                gap: 10px;
+                gap: 0;
             }
             
             .nav-link {
                 justify-content: center;
+                padding: 12px 16px;
+                font-size: 0.9em;
+            }
+
+            .fallback-icon {
+                font-size: 30px;
+                margin-bottom: 6px;
             }
         }
 
@@ -319,8 +438,15 @@
 <body>
     <div class="container">
         <div class="header">
-            <h1>🏌️ Minigolf Scorer</h1>
-            <p>Starte ein neues Spiel</p>
+            <!-- Gopher Icon aus static Ordner -->
+            <img src="/static/gopher_main.png" 
+                 alt="🐹 Gopher Maskottchen" 
+                 class="gopher-icon" 
+                 id="gopherIcon"
+                 onerror="console.log('Bild nicht gefunden:', this.src); this.style.display='none'; document.getElementById('fallbackIcon').style.display='block';">
+            <div id="fallbackIcon" class="fallback-icon" style="display: none;">🐹</div>
+            
+            <h1>Gopher Minigolf</h1>
         </div>
 
         <div class="nav">
@@ -330,6 +456,9 @@
             <a href="/history" class="nav-link">
                 📜 History
             </a>
+            <a href="/settings" class="nav-link">
+                ⚙️ Settings
+            </a>
         </div>
 
         <div class="form-container">
@@ -338,8 +467,20 @@
             <form id="startForm">
                 <div class="form-group">
                     <label class="form-label">🏌️ Minigolf-Platz</label>
-                    <input type="text" class="form-input" name="place" required 
-                           placeholder="z.B. Bülach, Adventure Golf..." value="Bülach">
+                    <div class="autocomplete-container">
+                        <input type="text" 
+                               class="form-input" 
+                               name="place" 
+                               id="placeInput"
+                               required 
+                               placeholder="Platz auswählen oder neuen eingeben..."
+                               autocomplete="off"
+                               value="Bülach">
+                        
+                        <div class="autocomplete-dropdown" id="autocompleteDropdown">
+                            <!-- Autocomplete Optionen werden hier dynamisch geladen -->
+                        </div>
+                    </div>
                 </div>
 
                 <div class="form-group">
@@ -379,6 +520,17 @@
         // Heutiges Datum setzen
         document.querySelector('input[name="date"]').valueAsDate = new Date();
 
+        // Debug: Prüfe ob das richtige Bild geladen wird
+        document.getElementById('gopherIcon').onload = function() {
+            console.log('✅ Gopher Icon erfolgreich geladen!');
+        };
+        
+        document.getElementById('gopherIcon').onerror = function() {
+            console.log('❌ Gopher Icon konnte nicht geladen werden. Fallback wird angezeigt.');
+            this.style.display = 'none';
+            document.getElementById('fallbackIcon').style.display = 'block';
+        };
+
         // Spieler-Eingaben dynamisch erstellen
         document.getElementById('playerCount').addEventListener('input', function() {
             const count = parseInt(this.value);
@@ -414,6 +566,177 @@
             }
         });
 
+        // Places Autocomplete System
+        let availablePlaces = [];
+        let selectedPlaceId = null;
+        let currentFocus = -1;
+        
+        // Load Places für Autocomplete
+        async function loadPlaces() {
+            try {
+                const response = await fetch('/api/places');
+                const data = await response.json();
+                
+                if (data.status === 'success') {
+                    availablePlaces = data.places;
+                    console.log('✅ Places loaded for autocomplete:', availablePlaces.length);
+                } else {
+                    console.log('⚠️ Places API returned error:', data.message);
+                }
+            } catch (error) {
+                console.log('⚠️ Failed to load places (using fallback):', error);
+                // Fallback: Continue without autocomplete
+            }
+        }
+        
+        // Autocomplete Event Listeners
+        const placeInput = document.getElementById('placeInput');
+        const dropdown = document.getElementById('autocompleteDropdown');
+        
+        placeInput.addEventListener('input', function() {
+            const query = this.value.toLowerCase().trim();
+            selectedPlaceId = null; // Reset selection when typing
+            
+            if (query.length === 0) {
+                hideDropdown();
+                return;
+            }
+            
+            showAutocomplete(query);
+        });
+        
+        placeInput.addEventListener('focus', function() {
+            if (this.value.trim().length > 0) {
+                showAutocomplete(this.value.toLowerCase().trim());
+            }
+        });
+        
+        // Keyboard Navigation
+        placeInput.addEventListener('keydown', function(e) {
+            const items = dropdown.querySelectorAll('.autocomplete-item:not(.no-results):not(.add-place-hint)');
+            
+            if (e.key === 'ArrowDown') {
+                e.preventDefault();
+                currentFocus++;
+                if (currentFocus >= items.length) currentFocus = 0;
+                updateFocus(items);
+            } else if (e.key === 'ArrowUp') {
+                e.preventDefault();
+                currentFocus--;
+                if (currentFocus < 0) currentFocus = items.length - 1;
+                updateFocus(items);
+            } else if (e.key === 'Enter') {
+                e.preventDefault();
+                if (currentFocus >= 0 && items[currentFocus]) {
+                    selectPlace(items[currentFocus]);
+                }
+            } else if (e.key === 'Escape') {
+                hideDropdown();
+                this.blur();
+            }
+        });
+        
+        // Click outside to close
+        document.addEventListener('click', function(e) {
+            if (!e.target.closest('.autocomplete-container')) {
+                hideDropdown();
+            }
+        });
+        
+        function showAutocomplete(query) {
+            const matches = availablePlaces.filter(place => 
+                place.name.toLowerCase().includes(query)
+            );
+            
+            // Sort: Default places first, then alphabetically
+            matches.sort((a, b) => {
+                if (a.is_default !== b.is_default) {
+                    return b.is_default - a.is_default;
+                }
+                return a.name.localeCompare(b.name);
+            });
+            
+            renderDropdown(matches, query);
+            dropdown.classList.add('show');
+            currentFocus = -1;
+        }
+        
+        function renderDropdown(matches, query) {
+            dropdown.innerHTML = '';
+            
+            if (matches.length > 0) {
+                matches.forEach(place => {
+                    const item = document.createElement('div');
+                    item.className = 'autocomplete-item';
+                    item.dataset.placeId = place.id;
+                    item.onclick = () => selectPlace(item);
+                    
+                    item.innerHTML = `
+                        <div>
+                            <div class="place-name">${place.name}</div>
+                        </div>
+                        <div class="place-info">
+                            <span>⛳ ${place.track_count}</span>
+                            ${place.is_default ? '<span class="default-badge">Standard</span>' : ''}
+                        </div>
+                    `;
+                    
+                    dropdown.appendChild(item);
+                });
+            } else {
+                // No matches found
+                const noResults = document.createElement('div');
+                noResults.className = 'no-results';
+                noResults.innerHTML = `Kein Platz "${query}" gefunden`;
+                dropdown.appendChild(noResults);
+            }
+            
+            // Add hint for new places
+            const hint = document.createElement('div');
+            hint.className = 'add-place-hint';
+            hint.innerHTML = `💡 Neuer Platz? Einfach Name eingeben und Spiel starten!`;
+            dropdown.appendChild(hint);
+        }
+        
+        function selectPlace(item) {
+            const placeId = parseInt(item.dataset.placeId);
+            const place = availablePlaces.find(p => p.id === placeId);
+            
+            if (place) {
+                placeInput.value = place.name;
+                selectedPlaceId = place.id;
+                
+                // Update track count automatically
+                document.querySelector('input[name="tracks"]').value = place.track_count;
+                
+                console.log(`✅ Selected place: ${place.name} (${place.track_count} tracks)`);
+            }
+            
+            hideDropdown();
+            
+            // Focus next input (date or players)
+            const nextInput = document.querySelector('input[name="date"]') || 
+                             document.getElementById('playerCount');
+            if (nextInput) {
+                nextInput.focus();
+            }
+        }
+        
+        function updateFocus(items) {
+            // Remove previous focus
+            items.forEach(item => item.classList.remove('selected'));
+            
+            // Add focus to current item
+            if (currentFocus >= 0 && items[currentFocus]) {
+                items[currentFocus].classList.add('selected');
+            }
+        }
+        
+        function hideDropdown() {
+            dropdown.classList.remove('show');
+            currentFocus = -1;
+        }
+
         // Form Submit
         document.getElementById('startForm').addEventListener('submit', async function(e) {
             e.preventDefault();
@@ -429,10 +752,15 @@
             
             try {
                 const formData = new FormData(e.target);
-                const place = formData.get('place');
+                const place = formData.get('place').trim();
                 const date = formData.get('date');
                 const track_count = parseInt(formData.get('tracks'));
                 const playerCount = parseInt(formData.get('players'));
+
+                // Validate place name
+                if (!place) {
+                    throw new Error('Bitte gib einen Minigolf-Platz ein');
+                }
 
                 // Spieler sammeln
                 const players = [];
@@ -444,7 +772,13 @@
                     players.push({ name: name.trim() });
                 }
 
-                const data = { place, date, track_count, players };
+                const data = { 
+                    place, 
+                    date, 
+                    track_count, 
+                    players,
+                    place_id: selectedPlaceId // Include selected place ID if available
+                };
 
                 const response = await fetch('/save', {
                     method: 'POST',
@@ -461,6 +795,7 @@
                 const result = await response.json();
 
                 if (result.status === 'success') {
+                    console.log(`✅ Game created with place_id: ${result.place_id}`);
                     // Erfolg - weiterleiten
                     window.location.href = `/score/${result.game_id}`;
                 } else {
@@ -481,11 +816,19 @@
         document.querySelectorAll('.form-input').forEach(input => {
             input.addEventListener('blur', function() {
                 if (this.checkValidity()) {
-                    this.style.borderColor = '#2ecc71';
+                    this.style.borderColor = '#f8c098';
                 } else {
-                    this.style.borderColor = '#e74c3c';
+                    this.style.borderColor = '#fc8181';
                 }
             });
+        });
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            // Load places for autocomplete
+            loadPlaces();
+            
+            console.log('🚀 Index page with Places Autocomplete loaded');
         });
     </script>
 </body>

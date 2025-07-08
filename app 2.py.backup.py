@@ -5,7 +5,6 @@ from sqlalchemy import text
 import json
 import os
 import logging
-import glob
 from datetime import datetime
 from dotenv import load_dotenv
 
@@ -254,23 +253,19 @@ def check_tables_exist():
         return False
 
 def initialize_default_data():
-    """Setup default Track Types - UPDATED VERSION WITH CORRECT ICONS"""
+    """Setup default Track Types - NO Standard Places"""
     
-    # 🔥 UPDATED: Track Types mit deinen tatsächlichen PNG-Dateien
+    # 1. Standard Track Types erstellen (BEHALTEN)
     default_track_types = [
         {'name': 'Standard', 'description': 'Standard Minigolf Bahn', 'icon_filename': 'bahn_placeholder.png', 'is_default': True, 'sort_order': 1},
         {'name': 'Kurve Links', 'description': 'Linkskurve', 'icon_filename': 'bahn_kurve_links.png', 'sort_order': 2},
         {'name': 'Kurve Rechts', 'description': 'Rechtskurve', 'icon_filename': 'bahn_kurve_rechts.png', 'sort_order': 3},
         {'name': 'Hindernis', 'description': 'Bahn mit Hindernis', 'icon_filename': 'bahn_hindernis.png', 'sort_order': 4},
-        {'name': 'Gerade', 'description': 'Gerade Bahn', 'icon_filename': 'gerade.png', 'sort_order': 5},
-        {'name': 'Berg', 'description': 'Berg-Bahn', 'icon_filename': 'berg.png', 'sort_order': 6},
-        {'name': 'Loop', 'description': 'Loop-Bahn', 'icon_filename': 'loop.png', 'sort_order': 7},
-        {'name': 'Rampe', 'description': 'Rampen-Bahn', 'icon_filename': 'rampe.png', 'sort_order': 8},
-        {'name': 'Tunnel', 'description': 'Tunnel-Bahn', 'icon_filename': 'tunnel.png', 'sort_order': 9},
-        {'name': 'S-Kurve', 'description': 'S-Kurven-Bahn', 'icon_filename': 's_kurve.png', 'sort_order': 10},
-        {'name': 'Rechtskurve Alt', 'description': 'Alternative Rechtskurve', 'icon_filename': 'rechtskurve.png', 'sort_order': 11},
-        {'name': 'Linkskurve Alt', 'description': 'Alternative Linkskurve', 'icon_filename': 'linkskurve.png', 'sort_order': 12},
-        {'name': 'Hindernis Alt', 'description': 'Alternative Hindernis-Bahn', 'icon_filename': 'hindernis.png', 'sort_order': 13},
+        {'name': 'Brücke', 'description': 'Brücken-Bahn', 'icon_filename': 'bahn_bruecke.png', 'sort_order': 5},
+        {'name': 'Windmühle', 'description': 'Bahn mit Windmühle', 'icon_filename': 'windmill.png', 'sort_order': 6},
+        {'name': 'Rampe', 'description': 'Rampen-Bahn', 'icon_filename': 'ramp.png', 'sort_order': 7},
+        {'name': 'Tunnel', 'description': 'Tunnel-Bahn', 'icon_filename': 'tunnel.png', 'sort_order': 8},
+        {'name': 'Unbekannt', 'description': 'Platzhalter für unbekannte Bahn-Typen', 'icon_filename': 'bahn_placeholder.png', 'is_placeholder': True, 'sort_order': 99},
     ]
     
     for tt_data in default_track_types:
@@ -280,7 +275,7 @@ def initialize_default_data():
             db.session.add(track_type)
     
     db.session.commit()
-    log_action("Track Types initialized with correct PNG files")
+    log_action("Track Types initialized - NO standard places created")
 
 
 def migrate_legacy_games():
@@ -429,144 +424,6 @@ def initdb():
         logger.error(f"❌ Manual database init error: {str(e)}")
         return f"<h1>Database Error</h1><p>{str(e)}</p>", 500
 
-@app.route('/reset-dev-db')
-def reset_dev_db():
-    """Development only: Force reset database"""
-    if is_production():
-        log_action("Unauthorized reset attempt blocked")
-        return jsonify({'error': 'Only available in development environment'}), 403
-    
-    try:
-        log_action("Performing complete database reset")
-#        db.drop_all()
-        success = safe_database_init()
-        
-        # Reset the check flag so auto-init runs again
-        if hasattr(app, '_database_checked'):
-            delattr(app, '_database_checked')
-        
-        if success:
-            log_action("Database reset completed")
-            return "✅ Development: Database completely reset."
-        else:
-            return "❌ Database reset failed.", 500
-            
-    except Exception as e:
-        logger.error(f"❌ Reset error: {str(e)}")
-        return f"<h1>Reset Error</h1><p>{str(e)}</p>", 500
-
-# 🔥 NEW: Force Reset Track Types für Production (Render.com)
-@app.route('/force-reset-track-types')
-def force_reset_track_types():
-    """Force reset only TrackTypes - safe for production"""
-    try:
-        log_action("Force resetting TrackTypes only")
-        
-        # Delete existing track types
-        TrackType.query.delete()
-        
-        # Re-create with updated icon filenames (deine tatsächlichen PNG-Dateien)
-        default_track_types = [
-            {'name': 'Standard', 'description': 'Standard Minigolf Bahn', 'icon_filename': 'bahn_placeholder.png', 'is_default': True, 'sort_order': 1},
-            {'name': 'Kurve Links', 'description': 'Linkskurve', 'icon_filename': 'bahn_kurve_links.png', 'sort_order': 2},
-            {'name': 'Kurve Rechts', 'description': 'Rechtskurve', 'icon_filename': 'bahn_kurve_rechts.png', 'sort_order': 3},
-            {'name': 'Hindernis', 'description': 'Bahn mit Hindernis', 'icon_filename': 'bahn_hindernis.png', 'sort_order': 4},
-            {'name': 'Gerade', 'description': 'Gerade Bahn', 'icon_filename': 'gerade.png', 'sort_order': 5},
-            {'name': 'Berg', 'description': 'Berg-Bahn', 'icon_filename': 'berg.png', 'sort_order': 6},
-            {'name': 'Loop', 'description': 'Loop-Bahn', 'icon_filename': 'loop.png', 'sort_order': 7},
-            {'name': 'Rampe', 'description': 'Rampen-Bahn', 'icon_filename': 'rampe.png', 'sort_order': 8},
-            {'name': 'Tunnel', 'description': 'Tunnel-Bahn', 'icon_filename': 'tunnel.png', 'sort_order': 9},
-            {'name': 'S-Kurve', 'description': 'S-Kurven-Bahn', 'icon_filename': 's_kurve.png', 'sort_order': 10},
-            {'name': 'Rechtskurve Alt', 'description': 'Alternative Rechtskurve', 'icon_filename': 'rechtskurve.png', 'sort_order': 11},
-            {'name': 'Linkskurve Alt', 'description': 'Alternative Linkskurve', 'icon_filename': 'linkskurve.png', 'sort_order': 12},
-            {'name': 'Hindernis Alt', 'description': 'Alternative Hindernis-Bahn', 'icon_filename': 'hindernis.png', 'sort_order': 13},
-        ]
-        
-        for tt_data in default_track_types:
-            track_type = TrackType(**tt_data)
-            db.session.add(track_type)
-        
-        db.session.commit()
-        
-        # Get updated count
-        new_count = TrackType.query.count()
-        
-        log_action(f"TrackTypes reset completed - {new_count} types created")
-        
-        return f"""
-        <h1>✅ Track Types Reset Complete</h1>
-        <p><strong>{new_count} Track Types</strong> wurden neu erstellt mit deinen PNG-Dateien.</p>
-        <h2>🎯 Nächste Schritte:</h2>
-        <ol>
-            <li>Gehe zu <a href="/settings" style="color: #f8c098;">⚙️ Settings</a></li>
-            <li>Bearbeite einen Platz</li>
-            <li>Klicke auf ein Track-Icon</li>
-            <li>Alle deine PNGs sollten jetzt angezeigt werden!</li>
-        </ol>
-        <br>
-        <a href="/api/debug/track-icons" style="background: #3b5c6c; color: white; padding: 10px 20px; text-decoration: none; border-radius: 8px;">🔍 Debug Check</a>
-        <a href="/settings" style="background: #f8c098; color: #2d3748; padding: 10px 20px; text-decoration: none; border-radius: 8px; margin-left: 10px;">⚙️ Settings</a>
-        """
-        
-    except Exception as e:
-        db.session.rollback()
-        logger.error(f"❌ Force reset error: {str(e)}")
-        return f"<h1>Reset Error</h1><p>{str(e)}</p>", 500
-
-# 🔥 NEW: Debug Endpoint für Track Icons
-@app.route('/api/debug/track-icons')
-def debug_track_icons():
-    """Debug endpoint to check track icon files vs database"""
-    try:
-        # Get all PNG files in track-icons directory
-        icon_files = []
-        try:
-            # Render.com path
-            icon_path = os.path.join(os.path.dirname(__file__), 'static', 'track-icons', '*.png')
-            png_files = glob.glob(icon_path)
-            icon_files = [os.path.basename(f) for f in png_files]
-        except Exception as e:
-            logger.error(f"Error reading icon files: {e}")
-        
-        # Get TrackTypes from database
-        track_types_db = []
-        try:
-            track_types = TrackType.query.all()
-            track_types_db = [{
-                'id': tt.id,
-                'name': tt.name,
-                'icon_filename': tt.icon_filename,
-                'icon_url': tt.icon_url,
-                'exists': tt.icon_filename in icon_files
-            } for tt in track_types]
-        except Exception as e:
-            logger.error(f"Error reading track types: {e}")
-        
-        # Find missing files
-        expected_files = [tt['icon_filename'] for tt in track_types_db]
-        missing_files = [f for f in expected_files if f not in icon_files]
-        extra_files = [f for f in icon_files if f not in expected_files]
-        
-        debug_info = {
-            'status': 'success',
-            'render_environment': os.environ.get('ENVIRONMENT', 'not_set'),
-            'files_found': sorted(icon_files),
-            'track_types': track_types_db,
-            'missing_files': missing_files,
-            'extra_files': extra_files,
-            'files_count': len(icon_files),
-            'track_types_count': len(track_types_db),
-            'issues': len(missing_files) > 0,
-            'icon_path_checked': os.path.join(os.path.dirname(__file__), 'static', 'track-icons'),
-            'timestamp': datetime.utcnow().isoformat()
-        }
-        
-        return jsonify(debug_info)
-        
-    except Exception as e:
-        logger.error(f"❌ Debug track icons error: {str(e)}")
-        return jsonify({'status': 'error', 'message': str(e)}), 500
-
 @app.route('/db-info')
 def db_info():
     """Database information and statistics"""
@@ -613,69 +470,6 @@ def db_info():
     except Exception as e:
         logger.error(f"❌ DB info error: {str(e)}")
         return jsonify({'error': str(e)}), 500
-
-@app.route('/cleanup-standard-places')
-def cleanup_standard_places():
-    """Development/Admin: Remove all standard places that were auto-created"""
-    try:
-        if is_production():
-            return jsonify({'error': 'Not available in production'}), 403
-        
-        # Liste der Standard-Places die entfernt werden sollen
-        standard_place_names = [
-            'Bülach',
-            'Zürich Minigolf', 
-            'Winterthur Adventure Golf',
-            'Rapperswil Minigolf',
-            'Bülach Adventure Golf',
-            'Minigolf Zürich',
-            'Fun Golf Winterthur'
-        ]
-        
-        deleted_count = 0
-        deleted_places = []
-        
-        for place_name in standard_place_names:
-            place = Place.query.filter_by(name=place_name).first()
-            if place:
-                # Prüfe ob Place in Games verwendet wird
-                games_count = Game.query.filter_by(place_id=place.id).count()
-                
-                if games_count == 0:
-                    # Sicher zu löschen - keine Games verwenden diesen Place
-                    deleted_places.append(f"{place.name} ({place.track_count} Bahnen)")
-                    db.session.delete(place)
-                    deleted_count += 1
-                else:
-                    deleted_places.append(f"⚠️ {place.name} BEHALTEN (wird von {games_count} Spielen verwendet)")
-        
-        db.session.commit()
-        
-        result_html = f"""
-        <h1>🧹 Standard Places Cleanup</h1>
-        <h2>✅ Ergebnis:</h2>
-        <p><strong>{deleted_count} Places gelöscht</strong></p>
-        <ul>
-        """
-        
-        for place_info in deleted_places:
-            result_html += f"<li>{place_info}</li>"
-        
-        result_html += """
-        </ul>
-        <br>
-        <a href="/settings" style="background: #f8c098; color: #2d3748; padding: 10px 20px; text-decoration: none; border-radius: 8px;">⚙️ Zu Settings</a>
-        <a href="/" style="background: #3b5c6c; color: white; padding: 10px 20px; text-decoration: none; border-radius: 8px; margin-left: 10px;">🏠 Home</a>
-        """
-        
-        log_action(f"Cleanup: {deleted_count} standard places removed")
-        
-        return result_html
-        
-    except Exception as e:
-        db.session.rollback()
-        logger.error(f"❌ Cleanup error: {str(e)}")
-        return f"<h1>Cleanup Error</h1><p>{str(e)}</p>", 500        
 
 # ------------------------------
 # Main Application Routes
@@ -952,75 +746,217 @@ def game_results(game_id):
         logger.error(f"❌ Results error: {str(e)}")
         return f"<h1>Error</h1><p>Game not found or error loading results.</p>", 404
 
+@app.route('/settings')
+def settings():
+    """Settings page with real data"""
+    try:
+        # Get current statistics
+        stats = {
+            'places_count': Place.query.count(),
+            'track_types_count': TrackType.query.count(),
+            'games_count': Game.query.count(),
+            'players_count': Player.query.count(),
+            'scores_count': Score.query.count()
+        }
+        
+        # Get places and track types for settings
+        places = Place.query.order_by(Place.is_default.desc(), Place.name).all()
+        track_types = TrackType.query.order_by(TrackType.sort_order).all()
+        
+        return render_template('settings.html', 
+                             stats=stats, 
+                             places=places, 
+                             track_types=track_types)
+        
+    except Exception as e:
+        logger.error(f"❌ Settings page error: {str(e)}")
+        return f"<h1>Settings</h1><p>Error loading settings: {str(e)}</p>", 500
+
+@app.route('/cleanup-standard-places')
+def cleanup_standard_places():
+    """Development/Admin: Remove all standard places that were auto-created"""
+    try:
+        if is_production():
+            return jsonify({'error': 'Not available in production'}), 403
+        
+        # Liste der Standard-Places die entfernt werden sollen
+        standard_place_names = [
+            'Bülach',
+            'Zürich Minigolf', 
+            'Winterthur Adventure Golf',
+            'Rapperswil Minigolf',
+            'Bülach Adventure Golf',
+            'Minigolf Zürich',
+            'Fun Golf Winterthur'
+        ]
+        
+        deleted_count = 0
+        deleted_places = []
+        
+        for place_name in standard_place_names:
+            place = Place.query.filter_by(name=place_name).first()
+            if place:
+                # Prüfe ob Place in Games verwendet wird
+                games_count = Game.query.filter_by(place_id=place.id).count()
+                
+                if games_count == 0:
+                    # Sicher zu löschen - keine Games verwenden diesen Place
+                    deleted_places.append(f"{place.name} ({place.track_count} Bahnen)")
+                    db.session.delete(place)
+                    deleted_count += 1
+                else:
+                    deleted_places.append(f"⚠️ {place.name} BEHALTEN (wird von {games_count} Spielen verwendet)")
+        
+        db.session.commit()
+        
+        result_html = f"""
+        <h1>🧹 Standard Places Cleanup</h1>
+        <h2>✅ Ergebnis:</h2>
+        <p><strong>{deleted_count} Places gelöscht</strong></p>
+        <ul>
+        """
+        
+        for place_info in deleted_places:
+            result_html += f"<li>{place_info}</li>"
+        
+        result_html += """
+        </ul>
+        <br>
+        <a href="/settings" style="background: #f8c098; color: #2d3748; padding: 10px 20px; text-decoration: none; border-radius: 8px;">⚙️ Zu Settings</a>
+        <a href="/" style="background: #3b5c6c; color: white; padding: 10px 20px; text-decoration: none; border-radius: 8px; margin-left: 10px;">🏠 Home</a>
+        """
+        
+        log_action(f"Cleanup: {deleted_count} standard places removed")
+        
+        return result_html
+        
+    except Exception as e:
+        db.session.rollback()
+        logger.error(f"❌ Cleanup error: {str(e)}")
+        return f"<h1>Cleanup Error</h1><p>{str(e)}</p>", 500
+
 # ------------------------------
-# API ENDPOINTS (COMPLETE VERSION WITH ALL CRUD OPERATIONS)
+# API ENDPOINTS - CRASH-SAFE VERSIONS
 # ------------------------------
 
 @app.route('/api/places', methods=['GET'])
 def get_places():
-    """Real places API for autocomplete"""
+    """Get all places - CRASH-SAFE VERSION"""
     try:
-        places = Place.query.order_by(Place.is_default.desc(), Place.name).all()
+        # Basic health checks first
+        if not check_database_connection():
+            logger.error("Database not connected in get_places")
+            return jsonify({
+                'status': 'error', 
+                'message': 'Database not connected',
+                'places': []
+            }), 503
+        
+        if not check_tables_exist():
+            logger.error("Tables don't exist in get_places")
+            return jsonify({
+                'status': 'error', 
+                'message': 'Database tables not found',
+                'places': []
+            }), 503
+        
+        # Try to get places with individual error handling
+        places = []
         places_data = []
         
+        try:
+            places = Place.query.all()
+            logger.info(f"Found {len(places)} places in database")
+        except Exception as query_error:
+            logger.error(f"Error querying places: {str(query_error)}")
+            return jsonify({
+                'status': 'error',
+                'message': f'Database query failed: {str(query_error)}',
+                'places': []
+            }), 500
+        
+        # Process each place safely
         for place in places:
-            places_data.append({
-                'id': place.id,
-                'name': place.name,
-                'track_count': place.track_count,
-                'is_default': place.is_default,
-                'has_custom_config': len(place.place_tracks) > 0
-            })
+            try:
+                # Basic place data
+                place_data = {
+                    'id': place.id,
+                    'name': place.name,
+                    'track_count': place.track_count,
+                    'is_default': place.is_default,
+                    'has_custom_config': False  # Default value
+                }
+                
+                # Try to get track config info safely
+                try:
+                    if hasattr(place, 'place_tracks') and place.place_tracks:
+                        place_data['has_custom_config'] = len(place.place_tracks) > 0
+                except Exception as track_error:
+                    logger.warning(f"Error checking tracks for place {place.id}: {str(track_error)}")
+                    # Continue with default value
+                
+                places_data.append(place_data)
+                
+            except Exception as place_error:
+                logger.error(f"Error processing place {place.id}: {str(place_error)}")
+                # Skip this problematic place, continue with others
+                continue
+        
+        # Sort places safely
+        try:
+            places_data.sort(key=lambda x: (not x.get('is_default', False), x.get('name', '')))
+        except Exception as sort_error:
+            logger.warning(f"Error sorting places: {str(sort_error)}")
+            # Continue with unsorted data
+        
+        logger.info(f"Successfully processed {len(places_data)} places for API")
         
         return jsonify({
             'status': 'success',
-            'places': places_data
+            'places': places_data,
+            'count': len(places_data),
+            'total_in_db': len(places)
         })
         
     except Exception as e:
-        logger.error(f"❌ Get places error: {str(e)}")
-        return jsonify({'status': 'error', 'message': 'Failed to load places'}), 500
+        logger.error(f"❌ Critical error in get_places API: {str(e)}")
+        # Return error but don't crash the whole app
+        return jsonify({
+            'status': 'error', 
+            'message': f'Internal server error: {str(e)}',
+            'places': [],
+            'count': 0
+        }), 500
 
 @app.route('/api/places', methods=['POST'])
 def create_place():
     """Create new place"""
     try:
         data = request.get_json()
-        
         if not data or not data.get('name'):
-            return jsonify({'status': 'error', 'message': 'Name is required'}), 400
+            return jsonify({'status': 'error', 'message': 'Name required'}), 400
         
-        # Check if place already exists
-        existing = Place.query.filter_by(name=data['name']).first()
-        if existing:
+        place_name = data.get('name').strip()
+        track_count = int(data.get('track_count', 18))
+        is_default = data.get('is_default', False)
+        
+        # Check if exists
+        if Place.query.filter_by(name=place_name).first():
             return jsonify({'status': 'error', 'message': 'Place already exists'}), 400
         
-        # Create new place
-        place = Place(
-            name=data['name'],
-            track_count=data.get('track_count', 18),
-            is_default=data.get('is_default', False)
-        )
-        
-        db.session.add(place)
-        db.session.flush()  # Get ID
-        
-        # Setup default tracks
-        place.setup_default_tracks()
-        
+        # Create place
+        new_place = Place(name=place_name, track_count=track_count, is_default=is_default)
+        db.session.add(new_place)
+        db.session.flush()
+        new_place.setup_default_tracks()
         db.session.commit()
         
-        log_action(f"Place created via API: {place.name}")
-        
-        return jsonify({
-            'status': 'success',
-            'place_id': place.id,
-            'message': 'Place created successfully'
-        })
+        log_action(f"Place created via API: {place_name}")
+        return jsonify({'status': 'success', 'place_id': new_place.id})
         
     except Exception as e:
         db.session.rollback()
-        logger.error(f"❌ Create place error: {str(e)}")
+        logger.error(f"Create place error: {str(e)}")
         return jsonify({'status': 'error', 'message': str(e)}), 500
 
 @app.route('/api/places/<int:place_id>', methods=['PUT'])
@@ -1030,60 +966,20 @@ def update_place(place_id):
         place = Place.query.get_or_404(place_id)
         data = request.get_json()
         
-        if not data:
-            return jsonify({'status': 'error', 'message': 'No data provided'}), 400
-        
-        # Update place fields
-        if 'name' in data and data['name'] != place.name:
-            # Check for duplicate names
-            existing = Place.query.filter_by(name=data['name']).first()
-            if existing and existing.id != place.id:
-                return jsonify({'status': 'error', 'message': 'Place name already exists'}), 400
-            place.name = data['name']
-        
+        if 'name' in data:
+            place.name = data['name'].strip()
         if 'track_count' in data:
-            old_count = place.track_count
-            new_count = int(data['track_count'])
-            place.track_count = new_count
-            
-            # Handle track count changes
-            if new_count != old_count:
-                # Remove excess tracks
-                if new_count < old_count:
-                    excess_tracks = PlaceTrack.query.filter(
-                        PlaceTrack.place_id == place.id,
-                        PlaceTrack.track_number > new_count
-                    ).all()
-                    for track in excess_tracks:
-                        db.session.delete(track)
-                
-                # Add missing tracks
-                elif new_count > old_count:
-                    default_type = TrackType.query.filter_by(is_default=True).first()
-                    if default_type:
-                        for track_num in range(old_count + 1, new_count + 1):
-                            new_track = PlaceTrack(
-                                place=place,
-                                track_number=track_num,
-                                track_type=default_type
-                            )
-                            db.session.add(new_track)
-        
+            place.track_count = int(data['track_count'])
         if 'is_default' in data:
-            place.is_default = bool(data['is_default'])
+            place.is_default = data['is_default']
         
         db.session.commit()
-        
         log_action(f"Place updated via API: {place.name}")
-        
-        return jsonify({
-            'status': 'success',
-            'message': 'Place updated successfully'
-        })
+        return jsonify({'status': 'success'})
         
     except Exception as e:
         db.session.rollback()
-        logger.error(f"❌ Update place error: {str(e)}")
+        logger.error(f"Update place error: {str(e)}")
         return jsonify({'status': 'error', 'message': str(e)}), 500
 
 @app.route('/api/places/<int:place_id>', methods=['DELETE'])
@@ -1091,57 +987,71 @@ def delete_place_api(place_id):
     """Delete place"""
     try:
         place = Place.query.get_or_404(place_id)
-        
-        # Check if place is used in games
-        games_count = Game.query.filter_by(place_id=place.id).count()
-        if games_count > 0:
-            return jsonify({
-                'status': 'error', 
-                'message': f'Cannot delete place - it is used in {games_count} games'
-            }), 400
-        
         place_name = place.name
+        
+        # Check if used by games
+        games_count = Game.query.filter_by(place_id=place_id).count()
+        if games_count > 0:
+            return jsonify({'status': 'error', 'message': f'Place used by {games_count} games'}), 400
+        
         db.session.delete(place)
         db.session.commit()
         
         log_action(f"Place deleted via API: {place_name}")
-        
-        return jsonify({
-            'status': 'success',
-            'message': 'Place deleted successfully'
-        })
+        return jsonify({'status': 'success'})
         
     except Exception as e:
         db.session.rollback()
-        logger.error(f"❌ Delete place error: {str(e)}")
+        logger.error(f"Delete place error: {str(e)}")
         return jsonify({'status': 'error', 'message': str(e)}), 500
 
 @app.route('/api/track-types', methods=['GET'])  
 def get_track_types():
-    """Real track types API"""
+    """Get all track types - CRASH-SAFE VERSION"""
     try:
+        # Test database connection
+        if not check_database_connection():
+            return jsonify({'status': 'error', 'message': 'Database not connected'}), 503
+        
+        # Test if table exists
+        if not check_tables_exist():
+            return jsonify({'status': 'error', 'message': 'Tables do not exist'}), 503
+        
+        # Get track types
         track_types = TrackType.query.order_by(TrackType.sort_order, TrackType.name).all()
         track_types_data = []
         
         for tt in track_types:
-            track_types_data.append({
-                'id': tt.id,
-                'name': tt.name,
-                'description': tt.description,
-                'icon_url': tt.icon_url,
-                'icon_filename': tt.icon_filename,
-                'is_default': tt.is_default,
-                'is_placeholder': tt.is_placeholder
-            })
+            try:
+                track_types_data.append({
+                    'id': tt.id,
+                    'name': tt.name,
+                    'description': tt.description or '',
+                    'icon_url': tt.icon_url,
+                    'icon_filename': tt.icon_filename,
+                    'is_default': tt.is_default,
+                    'is_placeholder': tt.is_placeholder
+                })
+            except Exception as tt_error:
+                logger.error(f"Error processing track type {tt.id}: {str(tt_error)}")
+                # Skip problematic track type
+                continue
+        
+        log_action(f"API: Track types returned {len(track_types_data)} items")
         
         return jsonify({
             'status': 'success',
-            'track_types': track_types_data
+            'track_types': track_types_data,
+            'count': len(track_types_data)
         })
         
     except Exception as e:
-        logger.error(f"❌ Get track types error: {str(e)}")
-        return jsonify({'status': 'error', 'message': 'Failed to load track types'}), 500
+        logger.error(f"❌ Get track types API error: {str(e)}")
+        return jsonify({
+            'status': 'error', 
+            'message': f'API Error: {str(e)}',
+            'endpoint': '/api/track-types'
+        }), 500
 
 @app.route('/api/places/<int:place_id>/tracks')
 def get_place_track_config(place_id):
@@ -1185,136 +1095,42 @@ def get_place_track_config(place_id):
         logger.error(f"❌ Get place track config error: {str(e)}")
         return jsonify({'status': 'error', 'message': str(e)}), 500
 
-@app.route('/api/places/<int:place_id>/tracks/<int:track_number>', methods=['PUT'])
-def update_place_track_type(place_id, track_number):
-    """Update track type for specific track at place"""
-    try:
-        place = Place.query.get_or_404(place_id)
-        data = request.get_json()
-        
-        if not data or 'track_type_id' not in data:
-            return jsonify({'status': 'error', 'message': 'track_type_id is required'}), 400
-        
-        track_type_id = int(data['track_type_id'])
-        track_type = TrackType.query.get_or_404(track_type_id)
-        
-        # Find or create place track
-        place_track = PlaceTrack.query.filter_by(
-            place_id=place.id,
-            track_number=track_number
-        ).first()
-        
-        if place_track:
-            place_track.track_type = track_type
-        else:
-            place_track = PlaceTrack(
-                place=place,
-                track_number=track_number,
-                track_type=track_type
-            )
-            db.session.add(place_track)
-        
-        db.session.commit()
-        
-        log_action(f"Track {track_number} at {place.name} updated to {track_type.name}")
-        
-        return jsonify({
-            'status': 'success',
-            'message': f'Track {track_number} updated to {track_type.name}'
-        })
-        
-    except Exception as e:
-        db.session.rollback()
-        logger.error(f"❌ Update track type error: {str(e)}")
-        return jsonify({'status': 'error', 'message': str(e)}), 500
-
-@app.route('/api/places/<int:place_id>/tracks', methods=['PUT'])
-def update_place_track_config(place_id):
-    """Update complete track configuration for place"""
-    try:
-        place = Place.query.get_or_404(place_id)
-        data = request.get_json()
-        
-        if not data or 'track_config' not in data:
-            return jsonify({'status': 'error', 'message': 'track_config is required'}), 400
-        
-        track_config = data['track_config']
-        updated_tracks = 0
-        
-        for track_data in track_config:
-            track_number = track_data.get('track_number')
-            track_type_id = track_data.get('track_type_id')
-            
-            if not track_number or not track_type_id:
-                continue
-            
-            # Find or create place track
-            place_track = PlaceTrack.query.filter_by(
-                place_id=place.id,
-                track_number=track_number
-            ).first()
-            
-            track_type = TrackType.query.get(track_type_id)
-            if not track_type:
-                continue
-            
-            if place_track:
-                place_track.track_type = track_type
-            else:
-                place_track = PlaceTrack(
-                    place=place,
-                    track_number=track_number,
-                    track_type=track_type
-                )
-                db.session.add(place_track)
-            
-            updated_tracks += 1
-        
-        db.session.commit()
-        
-        log_action(f"Track configuration updated for {place.name}: {updated_tracks} tracks")
-        
-        return jsonify({
-            'status': 'success',
-            'updated_tracks': updated_tracks,
-            'message': f'Track configuration updated - {updated_tracks} tracks'
-        })
-        
-    except Exception as e:
-        db.session.rollback()
-        logger.error(f"❌ Update track config error: {str(e)}")
-        return jsonify({'status': 'error', 'message': str(e)}), 500
-
 @app.route('/api/status')
 def api_status():
     """API status endpoint"""
     return health_check()
 
-@app.route('/settings')
-def settings():
-    """Settings page with real data"""
-    try:
-        # Get current statistics
-        stats = {
-            'places_count': Place.query.count(),
-            'track_types_count': TrackType.query.count(),
-            'games_count': Game.query.count(),
-            'players_count': Player.query.count(),
-            'scores_count': Score.query.count()
-        }
-        
-        # Get places and track types for settings
-        places = Place.query.order_by(Place.is_default.desc(), Place.name).all()
-        track_types = TrackType.query.order_by(TrackType.sort_order).all()
-        
-        return render_template('settings.html', 
-                             stats=stats, 
-                             places=places, 
-                             track_types=track_types)
-        
-    except Exception as e:
-        logger.error(f"❌ Settings page error: {str(e)}")
-        return f"<h1>Settings</h1><p>Error loading settings: {str(e)}</p>", 500
+# ------------------------------
+# Debug & Test Routes
+# ------------------------------
+
+@app.route('/api-test')
+def api_test():
+    """Test API endpoints"""
+    return f"""
+    <h1>🧪 API Test</h1>
+    <p><strong>Environment:</strong> {get_environment()}</p>
+    
+    <h2>📋 Test API Endpoints:</h2>
+    <ul>
+        <li><a href="/api/places" target="_blank">📍 GET /api/places</a></li>
+        <li><a href="/api/track-types" target="_blank">🎯 GET /api/track-types</a></li>
+        <li><a href="/api/status" target="_blank">❤️ GET /api/status</a></li>
+        <li><a href="/health" target="_blank">🏥 GET /health</a></li>
+        <li><a href="/db-info" target="_blank">📊 GET /db-info</a></li>
+    </ul>
+    
+    <h2>⚙️ Next Steps:</h2>
+    <ol>
+        <li>Verify all APIs return JSON</li>
+        <li><a href="/settings">Test Settings Page</a></li>
+        <li>Create/Edit/Delete places to test persistence</li>
+    </ol>
+    
+    <br>
+    <a href="/settings" style="background: #f8c098; color: #2d3748; padding: 10px 20px; text-decoration: none; border-radius: 8px;">⚙️ Settings</a>
+    <a href="/" style="background: #3b5c6c; color: white; padding: 10px 20px; text-decoration: none; border-radius: 8px; margin-left: 10px;">🏠 Home</a>
+    """
 
 # ------------------------------
 # Error Handlers
@@ -1323,14 +1139,14 @@ def settings():
 @app.errorhandler(404)
 def not_found_error(error):
     """Handle 404 errors"""
-    return render_template('404.html'), 404
+    return f"<h1>404 - Page Not Found</h1><p>The requested page was not found.</p><a href='/'>🏠 Home</a>", 404
 
 @app.errorhandler(500)
 def internal_error(error):
     """Handle 500 errors"""
     db.session.rollback()
     logger.error(f"❌ Internal server error: {str(error)}")
-    return render_template('500.html'), 500
+    return f"<h1>500 - Internal Server Error</h1><p>Something went wrong.</p><a href='/'>🏠 Home</a>", 500
 
 @app.errorhandler(Exception)
 def handle_exception(e):
@@ -1343,7 +1159,7 @@ def handle_exception(e):
     else:
         # In production, show generic error page
         db.session.rollback()
-        return f"<h1>🏌️ Gopher Minigolf</h1><p>Something went wrong. Please try again.</p>", 500
+        return f"<h1>🏌️ Gopher Minigolf</h1><p>Something went wrong. Please try again.</p><a href='/'>🏠 Home</a>", 500
 
 # ------------------------------
 # Application Startup & Initialization
