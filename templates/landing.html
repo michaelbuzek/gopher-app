@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <meta name="apple-mobile-web-app-title" content="Gopher Games">
+    <title>🎮 Gopher Games</title>
+    <style>
+        :root {
+            --primary-blue: #3b5c6c;
+            --accent-orange: #f8c098;
+            --orange-light: #f2bc91;
+            --blue-dark: #2a4a58;
+            --bg-main: #f7f4f1;
+            --bg-white: #ffffff;
+            --text-dark: #2d3748;
+            --text-light: #cbd5e0;
+            --text-placeholder: #a0aec0;
+            --border-light: #e2e8f0;
+            --scrabble-purple: #b794f6;
+            --scrabble-purple-dark: #9f7aea;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, var(--bg-main) 0%, #ede8e3 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            color: var(--text-dark);
+        }
+
+        .container {
+            text-align: center;
+            max-width: 800px;
+            width: 100%;
+        }
+
+        .header {
+            margin-bottom: 50px;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            color: var(--primary-blue);
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+
+        .header p {
+            font-size: 1.1em;
+            color: var(--text-placeholder);
+        }
+
+        .games-grid {
+            display: flex;
+            justify-content: center;
+            gap: 40px;
+            flex-wrap: wrap;
+        }
+
+        .game-card {
+            background: var(--bg-white);
+            border-radius: 24px;
+            padding: 40px 50px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08);
+            transition: all 0.4s ease;
+            cursor: pointer;
+            text-decoration: none;
+            color: inherit;
+            border: 3px solid transparent;
+            min-width: 280px;
+        }
+
+        .game-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+        }
+
+        .game-card.minigolf:hover {
+            border-color: var(--accent-orange);
+            box-shadow: 0 20px 60px rgba(248, 192, 152, 0.3);
+        }
+
+        .game-card.scrabble:hover {
+            border-color: var(--scrabble-purple);
+            box-shadow: 0 20px 60px rgba(183, 148, 246, 0.3);
+        }
+
+        .game-icon {
+            width: 120px;
+            height: 120px;
+            margin: 0 auto 25px;
+            border-radius: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.4s ease;
+        }
+
+        .game-card.minigolf .game-icon {
+            background: linear-gradient(135deg, var(--accent-orange) 0%, var(--orange-light) 100%);
+        }
+
+        .game-card.scrabble .game-icon {
+            background: linear-gradient(135deg, var(--scrabble-purple) 0%, var(--scrabble-purple-dark) 100%);
+        }
+
+        .game-icon img {
+            width: 80px;
+            height: 80px;
+            object-fit: contain;
+            filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.1));
+        }
+
+        .game-card:hover .game-icon {
+            transform: scale(1.05) rotate(-3deg);
+        }
+
+        .game-title {
+            font-size: 1.6em;
+            font-weight: 700;
+            margin-bottom: 8px;
+            color: var(--primary-blue);
+        }
+
+        .game-card.scrabble .game-title {
+            color: var(--scrabble-purple-dark);
+        }
+
+        .game-description {
+            font-size: 0.95em;
+            color: var(--text-placeholder);
+            line-height: 1.5;
+        }
+
+        .game-badge {
+            display: inline-block;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 0.75em;
+            font-weight: 600;
+            margin-top: 15px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .game-card.minigolf .game-badge {
+            background: rgba(248, 192, 152, 0.2);
+            color: var(--orange-light);
+        }
+
+        .game-card.scrabble .game-badge {
+            background: rgba(183, 148, 246, 0.2);
+            color: var(--scrabble-purple-dark);
+        }
+
+        .footer {
+            margin-top: 60px;
+            color: var(--text-placeholder);
+            font-size: 0.85em;
+        }
+
+        .footer a {
+            color: var(--primary-blue);
+            text-decoration: none;
+        }
+
+        .footer a:hover {
+            text-decoration: underline;
+        }
+
+        /* Animations */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .header {
+            animation: fadeInUp 0.6s ease-out;
+        }
+
+        .game-card.minigolf {
+            animation: fadeInUp 0.6s ease-out 0.2s both;
+        }
+
+        .game-card.scrabble {
+            animation: fadeInUp 0.6s ease-out 0.4s both;
+        }
+
+        .footer {
+            animation: fadeInUp 0.6s ease-out 0.6s both;
+        }
+
+        /* Mobile */
+        @media (max-width: 700px) {
+            .header h1 {
+                font-size: 2em;
+            }
+
+            .games-grid {
+                flex-direction: column;
+                gap: 25px;
+                align-items: center;
+            }
+
+            .game-card {
+                padding: 30px 40px;
+                min-width: unset;
+                width: 100%;
+                max-width: 320px;
+            }
+
+            .game-icon {
+                width: 100px;
+                height: 100px;
+            }
+
+            .game-icon img {
+                width: 65px;
+                height: 65px;
+            }
+
+            .game-title {
+                font-size: 1.4em;
+            }
+        }
+
+        /* Hover-Effekt für Touch-Geräte deaktivieren */
+        @media (hover: none) {
+            .game-card:hover {
+                transform: none;
+                box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08);
+            }
+
+            .game-card:active {
+                transform: scale(0.98);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎮 Gopher Games</h1>
+            <p>Wähle dein Spiel</p>
+        </div>
+
+        <div class="games-grid">
+            <!-- Minigolf Card -->
+            <a href="/minigolf" class="game-card minigolf">
+                <div class="game-icon">
+                    <img src="/static/gopher_main.png" alt="🐿️ Minigolf" 
+                         onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2280%22>⛳</text></svg>'">
+                </div>
+                <div class="game-title">Minigolf</div>
+                <div class="game-description">
+                    Score-Tracking für eure<br>Minigolf-Runden
+                </div>
+                <div class="game-badge">1-8 Spieler</div>
+            </a>
+
+            <!-- Scrabble Card -->
+            <a href="/scrabble" class="game-card scrabble">
+                <div class="game-icon">
+                    <img src="/static/scapp_main_logo_4page.png" alt="🎯 Scrabble" 
+                         onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2280%22>🎯</text></svg>'">
+                </div>
+                <div class="game-title">Scrabble</div>
+                <div class="game-description">
+                    Punkte-Zähler für<br>Scrabble-Duelle
+                </div>
+                <div class="game-badge">2 Spieler</div>
+            </a>
+        </div>
+
+        <div class="footer">
+            <p>Made with ❤️ by Manu & Misch</p>
+        </div>
+    </div>
+
+    <script>
+        console.log('🎮 Gopher Games Landing Page loaded');
+    </script>
+</body>
+</html>

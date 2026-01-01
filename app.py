@@ -681,10 +681,23 @@ def cleanup_standard_places():
 # Main Application Routes
 # ------------------------------
 
+# --- LANDING PAGE ---
 @app.route('/')
-def index():
-    """Main page"""
+def landing():
+    """Landing page - Game selection"""
+    return render_template('landing.html')
+
+# --- MINIGOLF ---
+@app.route('/minigolf')
+def minigolf_index():
+    """Minigolf - New game page"""
     return render_template('index.html')
+
+# --- SCRABBLE ---
+@app.route('/scrabble')
+def scrabble():
+    """Scrabble Score App"""
+    return render_template('scrabble.html')
 
 @app.route('/save', methods=['POST'])
 def save():
