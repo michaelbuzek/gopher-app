@@ -821,7 +821,7 @@ def update_score():
         value = int(data['value'])
         
         # Validate score value
-        if value < 0 or value > 20:  # Reasonable limits
+        if value < 0 or value > 999:  # Reasonable limits
             return jsonify({'status': 'error', 'message': 'Score must be between 0 and 20'}), 400
         
         # Find and update score

@@ -363,7 +363,7 @@
             transform: translateY(0);
         }
 
-        /* Numpad bleibt gleich aber heller */
+        /* Numpad Styles */
         .numpad-overlay {
             position: fixed;
             top: 0;
@@ -397,6 +397,29 @@
             font-weight: 600;
         }
 
+        /* NEU: Anzeige der aktuellen Eingabe */
+        .numpad-display {
+            text-align: center;
+            margin-bottom: 12px;
+            padding: 8px 12px;
+            background: #f8fafc;
+            border-radius: 8px;
+            border: 2px solid #e2e8f0;
+            font-size: 1.5em;
+            font-weight: 700;
+            color: #3b5c6c;
+            min-height: 45px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .numpad-display.has-value {
+            background: #f8c098;
+            border-color: #f2bc91;
+            color: #2d3748;
+        }
+
         .numpad-grid {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
@@ -424,7 +447,7 @@
             transform: scale(1.05);
         }
 
-        /* GEÄNDERT: 0 nimmt jetzt die ganze untere Zeile ein (3 Spalten) */
+        /* 0 nimmt die ganze untere Zeile ein (3 Spalten) */
         .numpad-btn.zero {
             grid-column: span 3;
             width: auto;
@@ -437,7 +460,7 @@
         }
 
         .numpad-action {
-            padding: 8px;
+            padding: 10px;
             border: none;
             border-radius: 6px;
             font-weight: 600;
@@ -455,13 +478,14 @@
             background: #cbd5e1;
         }
 
-        .numpad-clear {
-            background: #fecaca;
-            color: #dc2626;
+        /* NEU: OK Button (grün) */
+        .numpad-ok {
+            background: #10b981;
+            color: white;
         }
 
-        .numpad-clear:hover {
-            background: #fca5a5;
+        .numpad-ok:hover {
+            background: #059669;
         }
 
         /* Mobile Optimierung */
@@ -599,10 +623,11 @@
         </div>
     </div>
 
-    <!-- Numpad Overlay - GEÄNDERT: 10+ Button entfernt -->
+    <!-- Numpad Overlay - GEÄNDERT: Löschen entfernt, OK hinzugefügt -->
     <div class="numpad-overlay" id="numpadOverlay">
         <div class="numpad">
             <div class="numpad-header">Score eingeben</div>
+            <div class="numpad-display" id="numpadDisplay">–</div>
             <div class="numpad-grid">
                 <button class="numpad-btn" data-number="1">1</button>
                 <button class="numpad-btn" data-number="2">2</button>
@@ -617,7 +642,7 @@
             </div>
             <div class="numpad-actions">
                 <button class="numpad-action numpad-cancel">Abbrechen</button>
-                <button class="numpad-action numpad-clear">Löschen</button>
+                <button class="numpad-action numpad-ok">OK</button>
             </div>
         </div>
     </div>
@@ -629,6 +654,8 @@
 
     <script>
         let currentInput = null;
+        let originalValue = ''; // Speichert den Wert vor dem Öffnen des Numpads
+        let numpadValue = '';   // Aktuelle Eingabe im Numpad
         let totals = {};
         let numpadVisible = false;
         
@@ -657,8 +684,11 @@
                     this.value = '';
                 }
                 
+                // Nur auf Desktop das Custom Numpad zeigen
                 if (!isMobile) {
                     currentInput = this;
+                    originalValue = this.value; // Speichere aktuellen Wert
+                    numpadValue = this.value;   // Starte mit aktuellem Wert
                     showNumpadNearInput(this);
                 }
             });
@@ -668,17 +698,14 @@
                 // iOS Safari Zoom Fix: Zurück zur normalen Ansicht
                 if (isMobile) {
                     setTimeout(() => {
-                        // Viewport temporär zurücksetzen um Zoom zu korrigieren
                         const viewport = document.querySelector('meta[name=viewport]');
                         const originalContent = viewport.content;
                         viewport.content = 'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no';
                         
-                        // Nach kurzer Zeit wieder normal setzen
                         setTimeout(() => {
                             viewport.content = originalContent;
                         }, 100);
                         
-                        // Zusätzlich: Scroll zur aktuellen Position (anti-zoom)
                         window.scrollTo(window.scrollX, window.scrollY);
                     }, 100);
                 }
@@ -691,7 +718,7 @@
                 }, 150);
             });
 
-            // Input Event
+            // Input Event (für Mobile/direkte Eingabe)
             input.addEventListener('input', function() {
                 const value = parseInt(this.value) || 0;
                 
@@ -711,11 +738,11 @@
             input.addEventListener('keydown', function(e) {
                 if (e.key === 'Enter') {
                     saveScore(this);
-                    this.blur(); // Das triggert auch den iOS fix
+                    this.blur();
                     closeNumpad();
                 }
                 if (e.key === 'Escape') {
-                    this.blur(); // Das triggert auch den iOS fix
+                    this.blur();
                     closeNumpad();
                 }
             });
@@ -739,55 +766,96 @@
             overlay.classList.add('show');
             numpadVisible = true;
             
+            // Header mit Bahn-Nummer aktualisieren
             const header = numpad.querySelector('.numpad-header');
             header.textContent = `Bahn ${input.dataset.track}`;
+            
+            // Display aktualisieren
+            updateNumpadDisplay();
         }
 
-        // Numpad Event Listeners
+        // NEU: Numpad Display aktualisieren
+        function updateNumpadDisplay() {
+            const display = document.getElementById('numpadDisplay');
+            if (numpadValue && numpadValue !== '') {
+                display.textContent = numpadValue;
+                display.classList.add('has-value');
+            } else {
+                display.textContent = '–';
+                display.classList.remove('has-value');
+            }
+        }
+
+        // Numpad Event Listeners - Zahlen-Buttons
         document.querySelectorAll('.numpad-btn').forEach(btn => {
             btn.addEventListener('click', function() {
                 if (currentInput) {
                     const number = this.dataset.number;
-                    // GEÄNDERT: Zahl anhängen statt ersetzen (für mehrstellige Zahlen wie 35)
-                    const currentValue = currentInput.value || '';
-                    currentInput.value = currentValue + number;
-                    currentInput.classList.add('has-value');
-                    
-                    // Nicht automatisch schließen - User kann weitere Ziffern eingeben
-                    // saveScore wird erst beim Schließen aufgerufen
+                    // Zahl anhängen (für mehrstellige Zahlen wie 12, 35)
+                    numpadValue = numpadValue + number;
+                    updateNumpadDisplay();
                 }
             });
         });
 
+        // GEÄNDERT: Abbrechen = Nichts speichern, original Wert wiederherstellen
         document.querySelector('.numpad-cancel').addEventListener('click', function() {
             if (currentInput) {
+                // Original-Wert wiederherstellen (nichts ändern)
+                currentInput.value = originalValue;
+                if (originalValue && parseInt(originalValue) > 0) {
+                    currentInput.classList.add('has-value');
+                } else {
+                    currentInput.classList.remove('has-value');
+                }
+            }
+            closeNumpad();
+        });
+
+        // NEU: OK = Speichern und Schliessen
+        document.querySelector('.numpad-ok').addEventListener('click', function() {
+            if (currentInput) {
+                // Neuen Wert ins Input schreiben
+                currentInput.value = numpadValue;
+                
+                if (numpadValue && parseInt(numpadValue) > 0) {
+                    currentInput.classList.add('has-value');
+                } else {
+                    currentInput.classList.remove('has-value');
+                }
+                
+                // Speichern
                 saveScore(currentInput);
             }
             closeNumpad();
         });
 
-        document.querySelector('.numpad-clear').addEventListener('click', function() {
-            if (currentInput) {
-                currentInput.value = '';
-                currentInput.classList.remove('has-value');
-                saveScore(currentInput);
-                closeNumpad();
-            }
-        });
-
+        // Klick ausserhalb des Numpads = Abbrechen (nichts speichern)
         document.getElementById('numpadOverlay').addEventListener('click', function(e) {
             if (e.target === this) {
+                // Wie Abbrechen: Original-Wert wiederherstellen
                 if (currentInput) {
-                    saveScore(currentInput);
+                    currentInput.value = originalValue;
+                    if (originalValue && parseInt(originalValue) > 0) {
+                        currentInput.classList.add('has-value');
+                    } else {
+                        currentInput.classList.remove('has-value');
+                    }
                 }
                 closeNumpad();
             }
         });
 
+        // ESC-Taste = Abbrechen
         document.addEventListener('keydown', function(e) {
             if (e.key === 'Escape' && numpadVisible) {
                 if (currentInput) {
-                    saveScore(currentInput);
+                    currentInput.value = originalValue;
+                    if (originalValue && parseInt(originalValue) > 0) {
+                        currentInput.classList.add('has-value');
+                    } else {
+                        currentInput.classList.remove('has-value');
+                    }
                 }
                 closeNumpad();
             }
@@ -797,9 +865,11 @@
             document.getElementById('numpadOverlay').classList.remove('show');
             numpadVisible = false;
             currentInput = null;
+            numpadValue = '';
+            originalValue = '';
         }
 
-        // Score speichern - GEÄNDERT: Keine Begrenzung mehr
+        // Score speichern
         async function saveScore(input) {
             const playerId = parseInt(input.dataset.playerId);
             const track = parseInt(input.dataset.track);
@@ -922,17 +992,13 @@
             updateTotalsDisplay();
         }
 
-        // iOS Safari Zoom Fix - jetzt korrekt im Script-Tag
+        // iOS Safari Zoom Fix
         if (isMobile) {
-            // Event für Tastatur schließen (Viewport ändert sich)
             window.addEventListener('resize', function() {
-                // Kleine Verzögerung dann Zoom zurücksetzen
                 setTimeout(() => {
                     if (document.activeElement.tagName !== 'INPUT') {
-                        // Nur wenn kein Input mehr aktiv ist
                         window.scrollTo(0, window.scrollY);
                         
-                        // Viewport reset als Backup
                         const viewport = document.querySelector('meta[name=viewport]');
                         if (viewport) {
                             const content = viewport.content;
