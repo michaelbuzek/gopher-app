@@ -7,8 +7,6 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black">
     <meta name="apple-mobile-web-app-title" content="Gopher Minigolf">
     <title>🏌️ Gopher Minigolf - Score Eingabe</title>
-    <!-- QR Code Library -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <style>
         * {
             margin: 0;
@@ -31,206 +29,58 @@
             box-shadow: 0 0 30px rgba(0, 0, 0, 0.05);
         }
 
-        /* ==========================================
-           NEUER KOMPAKTER HEADER MIT QR-CODE
-           ========================================== */
         .header {
             background: #3b5c6c;
             color: white;
-            padding: 12px 15px;
+            padding: 20px;
+            text-align: center;
             position: sticky;
             top: 0;
             z-index: 100;
         }
 
-        .header-row {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-
-        /* Gopher Logo - Links */
-        .gopher-logo {
-            width: 50px;
-            height: 50px;
-            flex-shrink: 0;
-            cursor: pointer;
-            transition: transform 0.3s ease;
-        }
-
-        .gopher-logo:hover {
-            transform: scale(1.05) rotate(-5deg);
-        }
-
-        .gopher-logo img {
-            width: 100%;
-            height: 100%;
-            object-fit: contain;
-            border-radius: 8px;
-        }
-
-        /* Mittlerer Bereich - Title + Info */
-        .header-content {
-            flex: 1;
-            min-width: 0;
+        .gopher-icon {
+            width: 40px;
+            height: 40px;
+            margin: 0 auto 10px;
+            display: block;
+            border-radius: 50%;
         }
 
         .header h1 {
-            font-size: 1.3em;
+            font-size: 1.5em;
+            margin-bottom: 10px;
             font-weight: 600;
-            margin-bottom: 6px;
         }
 
         .game-info {
-            display: flex;
-            gap: 8px;
-            flex-wrap: wrap;
-            align-items: center;
-        }
-
-        .game-info-item {
-            background: rgba(255, 255, 255, 0.15);
-            padding: 4px 10px;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 12px;
             border-radius: 12px;
-            font-size: 0.8em;
-            white-space: nowrap;
-        }
-
-        /* QR Code Preview - Rechts */
-        .qr-preview {
-            width: 55px;
-            height: 55px;
-            background: white;
-            border-radius: 8px;
-            padding: 4px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            flex-shrink: 0;
+            margin-top: 10px;
             display: flex;
+            justify-content: space-between;
             align-items: center;
-            justify-content: center;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+            font-size: 0.9em;
+            flex-wrap: nowrap;
+            min-width: 0;
         }
 
-        .qr-preview:hover {
-            transform: scale(1.08);
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
-        }
-
-        .qr-preview canvas,
-        .qr-preview img {
-            width: 100% !important;
-            height: 100% !important;
-        }
-
-        /* ==========================================
-           QR CODE MODAL
-           ========================================== */
-        .qr-modal-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.7);
-            display: none;
-            justify-content: center;
-            align-items: center;
-            z-index: 3000;
-            padding: 20px;
-        }
-
-        .qr-modal-overlay.show {
-            display: flex;
-        }
-
-        .qr-modal {
-            background: white;
-            border-radius: 20px;
-            padding: 30px;
+        .game-info > div {
+            flex: 1;
             text-align: center;
-            max-width: 400px;
-            width: 100%;
-            box-shadow: 0 25px 80px rgba(0, 0, 0, 0.3);
-            animation: qrModalIn 0.3s ease-out;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            min-width: 0;
         }
 
-        @keyframes qrModalIn {
-            from {
-                opacity: 0;
-                transform: scale(0.9);
-            }
-            to {
-                opacity: 1;
-                transform: scale(1);
-            }
+        .game-info > div:first-child {
+            text-align: left;
         }
 
-        .qr-modal-title {
-            font-size: 1.3em;
-            font-weight: 700;
-            color: #3b5c6c;
-            margin-bottom: 8px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-        }
-
-        .qr-modal-subtitle {
-            color: #64748b;
-            font-size: 0.95em;
-            margin-bottom: 20px;
-        }
-
-        .qr-code-large {
-            background: white;
-            padding: 15px;
-            border-radius: 12px;
-            display: inline-block;
-            margin-bottom: 20px;
-            border: 2px solid #e2e8f0;
-        }
-
-        .qr-code-large canvas,
-        .qr-code-large img {
-            display: block !important;
-        }
-
-        .qr-url-display {
-            background: #f8fafc;
-            padding: 12px 15px;
-            border-radius: 10px;
-            font-family: monospace;
-            font-size: 0.85em;
-            color: #3b5c6c;
-            margin-bottom: 15px;
-            word-break: break-all;
-            border: 1px solid #e2e8f0;
-        }
-
-        .qr-modal-hint {
-            color: #64748b;
-            font-size: 0.85em;
-            margin-bottom: 20px;
-        }
-
-        .qr-modal-btn {
-            background: #f8c098;
-            color: #2d3748;
-            border: none;
-            padding: 14px 30px;
-            border-radius: 12px;
-            font-size: 1em;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            width: 100%;
-        }
-
-        .qr-modal-btn:hover {
-            background: #f2bc91;
-            transform: translateY(-1px);
+        .game-info > div:last-child {
+            text-align: right;
         }
 
         .nav {
@@ -703,7 +553,7 @@
             }
         }
 
-        /* KOMPAKTER HEADER */
+        /* KOMPAKTER HEADER - wie in Bild 3 */
         .personal-header {
             background: #3b5c6c;
             color: white;
@@ -750,12 +600,13 @@
             width: 40px;
             height: 40px;
             border-radius: 50%;
-            font-size: 1.2em;
+            font-size: 1.3em;
             cursor: pointer;
             transition: all 0.3s ease;
             display: flex;
             align-items: center;
             justify-content: center;
+            flex-shrink: 0;
         }
 
         .personal-close:hover {
@@ -767,16 +618,17 @@
         .sunmode-toggle {
             display: flex;
             align-items: center;
-            justify-content: space-between;
+            justify-content: center;
+            gap: 10px;
             padding: 12px 20px;
-            background: #fef7ed;
-            border-bottom: 1px solid #f8c098;
+            background: #f8fafc;
+            border-bottom: 1px solid #e2e8f0;
             cursor: pointer;
             transition: all 0.3s ease;
         }
 
         .sunmode-toggle:hover {
-            background: #fef3e2;
+            background: #f1f5f9;
         }
 
         .sunmode-toggle-label {
@@ -787,9 +639,9 @@
 
         .sunmode-switch {
             width: 50px;
-            height: 26px;
-            background: #cbd5e1;
-            border-radius: 13px;
+            height: 28px;
+            background: #e2e8f0;
+            border-radius: 14px;
             position: relative;
             transition: all 0.3s ease;
         }
@@ -801,10 +653,10 @@
             height: 22px;
             background: white;
             border-radius: 50%;
-            top: 2px;
-            left: 2px;
+            top: 3px;
+            left: 3px;
             transition: all 0.3s ease;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
         }
 
         .sunmode-toggle.active .sunmode-switch {
@@ -812,161 +664,254 @@
         }
 
         .sunmode-toggle.active .sunmode-switch::after {
-            left: 26px;
+            left: 25px;
         }
 
-        /* Personal Scores List */
+        /* Personal Scores Liste */
         .personal-scores {
             padding: 15px;
-            max-height: 60vh;
+            max-height: 50vh;
             overflow-y: auto;
         }
 
-        .personal-score-row {
+        .personal-score-item {
             display: flex;
             align-items: center;
-            gap: 15px;
-            padding: 10px;
-            border-radius: 10px;
-            margin-bottom: 8px;
+            padding: 12px 15px;
             background: #f8fafc;
+            border-radius: 12px;
+            margin-bottom: 10px;
             transition: all 0.3s ease;
+            border: 2px solid transparent;
         }
 
-        .personal-score-row:hover {
-            background: #fef7ed;
+        .personal-score-item:hover {
+            border-color: #f8c098;
         }
 
         .personal-track-number {
+            background: #f7f4f1;
+            color: #000000;
             width: 50px;
             height: 50px;
-            background: #f8c098;
-            color: #2d3748;
-            border-radius: 12px;
+            border-radius: 10px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-weight: 700;
+            font-weight: 900;
             font-size: 1.4em;
+            margin-right: 15px;
             flex-shrink: 0;
+            border: 2px solid #e2e8f0;
+        }
+
+        .personal-score-input-wrapper {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
         }
 
         .personal-score-input {
-            flex: 1;
-            height: 55px;
+            width: 70px;
+            height: 50px;
             border: 2px solid #e2e8f0;
-            border-radius: 12px;
+            border-radius: 10px;
             text-align: center;
             font-size: 1.3em;
-            font-weight: 600;
+            font-weight: 700;
             background: white;
-            color: #2d3748;
             transition: all 0.3s ease;
+            -webkit-appearance: none;
+            appearance: none;
+            color: #000000;
         }
 
         .personal-score-input:focus {
             outline: none;
             border-color: #f8c098;
-            box-shadow: 0 0 0 3px rgba(248, 192, 152, 0.2);
+            box-shadow: 0 0 0 4px rgba(248, 192, 152, 0.2);
         }
 
         .personal-score-input.has-value {
-            background: #f8c098;
-            border-color: #f2bc91;
-            color: #2d3748;
-        }
-
-        /* Sonnenmodus Styles */
-        .sunmode .personal-scores {
-            background: #fffbeb;
-        }
-
-        .sunmode .personal-score-row {
-            background: #fef3c7;
-        }
-
-        .sunmode .personal-score-row:hover {
-            background: #fde68a;
-        }
-
-        .sunmode .personal-track-number {
-            background: #f59e0b;
-            color: white;
-            font-size: 1.8em;
-            width: 60px;
-            height: 60px;
-        }
-
-        .sunmode .personal-score-input {
-            font-size: 1.6em;
-            height: 65px;
+            background: white;
+            color: #000000;
+            border-color: #f8c098;
             border-width: 3px;
         }
 
-        .sunmode .personal-score-input.has-value {
-            background: #fbbf24;
-            border-color: #f59e0b;
-        }
-
+        /* Personal Footer */
         .personal-footer {
             padding: 15px 20px;
+            background: #f8fafc;
+            border-radius: 0 0 20px 20px;
             border-top: 1px solid #e2e8f0;
         }
 
         .personal-back-btn {
             width: 100%;
-            padding: 14px;
-            background: #f8fafc;
-            border: 2px solid #e2e8f0;
+            padding: 15px;
+            background: #3b5c6c;
+            color: white;
+            border: none;
             border-radius: 12px;
             font-size: 1em;
             font-weight: 600;
-            color: #64748b;
             cursor: pointer;
             transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
         }
 
         .personal-back-btn:hover {
-            background: #e2e8f0;
-            transform: translateY(-1px);
+            background: #2a4a58;
+            transform: translateY(-2px);
         }
 
         /* ==========================================
-           MOBILE RESPONSIVE
+           SONNENMODUS STYLES - Nur Inputs größer!
            ========================================== */
+        .sunmode .personal-view {
+            background: #ffffff;
+        }
+
+        .sunmode .personal-header {
+            background: #3b5c6c;
+            color: #ffffff;
+        }
+
+        .sunmode .personal-total-badge {
+            background: #f8c098;
+            color: #2d3748;
+        }
+
+        .sunmode .personal-close {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+        }
+
+        .sunmode .sunmode-toggle {
+            background: #f7f4f1;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .sunmode .sunmode-toggle-label {
+            color: #3b5c6c;
+            font-weight: 600;
+        }
+
+        .sunmode .personal-scores {
+            background: #ffffff;
+        }
+
+        .sunmode .personal-score-item {
+            background: #ffffff;
+            border: 3px solid #000000;
+            margin-bottom: 12px;
+        }
+
+        .sunmode .personal-track-number {
+            background: #f7f4f1;
+            color: #000000;
+            border: 3px solid #000000;
+            font-size: 1.8em;
+            font-weight: 900;
+            width: 60px;
+            height: 60px;
+        }
+
+        .sunmode .personal-score-input {
+            width: 90px;
+            height: 60px;
+            border: 3px solid #000000;
+            font-size: 1.6em;
+            font-weight: 700;
+            background: #ffffff;
+            color: #000000;
+        }
+
+        .sunmode .personal-score-input.has-value {
+            background: #ffffff;
+            color: #000000;
+            border-color: #000000;
+        }
+
+        .sunmode .personal-score-input:focus {
+            box-shadow: 0 0 0 4px rgba(248, 192, 152, 0.3);
+        }
+
+        .sunmode .personal-footer {
+            background: #f7f4f1;
+        }
+
+        .sunmode .personal-back-btn {
+            background: #3b5c6c;
+            color: white;
+            font-weight: 600;
+            font-size: 1em;
+            border: none;
+        }
+
+        .sunmode .personal-back-btn:hover {
+            background: #2a4a58;
+        }
+
+        /* Numpad im Sonnenmodus */
+        .sunmode .numpad {
+            background: #ffffff;
+            border: 3px solid #000000;
+        }
+
+        .sunmode .numpad-header {
+            color: #3b5c6c;
+            font-weight: 700;
+            font-size: 1.1em;
+        }
+
+        .sunmode .numpad-display {
+            background: #ffffff;
+            border: 3px solid #000000;
+            color: #000000;
+            font-size: 1.8em;
+        }
+
+        .sunmode .numpad-display.has-value {
+            background: #ffffff;
+            border-color: #f8c098;
+            border-width: 4px;
+            color: #000000;
+        }
+
+        .sunmode .numpad-btn {
+            background: #ffffff;
+            color: #000000;
+            border: 2px solid #000000;
+            font-size: 1.3em;
+            font-weight: 700;
+            height: 50px;
+        }
+
+        .sunmode .numpad-btn:hover {
+            background: #f7f4f1;
+        }
+
+        .sunmode .numpad-cancel {
+            background: #ffffff;
+            color: #000000;
+            border: 2px solid #000000;
+        }
+
+        .sunmode .numpad-ok {
+            background: #10b981;
+            color: #ffffff;
+            border: 2px solid #000000;
+            font-weight: 700;
+        }
+
+        /* Mobile Optimierung */
         @media (max-width: 768px) {
-            .header {
-                padding: 10px 12px;
-            }
-
-            .header-row {
-                gap: 10px;
-            }
-
-            .gopher-logo {
-                width: 45px;
-                height: 45px;
-            }
-
-            .header h1 {
-                font-size: 1.1em;
-                margin-bottom: 4px;
-            }
-
-            .game-info {
-                gap: 5px;
-            }
-
-            .game-info-item {
-                padding: 3px 8px;
-                font-size: 0.75em;
-            }
-
-            .qr-preview {
-                width: 50px;
-                height: 50px;
-            }
-
             .score-container {
                 padding: 15px;
             }
@@ -997,21 +942,24 @@
                 padding: 10px 15px;
             }
 
+            .game-info {
+                flex-direction: row;
+                gap: 5px;
+                text-align: center;
+                font-size: 0.75em;
+                padding: 8px;
+            }
+
+            .game-info > div {
+                font-size: 0.85em;
+            }
+
             .nav {
                 font-size: 0.8em;
             }
 
             .nav-link {
                 padding: 10px 15px;
-            }
-
-            /* QR Modal Mobile */
-            .qr-modal {
-                padding: 25px 20px;
-            }
-
-            .qr-modal-title {
-                font-size: 1.1em;
             }
 
             /* Personal View Mobile */
@@ -1069,55 +1017,23 @@
                 font-size: 1.5em;
             }
         }
-
-        @media (max-width: 400px) {
-            .gopher-logo {
-                width: 40px;
-                height: 40px;
-            }
-
-            .qr-preview {
-                width: 45px;
-                height: 45px;
-            }
-
-            .header h1 {
-                font-size: 1em;
-            }
-
-            .game-info-item {
-                padding: 2px 6px;
-                font-size: 0.7em;
-            }
-        }
     </style>
 </head>
 <body>
     <div class="container">
-        <!-- NEUER KOMPAKTER HEADER MIT QR-CODE -->
         <div class="header">
-            <div class="header-row">
-                <!-- Gopher Logo - Links -->
-                <a href="/" class="gopher-logo" title="Zurück zur Startseite">
-                    <img src="/static/gopher_main.png" 
-                         alt="🐹 Gopher" 
-                         onerror="this.parentNode.innerHTML='🐹';">
-                </a>
-                
-                <!-- Mitte - Title + Game Info -->
-                <div class="header-content">
-                    <h1>Score Eingabe</h1>
-                    <div class="game-info">
-                        <span class="game-info-item">📍 {{ game.place }}</span>
-                        <span class="game-info-item">📅 {{ game.date }}</span>
-                        <span class="game-info-item">⛳ {{ track_count }} Bahnen</span>
-                    </div>
-                </div>
-                
-                <!-- QR Code Preview - Rechts -->
-                <div class="qr-preview" id="qrPreview" onclick="openQRModal()" title="Mitspieler einladen">
-                    <div id="qrCodeSmall"></div>
-                </div>
+            <!-- Gopher Icon -->
+            <img src="/static/gopher_main.png" 
+                 alt="🐹 Gopher Maskottchen" 
+                 class="gopher-icon" 
+                 id="gopherIcon"
+                 onerror="this.style.display='none';">
+            
+            <h1>Score Eingabe</h1>
+            <div class="game-info">
+                <div>📍 <strong>{{ game.place }}</strong></div>
+                <div>📅 <strong>{{ game.date }}</strong></div>
+                <div>⛳ <strong>{{ track_count }} Bahnen</strong></div>
             </div>
         </div>
 
@@ -1195,28 +1111,6 @@
     </div>
 
     <!-- ==========================================
-         QR CODE MODAL
-         ========================================== -->
-    <div class="qr-modal-overlay" id="qrModalOverlay" onclick="closeQRModal(event)">
-        <div class="qr-modal" onclick="event.stopPropagation()">
-            <div class="qr-modal-title">
-                📲 Mitspieler einladen
-            </div>
-            <div class="qr-modal-subtitle">
-                Scanne diesen QR-Code um dem Spiel beizutreten
-            </div>
-            <div class="qr-code-large" id="qrCodeLarge"></div>
-            <div class="qr-url-display" id="gameUrl"></div>
-            <div class="qr-modal-hint">
-                Alle Mitspieler können die Scores in Echtzeit sehen und eingeben!
-            </div>
-            <button class="qr-modal-btn" onclick="closeQRModal()">
-                ✓ Verstanden
-            </button>
-        </div>
-    </div>
-
-    <!-- ==========================================
          PERSONAL VIEW OVERLAY - KOMPAKT
          ========================================== -->
     <div class="personal-view-overlay" id="personalViewOverlay">
@@ -1268,7 +1162,7 @@
             </div>
             <div class="numpad-actions">
                 <button class="numpad-action numpad-cancel">Abbrechen</button>
-                <button class="numpad-action numpad-ok">OK ✓</button>
+                <button class="numpad-action numpad-ok">OK</button>
             </div>
         </div>
     </div>
@@ -1280,74 +1174,21 @@
 
     <script>
         // ==========================================
-        // QR CODE FUNKTIONALITÄT
-        // ==========================================
-        const gameUrl = window.location.href;
-        let qrSmall = null;
-        let qrLarge = null;
-
-        function initQRCodes() {
-            // Kleiner QR-Code für Header
-            const qrSmallContainer = document.getElementById('qrCodeSmall');
-            if (qrSmallContainer && typeof QRCode !== 'undefined') {
-                qrSmall = new QRCode(qrSmallContainer, {
-                    text: gameUrl,
-                    width: 47,
-                    height: 47,
-                    colorDark: "#3b5c6c",
-                    colorLight: "#ffffff",
-                    correctLevel: QRCode.CorrectLevel.L
-                });
-            }
-
-            // Großer QR-Code für Modal
-            const qrLargeContainer = document.getElementById('qrCodeLarge');
-            if (qrLargeContainer && typeof QRCode !== 'undefined') {
-                qrLarge = new QRCode(qrLargeContainer, {
-                    text: gameUrl,
-                    width: 200,
-                    height: 200,
-                    colorDark: "#3b5c6c",
-                    colorLight: "#ffffff",
-                    correctLevel: QRCode.CorrectLevel.M
-                });
-            }
-
-            // URL anzeigen
-            const urlDisplay = document.getElementById('gameUrl');
-            if (urlDisplay) {
-                urlDisplay.textContent = gameUrl;
-            }
-        }
-
-        function openQRModal() {
-            document.getElementById('qrModalOverlay').classList.add('show');
-            document.body.style.overflow = 'hidden';
-        }
-
-        function closeQRModal(event) {
-            if (event && event.target !== document.getElementById('qrModalOverlay')) {
-                return;
-            }
-            document.getElementById('qrModalOverlay').classList.remove('show');
-            document.body.style.overflow = '';
-        }
-
-        // ==========================================
-        // VARIABLEN UND INITIALISIERUNG
+        // GLOBALE VARIABLEN
         // ==========================================
         let currentInput = null;
+        let originalValue = '';
+        let numpadValue = '';
         let totals = {};
         let numpadVisible = false;
-        let numpadValue = '';
-        let originalValue = '';
         let personalViewOpen = false;
-        let currentPlayerId = null;
-        let sunmodeEnabled = false;
-        
+        let currentPersonalPlayerId = null;
+        let sunmodeEnabled = localStorage.getItem('gopher_sunmode') === 'true';
+
+        // Mobile Detection
         const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-        
-        // Player IDs aus DOM extrahieren
+
+        // Player IDs extrahieren
         const playerIds = [];
         document.querySelectorAll('.score-input').forEach(input => {
             const playerId = parseInt(input.dataset.playerId);
@@ -1355,7 +1196,6 @@
                 playerIds.push(playerId);
             }
         });
-        
         playerIds.forEach(id => {
             totals[id] = 0;
         });
@@ -1364,106 +1204,140 @@
         // PERSONAL VIEW FUNKTIONEN
         // ==========================================
         function openPersonalView(playerId, playerName) {
-            currentPlayerId = playerId;
+            currentPersonalPlayerId = playerId;
             personalViewOpen = true;
-            
+
+            // Header aktualisieren
             document.getElementById('personalPlayerName').textContent = playerName;
             
+            // Total aktualisieren
+            updatePersonalTotal();
+            
             // Scores Liste generieren
+            renderPersonalScores(playerId);
+            
+            // Sonnenmodus Status wiederherstellen
+            if (sunmodeEnabled) {
+                document.getElementById('personalViewOverlay').classList.add('sunmode');
+                document.getElementById('sunmodeToggle').classList.add('active');
+            }
+            
+            // Overlay anzeigen
+            document.getElementById('personalViewOverlay').classList.add('show');
+            document.body.style.overflow = 'hidden';
+            
+            console.log(`🏌️ Personal View geöffnet für: ${playerName} (ID: ${playerId})`);
+        }
+
+        function closePersonalView() {
+            personalViewOpen = false;
+            currentPersonalPlayerId = null;
+            document.getElementById('personalViewOverlay').classList.remove('show');
+            document.body.style.overflow = '';
+            
+            // Haupttabelle aktualisieren
+            calculateInitialTotals();
+        }
+
+        function renderPersonalScores(playerId) {
             const scoresContainer = document.getElementById('personalScores');
             const trackCount = {{ track_count }};
             
             let html = '';
+            
             for (let track = 1; track <= trackCount; track++) {
+                // Wert aus Haupttabelle holen
                 const mainInput = document.querySelector(`.score-input[data-player-id="${playerId}"][data-track="${track}"]`);
-                const currentValue = mainInput ? mainInput.value : '';
-                const hasValue = currentValue && parseInt(currentValue) > 0;
+                const value = mainInput ? mainInput.value : '';
+                const hasValue = value && parseInt(value) > 0;
                 
                 html += `
-                    <div class="personal-score-row">
+                    <div class="personal-score-item">
                         <div class="personal-track-number">${track}</div>
-                        <input type="number" 
-                               class="personal-score-input ${hasValue ? 'has-value' : ''}" 
-                               data-player-id="${playerId}"
-                               data-track="${track}"
-                               value="${currentValue}"
-                               placeholder="–"
-                               min="0"
-                               inputmode="numeric"
-                               pattern="[0-9]*">
+                        <div class="personal-score-input-wrapper">
+                            <input 
+                                type="number" 
+                                class="personal-score-input ${hasValue ? 'has-value' : ''}" 
+                                data-player-id="${playerId}" 
+                                data-track="${track}"
+                                value="${value}"
+                                placeholder="–"
+                                min="0"
+                                inputmode="numeric"
+                                pattern="[0-9]*"
+                            >
+                        </div>
                     </div>
                 `;
             }
+            
             scoresContainer.innerHTML = html;
             
-            // Event Listener für Personal View Inputs
+            // Event Listeners für Personal Inputs
             scoresContainer.querySelectorAll('.personal-score-input').forEach(input => {
                 input.addEventListener('focus', function() {
                     if (this.value === '0' || this.value === '') {
                         this.value = '';
                     }
-                    currentInput = this;
-                    originalValue = this.value;
-                    numpadValue = '';
-                    showNumpadNearInput(this);
+                    
+                    if (!isMobile) {
+                        currentInput = this;
+                        originalValue = this.value;
+                        numpadValue = this.value;
+                        showNumpadForPersonalView(this);
+                    }
+                });
+
+                input.addEventListener('blur', function() {
+                    setTimeout(() => {
+                        if (!numpadVisible) {
+                            closeNumpad();
+                        }
+                    }, 150);
+                });
+
+                input.addEventListener('input', function() {
+                    const value = parseInt(this.value) || 0;
+                    
+                    if (value > 0) {
+                        this.classList.add('has-value');
+                    } else {
+                        this.classList.remove('has-value');
+                    }
+                    
+                    clearTimeout(this.saveTimeout);
+                    this.saveTimeout = setTimeout(() => {
+                        savePersonalScore(this);
+                    }, 800);
+                });
+
+                input.addEventListener('keydown', function(e) {
+                    if (e.key === 'Enter') {
+                        savePersonalScore(this);
+                        this.blur();
+                        closeNumpad();
+                    }
+                    if (e.key === 'Escape') {
+                        this.blur();
+                        closeNumpad();
+                    }
                 });
             });
             
-            updatePersonalTotal();
-            
-            // Sonnenmodus Status anwenden
-            if (sunmodeEnabled) {
-                document.getElementById('personalView').classList.add('sunmode');
-                document.getElementById('sunmodeToggle').classList.add('active');
-            }
-            
-            document.getElementById('personalViewOverlay').classList.add('show');
-            document.body.style.overflow = 'hidden';
+            // Auto-scroll zur ersten leeren Bahn
+            setTimeout(() => {
+                const firstEmpty = scoresContainer.querySelector('.personal-score-input:not(.has-value)');
+                if (firstEmpty) {
+                    firstEmpty.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
+            }, 300);
         }
 
-        function closePersonalView() {
-            personalViewOpen = false;
-            currentPlayerId = null;
-            document.getElementById('personalViewOverlay').classList.remove('show');
-            document.body.style.overflow = '';
-        }
-
-        function updatePersonalTotal() {
-            if (!currentPlayerId) return;
-            
-            let total = 0;
-            document.querySelectorAll(`.personal-score-input[data-player-id="${currentPlayerId}"]`).forEach(input => {
-                total += parseInt(input.value) || 0;
-            });
-            
-            document.getElementById('personalTotal').textContent = total;
-        }
-
-        function toggleSunmode() {
-            sunmodeEnabled = !sunmodeEnabled;
-            const personalView = document.getElementById('personalView');
-            const toggle = document.getElementById('sunmodeToggle');
-            
-            if (sunmodeEnabled) {
-                personalView.classList.add('sunmode');
-                toggle.classList.add('active');
-            } else {
-                personalView.classList.remove('sunmode');
-                toggle.classList.remove('active');
-            }
-            
-            // Speichere Präferenz
-            localStorage.setItem('gopher_sunmode', sunmodeEnabled ? 'true' : 'false');
-        }
-
-        // ==========================================
-        // PERSONAL SCORE SPEICHERN
-        // ==========================================
-        async function savePersonalScore(input) {
+        function savePersonalScore(input) {
             const playerId = parseInt(input.dataset.playerId);
             const track = parseInt(input.dataset.track);
             const value = parseInt(input.value) || 0;
-
+            
             // Haupttabelle synchronisieren
             const mainInput = document.querySelector(`.score-input[data-player-id="${playerId}"][data-track="${track}"]`);
             if (mainInput) {
@@ -1474,75 +1348,40 @@
                     mainInput.classList.remove('has-value');
                 }
             }
-
-            // Update Personal View Input Styling
-            if (value > 0) {
-                input.classList.add('has-value');
-            } else {
-                input.classList.remove('has-value');
-            }
-
+            
+            // An Server senden
+            saveScore(input);
+            
+            // Personal Total aktualisieren
             updatePersonalTotal();
-
-            // Server speichern
-            try {
-                const response = await fetch('/update_score', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        player_id: playerId,
-                        track: track,
-                        value: value
-                    })
-                });
-
-                if (!response.ok) {
-                    throw new Error(`HTTP ${response.status}`);
-                }
-
-                const result = await response.json();
-
-                if (result.status === 'success') {
-                    totals = result.totals;
-                    updateTotalsDisplay();
-                    showSaveIndicator();
-                } else {
-                    throw new Error(result.message || 'Fehler beim Speichern');
-                }
-
-            } catch (error) {
-                console.error('Fehler beim Speichern:', error);
-                input.style.borderColor = '#ea7c55';
-                setTimeout(() => {
-                    input.style.borderColor = '';
-                }, 2000);
-            }
         }
 
-        // ==========================================
-        // NUMPAD FUNKTIONEN
-        // ==========================================
-        function showNumpadNearInput(input) {
+        function updatePersonalTotal() {
+            if (!currentPersonalPlayerId) return;
+            
+            let total = 0;
+            const inputs = document.querySelectorAll(`.personal-score-input[data-player-id="${currentPersonalPlayerId}"]`);
+            
+            inputs.forEach(input => {
+                const value = parseInt(input.value) || 0;
+                total += value;
+            });
+            
+            document.getElementById('personalTotal').textContent = total;
+        }
+
+        function showNumpadForPersonalView(input) {
             const overlay = document.getElementById('numpadOverlay');
             const numpad = document.getElementById('numpad');
             const rect = input.getBoundingClientRect();
             
-            // Position berechnen
-            let left = rect.left + (rect.width / 2) - 100;
-            let top = rect.bottom + 10;
+            // Position berechnen (neben dem Input)
+            let left = rect.left - 200;
+            if (left < 10) left = rect.right + 10;
+            if (left + 200 > window.innerWidth) left = window.innerWidth - 210;
             
-            // Bildschirmgrenzen prüfen
-            if (left < 10) left = 10;
-            if (left + 200 > window.innerWidth - 10) {
-                left = window.innerWidth - 210;
-            }
-            
-            if (top + 300 > window.innerHeight) {
-                top = rect.top - 310;
-                if (top < 10) top = 10;
-            }
+            let top = rect.top;
+            if (top + 300 > window.innerHeight) top = window.innerHeight - 310;
             
             numpad.style.left = left + 'px';
             numpad.style.top = top + 'px';
@@ -1550,11 +1389,122 @@
             overlay.classList.add('show');
             numpadVisible = true;
             
-            numpadValue = '';
+            // Header aktualisieren
+            const header = numpad.querySelector('.numpad-header');
+            header.textContent = `Bahn ${input.dataset.track}`;
+            
             updateNumpadDisplay();
+        }
+
+        // ==========================================
+        // SONNENMODUS
+        // ==========================================
+        function toggleSunmode() {
+            sunmodeEnabled = !sunmodeEnabled;
+            localStorage.setItem('gopher_sunmode', sunmodeEnabled);
+            
+            const overlay = document.getElementById('personalViewOverlay');
+            const toggle = document.getElementById('sunmodeToggle');
+            
+            if (sunmodeEnabled) {
+                overlay.classList.add('sunmode');
+                toggle.classList.add('active');
+                console.log('☀️ Sonnenmodus aktiviert');
+            } else {
+                overlay.classList.remove('sunmode');
+                toggle.classList.remove('active');
+                console.log('🌙 Sonnenmodus deaktiviert');
+            }
+        }
+
+        // ==========================================
+        // NUMPAD FUNKTIONEN (angepasst für beide Views)
+        // ==========================================
+        document.querySelectorAll('.score-input').forEach(input => {
+            input.addEventListener('focus', function() {
+                if (this.value === '0' || this.value === '') {
+                    this.value = '';
+                }
+                
+                if (!isMobile) {
+                    currentInput = this;
+                    originalValue = this.value;
+                    numpadValue = this.value;
+                    showNumpadNearInput(this);
+                }
+            });
+
+            input.addEventListener('blur', function() {
+                if (isMobile) {
+                    setTimeout(() => {
+                        const viewport = document.querySelector('meta[name=viewport]');
+                        const originalContent = viewport.content;
+                        viewport.content = 'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no';
+                        
+                        setTimeout(() => {
+                            viewport.content = originalContent;
+                        }, 100);
+                        
+                        window.scrollTo(window.scrollX, window.scrollY);
+                    }, 100);
+                }
+                
+                setTimeout(() => {
+                    if (!numpadVisible) {
+                        closeNumpad();
+                    }
+                }, 150);
+            });
+
+            input.addEventListener('input', function() {
+                const value = parseInt(this.value) || 0;
+                
+                if (value > 0) {
+                    this.classList.add('has-value');
+                } else {
+                    this.classList.remove('has-value');
+                }
+                
+                clearTimeout(this.saveTimeout);
+                this.saveTimeout = setTimeout(() => {
+                    saveScore(this);
+                }, 800);
+            });
+
+            input.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter') {
+                    saveScore(this);
+                    this.blur();
+                    closeNumpad();
+                }
+                if (e.key === 'Escape') {
+                    this.blur();
+                    closeNumpad();
+                }
+            });
+        });
+
+        function showNumpadNearInput(input) {
+            const overlay = document.getElementById('numpadOverlay');
+            const numpad = document.getElementById('numpad');
+            const rect = input.getBoundingClientRect();
+            
+            const left = Math.max(10, Math.min(
+                window.innerWidth - 220, 
+                rect.left + (rect.width / 2) - 100
+            ));
+            const top = rect.bottom + 10;
+            
+            numpad.style.left = left + 'px';
+            numpad.style.top = top + 'px';
+            
+            overlay.classList.add('show');
+            numpadVisible = true;
             
             const header = numpad.querySelector('.numpad-header');
             header.textContent = `Bahn ${input.dataset.track}`;
+            
+            updateNumpadDisplay();
         }
 
         function updateNumpadDisplay() {
@@ -1638,8 +1588,6 @@
                     closeNumpad();
                 } else if (personalViewOpen) {
                     closePersonalView();
-                } else if (document.getElementById('qrModalOverlay').classList.contains('show')) {
-                    closeQRModal();
                 }
             }
         });
@@ -1785,21 +1733,6 @@
             updateTotalsDisplay();
         }
 
-        // ==========================================
-        // HAUPTTABELLE INPUT HANDLING
-        // ==========================================
-        document.querySelectorAll('.score-input').forEach(input => {
-            input.addEventListener('focus', function() {
-                if (this.value === '0' || this.value === '') {
-                    this.value = '';
-                }
-                currentInput = this;
-                originalValue = this.value;
-                numpadValue = '';
-                showNumpadNearInput(this);
-            });
-        });
-
         // iOS Safari Zoom Fix
         if (isMobile) {
             window.addEventListener('resize', function() {
@@ -1824,20 +1757,9 @@
         // INITIALISIERUNG
         // ==========================================
         document.addEventListener('DOMContentLoaded', function() {
-            // QR Codes initialisieren
-            initQRCodes();
-            
-            // Totals berechnen
             calculateInitialTotals();
-            
-            // Sonnenmodus Präferenz laden
-            const savedSunmode = localStorage.getItem('gopher_sunmode');
-            if (savedSunmode === 'true') {
-                sunmodeEnabled = true;
-            }
-            
-            console.log('🏌️ Gopher Minigolf Score Page mit QR-Code Feature geladen');
-            console.log('📲 Game URL:', gameUrl);
+            console.log('🏌️ Gopher Minigolf Score Page mit Personal View geladen');
+            console.log('☀️ Sonnenmodus Status:', sunmodeEnabled ? 'Aktiviert' : 'Deaktiviert');
         });
     </script>
 </body>
