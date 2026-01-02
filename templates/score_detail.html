@@ -152,6 +152,29 @@
             font-weight: 700;
         }
 
+        /* NEU: Klickbare Spielernamen */
+        .score-table th.player-header {
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .score-table th.player-header:hover {
+            background: #f8c098;
+            color: #2d3748;
+        }
+
+        .score-table th.player-header::after {
+            content: '👤';
+            font-size: 0.7em;
+            margin-left: 5px;
+            opacity: 0.5;
+        }
+
+        .score-table th.player-header:hover::after {
+            opacity: 1;
+        }
+
         .score-table td {
             padding: 12px 8px;
             text-align: center;
@@ -167,7 +190,7 @@
             background: rgba(248, 192, 152, 0.05);
         }
 
-        /* GEÄNDERT: Bahnnummer jetzt kräftiger und besser lesbar bei Sonnenlicht */
+        /* Bahnnummer kräftig für Sonnenlicht */
         .track-cell {
             background: #f8c098;
             font-weight: 700;
@@ -363,7 +386,9 @@
             transform: translateY(0);
         }
 
-        /* Numpad Styles */
+        /* ==========================================
+           NUMPAD STYLES (unverändert)
+           ========================================== */
         .numpad-overlay {
             position: fixed;
             top: 0;
@@ -397,7 +422,6 @@
             font-weight: 600;
         }
 
-        /* NEU: Anzeige der aktuellen Eingabe */
         .numpad-display {
             text-align: center;
             margin-bottom: 12px;
@@ -447,7 +471,6 @@
             transform: scale(1.05);
         }
 
-        /* 0 nimmt die ganze untere Zeile ein (3 Spalten) */
         .numpad-btn.zero {
             grid-column: span 3;
             width: auto;
@@ -478,7 +501,6 @@
             background: #cbd5e1;
         }
 
-        /* NEU: OK Button (grün) */
         .numpad-ok {
             background: #10b981;
             color: white;
@@ -486,6 +508,392 @@
 
         .numpad-ok:hover {
             background: #059669;
+        }
+
+        /* ==========================================
+           PERSONAL PLAYER VIEW - NEU!
+           ========================================== */
+        .personal-view-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            display: none;
+            justify-content: center;
+            align-items: flex-start;
+            z-index: 2000;
+            overflow-y: auto;
+            padding: 20px;
+        }
+
+        .personal-view-overlay.show {
+            display: flex;
+        }
+
+        .personal-view {
+            background: white;
+            border-radius: 20px;
+            width: 100%;
+            max-width: 400px;
+            box-shadow: 0 25px 80px rgba(0, 0, 0, 0.3);
+            animation: slideIn 0.3s ease-out;
+            margin: auto;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-30px) scale(0.95);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        .personal-header {
+            background: #3b5c6c;
+            color: white;
+            padding: 20px;
+            border-radius: 20px 20px 0 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .personal-header-info {
+            flex: 1;
+        }
+
+        .personal-player-name {
+            font-size: 1.5em;
+            font-weight: 700;
+            margin-bottom: 5px;
+        }
+
+        .personal-total {
+            font-size: 2.2em;
+            font-weight: 800;
+            color: #f8c098;
+        }
+
+        .personal-total-label {
+            font-size: 0.8em;
+            opacity: 0.8;
+        }
+
+        .personal-close {
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            color: white;
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            font-size: 1.5em;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .personal-close:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: scale(1.1);
+        }
+
+        /* Sonnenmodus Toggle */
+        .sunmode-toggle {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            padding: 12px 20px;
+            background: #f8fafc;
+            border-bottom: 1px solid #e2e8f0;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .sunmode-toggle:hover {
+            background: #f1f5f9;
+        }
+
+        .sunmode-toggle-label {
+            font-weight: 600;
+            color: #3b5c6c;
+            font-size: 0.95em;
+        }
+
+        .sunmode-switch {
+            width: 50px;
+            height: 28px;
+            background: #e2e8f0;
+            border-radius: 14px;
+            position: relative;
+            transition: all 0.3s ease;
+        }
+
+        .sunmode-switch::after {
+            content: '';
+            position: absolute;
+            width: 22px;
+            height: 22px;
+            background: white;
+            border-radius: 50%;
+            top: 3px;
+            left: 3px;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .sunmode-toggle.active .sunmode-switch {
+            background: #FFD700;
+        }
+
+        .sunmode-toggle.active .sunmode-switch::after {
+            left: 25px;
+        }
+
+        /* Personal Scores Liste */
+        .personal-scores {
+            padding: 15px;
+            max-height: 50vh;
+            overflow-y: auto;
+        }
+
+        .personal-score-item {
+            display: flex;
+            align-items: center;
+            padding: 12px 15px;
+            background: #f8fafc;
+            border-radius: 12px;
+            margin-bottom: 10px;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+        }
+
+        .personal-score-item:hover {
+            border-color: #f8c098;
+        }
+
+        .personal-track-number {
+            background: #f8c098;
+            color: #2d3748;
+            width: 45px;
+            height: 45px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 1.2em;
+            margin-right: 15px;
+            flex-shrink: 0;
+        }
+
+        .personal-score-input-wrapper {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+        }
+
+        .personal-score-input {
+            width: 80px;
+            height: 55px;
+            border: 3px solid #e2e8f0;
+            border-radius: 12px;
+            text-align: center;
+            font-size: 1.4em;
+            font-weight: 700;
+            background: white;
+            transition: all 0.3s ease;
+            -webkit-appearance: none;
+            appearance: none;
+            color: #2d3748;
+        }
+
+        .personal-score-input:focus {
+            outline: none;
+            border-color: #f8c098;
+            box-shadow: 0 0 0 4px rgba(248, 192, 152, 0.2);
+        }
+
+        .personal-score-input.has-value {
+            background: #f8c098;
+            color: #2d3748;
+            border-color: #f2bc91;
+        }
+
+        /* Personal Footer */
+        .personal-footer {
+            padding: 15px 20px;
+            background: #f8fafc;
+            border-radius: 0 0 20px 20px;
+            border-top: 1px solid #e2e8f0;
+        }
+
+        .personal-back-btn {
+            width: 100%;
+            padding: 15px;
+            background: #3b5c6c;
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .personal-back-btn:hover {
+            background: #2a4a58;
+            transform: translateY(-2px);
+        }
+
+        /* ==========================================
+           SONNENMODUS STYLES
+           ========================================== */
+        .sunmode .personal-view {
+            background: #ffffff;
+            border: 4px solid #000000;
+        }
+
+        .sunmode .personal-header {
+            background: #000000;
+            color: #ffffff;
+        }
+
+        .sunmode .personal-total {
+            color: #FFD700;
+        }
+
+        .sunmode .personal-close {
+            background: #FFD700;
+            color: #000000;
+        }
+
+        .sunmode .sunmode-toggle {
+            background: #FFD700;
+            border-bottom: 3px solid #000000;
+        }
+
+        .sunmode .sunmode-toggle-label {
+            color: #000000;
+            font-weight: 700;
+        }
+
+        .sunmode .personal-scores {
+            background: #ffffff;
+        }
+
+        .sunmode .personal-score-item {
+            background: #ffffff;
+            border: 3px solid #000000;
+            margin-bottom: 12px;
+        }
+
+        .sunmode .personal-track-number {
+            background: #FFD700;
+            color: #000000;
+            border: 2px solid #000000;
+            font-size: 1.4em;
+            width: 50px;
+            height: 50px;
+        }
+
+        .sunmode .personal-score-input {
+            width: 90px;
+            height: 60px;
+            border: 4px solid #000000;
+            font-size: 1.8em;
+            font-weight: 800;
+            background: #ffffff;
+            color: #000000;
+        }
+
+        .sunmode .personal-score-input.has-value {
+            background: #FFD700;
+            color: #000000;
+            border-color: #000000;
+        }
+
+        .sunmode .personal-score-input:focus {
+            box-shadow: 0 0 0 5px rgba(255, 215, 0, 0.5);
+        }
+
+        .sunmode .personal-footer {
+            background: #000000;
+        }
+
+        .sunmode .personal-back-btn {
+            background: #FFD700;
+            color: #000000;
+            font-weight: 700;
+            font-size: 1.1em;
+            border: 3px solid #000000;
+        }
+
+        .sunmode .personal-back-btn:hover {
+            background: #FFC000;
+        }
+
+        /* Numpad im Sonnenmodus */
+        .sunmode .numpad {
+            background: #ffffff;
+            border: 4px solid #000000;
+        }
+
+        .sunmode .numpad-header {
+            color: #000000;
+            font-weight: 700;
+            font-size: 1.1em;
+        }
+
+        .sunmode .numpad-display {
+            background: #ffffff;
+            border: 3px solid #000000;
+            color: #000000;
+            font-size: 1.8em;
+        }
+
+        .sunmode .numpad-display.has-value {
+            background: #FFD700;
+            border-color: #000000;
+            color: #000000;
+        }
+
+        .sunmode .numpad-btn {
+            background: #ffffff;
+            color: #000000;
+            border: 2px solid #000000;
+            font-size: 1.3em;
+            font-weight: 700;
+            height: 50px;
+        }
+
+        .sunmode .numpad-btn:hover {
+            background: #FFD700;
+        }
+
+        .sunmode .numpad-cancel {
+            background: #ffffff;
+            color: #000000;
+            border: 2px solid #000000;
+        }
+
+        .sunmode .numpad-ok {
+            background: #FFD700;
+            color: #000000;
+            border: 2px solid #000000;
+            font-weight: 700;
         }
 
         /* Mobile Optimierung */
@@ -539,6 +947,35 @@
             .nav-link {
                 padding: 10px 15px;
             }
+
+            /* Personal View Mobile */
+            .personal-view-overlay {
+                padding: 10px;
+            }
+
+            .personal-view {
+                max-width: 100%;
+            }
+
+            .personal-player-name {
+                font-size: 1.3em;
+            }
+
+            .personal-total {
+                font-size: 1.8em;
+            }
+
+            .personal-score-input {
+                width: 70px;
+                height: 50px;
+                font-size: 1.2em;
+            }
+
+            .sunmode .personal-score-input {
+                width: 80px;
+                height: 55px;
+                font-size: 1.5em;
+            }
         }
     </style>
 </head>
@@ -567,12 +1004,22 @@
         </div>
 
         <div class="score-container">
+            <!-- Hinweis für Personal View -->
+            <div style="text-align: center; padding: 8px; background: #fef7ed; border-radius: 8px; margin-bottom: 15px; font-size: 0.85em; color: #64748b;">
+                💡 <strong>Tipp:</strong> Tippe auf einen Spielernamen für die Einzelansicht
+            </div>
+
             <table class="score-table">
                 <thead>
                     <tr>
                         <th>Bahn</th>
                         {% for player in players %}
-                            <th>{{ player.name }}</th>
+                            <th class="player-header" 
+                                data-player-id="{{ player.id }}" 
+                                data-player-name="{{ player.name }}"
+                                onclick="openPersonalView({{ player.id }}, '{{ player.name }}')">
+                                {{ player.name }}
+                            </th>
                         {% endfor %}
                     </tr>
                 </thead>
@@ -623,9 +1070,42 @@
         </div>
     </div>
 
-    <!-- Numpad Overlay - GEÄNDERT: Löschen entfernt, OK hinzugefügt -->
+    <!-- ==========================================
+         PERSONAL VIEW OVERLAY - NEU!
+         ========================================== -->
+    <div class="personal-view-overlay" id="personalViewOverlay">
+        <div class="personal-view" id="personalView">
+            <div class="personal-header">
+                <div class="personal-header-info">
+                    <div class="personal-player-name" id="personalPlayerName">Spieler</div>
+                    <div class="personal-total-label">Total</div>
+                    <div class="personal-total" id="personalTotal">0</div>
+                </div>
+                <button class="personal-close" onclick="closePersonalView()">✕</button>
+            </div>
+
+            <!-- Sonnenmodus Toggle -->
+            <div class="sunmode-toggle" id="sunmodeToggle" onclick="toggleSunmode()">
+                <span class="sunmode-toggle-label">☀️ Sonnenmodus</span>
+                <div class="sunmode-switch"></div>
+            </div>
+
+            <!-- Scores Liste -->
+            <div class="personal-scores" id="personalScores">
+                <!-- Wird dynamisch gefüllt -->
+            </div>
+
+            <div class="personal-footer">
+                <button class="personal-back-btn" onclick="closePersonalView()">
+                    ← Zurück zur Übersicht
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Numpad Overlay -->
     <div class="numpad-overlay" id="numpadOverlay">
-        <div class="numpad">
+        <div class="numpad" id="numpad">
             <div class="numpad-header">Score eingeben</div>
             <div class="numpad-display" id="numpadDisplay">–</div>
             <div class="numpad-grid">
@@ -653,13 +1133,22 @@
     </div>
 
     <script>
+        // ==========================================
+        // GLOBALE VARIABLEN
+        // ==========================================
         let currentInput = null;
-        let originalValue = ''; // Speichert den Wert vor dem Öffnen des Numpads
-        let numpadValue = '';   // Aktuelle Eingabe im Numpad
+        let originalValue = '';
+        let numpadValue = '';
         let totals = {};
         let numpadVisible = false;
-        
-        // Totals initialisieren - Player IDs aus DOM extrahieren
+        let personalViewOpen = false;
+        let currentPersonalPlayerId = null;
+        let sunmodeEnabled = localStorage.getItem('gopher_sunmode') === 'true';
+
+        // Mobile Detection
+        const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+
+        // Player IDs extrahieren
         const playerIds = [];
         document.querySelectorAll('.score-input').forEach(input => {
             const playerId = parseInt(input.dataset.playerId);
@@ -667,35 +1156,245 @@
                 playerIds.push(playerId);
             }
         });
-        
         playerIds.forEach(id => {
             totals[id] = 0;
         });
 
-        // Mobile Detection
-        const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+        // ==========================================
+        // PERSONAL VIEW FUNKTIONEN
+        // ==========================================
+        function openPersonalView(playerId, playerName) {
+            currentPersonalPlayerId = playerId;
+            personalViewOpen = true;
 
-        // Event Listeners für alle Score-Inputs
+            // Header aktualisieren
+            document.getElementById('personalPlayerName').textContent = playerName;
+            
+            // Total aktualisieren
+            updatePersonalTotal();
+            
+            // Scores Liste generieren
+            renderPersonalScores(playerId);
+            
+            // Sonnenmodus Status wiederherstellen
+            if (sunmodeEnabled) {
+                document.getElementById('personalViewOverlay').classList.add('sunmode');
+                document.getElementById('sunmodeToggle').classList.add('active');
+            }
+            
+            // Overlay anzeigen
+            document.getElementById('personalViewOverlay').classList.add('show');
+            document.body.style.overflow = 'hidden';
+            
+            console.log(`🏌️ Personal View geöffnet für: ${playerName} (ID: ${playerId})`);
+        }
+
+        function closePersonalView() {
+            personalViewOpen = false;
+            currentPersonalPlayerId = null;
+            document.getElementById('personalViewOverlay').classList.remove('show');
+            document.body.style.overflow = '';
+            
+            // Haupttabelle aktualisieren
+            calculateInitialTotals();
+        }
+
+        function renderPersonalScores(playerId) {
+            const scoresContainer = document.getElementById('personalScores');
+            const trackCount = {{ track_count }};
+            
+            let html = '';
+            
+            for (let track = 1; track <= trackCount; track++) {
+                // Wert aus Haupttabelle holen
+                const mainInput = document.querySelector(`.score-input[data-player-id="${playerId}"][data-track="${track}"]`);
+                const value = mainInput ? mainInput.value : '';
+                const hasValue = value && parseInt(value) > 0;
+                
+                html += `
+                    <div class="personal-score-item">
+                        <div class="personal-track-number">${track}</div>
+                        <div class="personal-score-input-wrapper">
+                            <input 
+                                type="number" 
+                                class="personal-score-input ${hasValue ? 'has-value' : ''}" 
+                                data-player-id="${playerId}" 
+                                data-track="${track}"
+                                value="${value}"
+                                placeholder="–"
+                                min="0"
+                                inputmode="numeric"
+                                pattern="[0-9]*"
+                            >
+                        </div>
+                    </div>
+                `;
+            }
+            
+            scoresContainer.innerHTML = html;
+            
+            // Event Listeners für Personal Inputs
+            scoresContainer.querySelectorAll('.personal-score-input').forEach(input => {
+                input.addEventListener('focus', function() {
+                    if (this.value === '0' || this.value === '') {
+                        this.value = '';
+                    }
+                    
+                    if (!isMobile) {
+                        currentInput = this;
+                        originalValue = this.value;
+                        numpadValue = this.value;
+                        showNumpadForPersonalView(this);
+                    }
+                });
+
+                input.addEventListener('blur', function() {
+                    setTimeout(() => {
+                        if (!numpadVisible) {
+                            closeNumpad();
+                        }
+                    }, 150);
+                });
+
+                input.addEventListener('input', function() {
+                    const value = parseInt(this.value) || 0;
+                    
+                    if (value > 0) {
+                        this.classList.add('has-value');
+                    } else {
+                        this.classList.remove('has-value');
+                    }
+                    
+                    clearTimeout(this.saveTimeout);
+                    this.saveTimeout = setTimeout(() => {
+                        savePersonalScore(this);
+                    }, 800);
+                });
+
+                input.addEventListener('keydown', function(e) {
+                    if (e.key === 'Enter') {
+                        savePersonalScore(this);
+                        this.blur();
+                        closeNumpad();
+                    }
+                    if (e.key === 'Escape') {
+                        this.blur();
+                        closeNumpad();
+                    }
+                });
+            });
+            
+            // Auto-scroll zur ersten leeren Bahn
+            setTimeout(() => {
+                const firstEmpty = scoresContainer.querySelector('.personal-score-input:not(.has-value)');
+                if (firstEmpty) {
+                    firstEmpty.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
+            }, 300);
+        }
+
+        function savePersonalScore(input) {
+            const playerId = parseInt(input.dataset.playerId);
+            const track = parseInt(input.dataset.track);
+            const value = parseInt(input.value) || 0;
+            
+            // Haupttabelle synchronisieren
+            const mainInput = document.querySelector(`.score-input[data-player-id="${playerId}"][data-track="${track}"]`);
+            if (mainInput) {
+                mainInput.value = value || '';
+                if (value > 0) {
+                    mainInput.classList.add('has-value');
+                } else {
+                    mainInput.classList.remove('has-value');
+                }
+            }
+            
+            // An Server senden
+            saveScore(input);
+            
+            // Personal Total aktualisieren
+            updatePersonalTotal();
+        }
+
+        function updatePersonalTotal() {
+            if (!currentPersonalPlayerId) return;
+            
+            let total = 0;
+            const inputs = document.querySelectorAll(`.personal-score-input[data-player-id="${currentPersonalPlayerId}"]`);
+            
+            inputs.forEach(input => {
+                const value = parseInt(input.value) || 0;
+                total += value;
+            });
+            
+            document.getElementById('personalTotal').textContent = total;
+        }
+
+        function showNumpadForPersonalView(input) {
+            const overlay = document.getElementById('numpadOverlay');
+            const numpad = document.getElementById('numpad');
+            const rect = input.getBoundingClientRect();
+            
+            // Position berechnen (neben dem Input)
+            let left = rect.left - 200;
+            if (left < 10) left = rect.right + 10;
+            if (left + 200 > window.innerWidth) left = window.innerWidth - 210;
+            
+            let top = rect.top;
+            if (top + 300 > window.innerHeight) top = window.innerHeight - 310;
+            
+            numpad.style.left = left + 'px';
+            numpad.style.top = top + 'px';
+            
+            overlay.classList.add('show');
+            numpadVisible = true;
+            
+            // Header aktualisieren
+            const header = numpad.querySelector('.numpad-header');
+            header.textContent = `Bahn ${input.dataset.track}`;
+            
+            updateNumpadDisplay();
+        }
+
+        // ==========================================
+        // SONNENMODUS
+        // ==========================================
+        function toggleSunmode() {
+            sunmodeEnabled = !sunmodeEnabled;
+            localStorage.setItem('gopher_sunmode', sunmodeEnabled);
+            
+            const overlay = document.getElementById('personalViewOverlay');
+            const toggle = document.getElementById('sunmodeToggle');
+            
+            if (sunmodeEnabled) {
+                overlay.classList.add('sunmode');
+                toggle.classList.add('active');
+                console.log('☀️ Sonnenmodus aktiviert');
+            } else {
+                overlay.classList.remove('sunmode');
+                toggle.classList.remove('active');
+                console.log('🌙 Sonnenmodus deaktiviert');
+            }
+        }
+
+        // ==========================================
+        // NUMPAD FUNKTIONEN (angepasst für beide Views)
+        // ==========================================
         document.querySelectorAll('.score-input').forEach(input => {
-            // Focus Event
             input.addEventListener('focus', function() {
-                // iPhone/Mobile Fix: Clear placeholder value
                 if (this.value === '0' || this.value === '') {
                     this.value = '';
                 }
                 
-                // Nur auf Desktop das Custom Numpad zeigen
                 if (!isMobile) {
                     currentInput = this;
-                    originalValue = this.value; // Speichere aktuellen Wert
-                    numpadValue = this.value;   // Starte mit aktuellem Wert
+                    originalValue = this.value;
+                    numpadValue = this.value;
                     showNumpadNearInput(this);
                 }
             });
 
-            // Blur Event (wenn Eingabe verlassen wird)
             input.addEventListener('blur', function() {
-                // iOS Safari Zoom Fix: Zurück zur normalen Ansicht
                 if (isMobile) {
                     setTimeout(() => {
                         const viewport = document.querySelector('meta[name=viewport]');
@@ -710,7 +1409,6 @@
                     }, 100);
                 }
                 
-                // Normale blur Logik
                 setTimeout(() => {
                     if (!numpadVisible) {
                         closeNumpad();
@@ -718,7 +1416,6 @@
                 }, 150);
             });
 
-            // Input Event (für Mobile/direkte Eingabe)
             input.addEventListener('input', function() {
                 const value = parseInt(this.value) || 0;
                 
@@ -734,7 +1431,6 @@
                 }, 800);
             });
 
-            // Enter-Taste
             input.addEventListener('keydown', function(e) {
                 if (e.key === 'Enter') {
                     saveScore(this);
@@ -748,10 +1444,9 @@
             });
         });
 
-        // Numpad Functions
         function showNumpadNearInput(input) {
             const overlay = document.getElementById('numpadOverlay');
-            const numpad = overlay.querySelector('.numpad');
+            const numpad = document.getElementById('numpad');
             const rect = input.getBoundingClientRect();
             
             const left = Math.max(10, Math.min(
@@ -766,15 +1461,12 @@
             overlay.classList.add('show');
             numpadVisible = true;
             
-            // Header mit Bahn-Nummer aktualisieren
             const header = numpad.querySelector('.numpad-header');
             header.textContent = `Bahn ${input.dataset.track}`;
             
-            // Display aktualisieren
             updateNumpadDisplay();
         }
 
-        // NEU: Numpad Display aktualisieren
         function updateNumpadDisplay() {
             const display = document.getElementById('numpadDisplay');
             if (numpadValue && numpadValue !== '') {
@@ -786,22 +1478,18 @@
             }
         }
 
-        // Numpad Event Listeners - Zahlen-Buttons
         document.querySelectorAll('.numpad-btn').forEach(btn => {
             btn.addEventListener('click', function() {
                 if (currentInput) {
                     const number = this.dataset.number;
-                    // Zahl anhängen (für mehrstellige Zahlen wie 12, 35)
                     numpadValue = numpadValue + number;
                     updateNumpadDisplay();
                 }
             });
         });
 
-        // GEÄNDERT: Abbrechen = Nichts speichern, original Wert wiederherstellen
         document.querySelector('.numpad-cancel').addEventListener('click', function() {
             if (currentInput) {
-                // Original-Wert wiederherstellen (nichts ändern)
                 currentInput.value = originalValue;
                 if (originalValue && parseInt(originalValue) > 0) {
                     currentInput.classList.add('has-value');
@@ -812,10 +1500,8 @@
             closeNumpad();
         });
 
-        // NEU: OK = Speichern und Schliessen
         document.querySelector('.numpad-ok').addEventListener('click', function() {
             if (currentInput) {
-                // Neuen Wert ins Input schreiben
                 currentInput.value = numpadValue;
                 
                 if (numpadValue && parseInt(numpadValue) > 0) {
@@ -824,16 +1510,18 @@
                     currentInput.classList.remove('has-value');
                 }
                 
-                // Speichern
-                saveScore(currentInput);
+                // Prüfen ob es ein Personal View Input ist
+                if (currentInput.classList.contains('personal-score-input')) {
+                    savePersonalScore(currentInput);
+                } else {
+                    saveScore(currentInput);
+                }
             }
             closeNumpad();
         });
 
-        // Klick ausserhalb des Numpads = Abbrechen (nichts speichern)
         document.getElementById('numpadOverlay').addEventListener('click', function(e) {
             if (e.target === this) {
-                // Wie Abbrechen: Original-Wert wiederherstellen
                 if (currentInput) {
                     currentInput.value = originalValue;
                     if (originalValue && parseInt(originalValue) > 0) {
@@ -846,18 +1534,28 @@
             }
         });
 
-        // ESC-Taste = Abbrechen
         document.addEventListener('keydown', function(e) {
-            if (e.key === 'Escape' && numpadVisible) {
-                if (currentInput) {
-                    currentInput.value = originalValue;
-                    if (originalValue && parseInt(originalValue) > 0) {
-                        currentInput.classList.add('has-value');
-                    } else {
-                        currentInput.classList.remove('has-value');
+            if (e.key === 'Escape') {
+                if (numpadVisible) {
+                    if (currentInput) {
+                        currentInput.value = originalValue;
+                        if (originalValue && parseInt(originalValue) > 0) {
+                            currentInput.classList.add('has-value');
+                        } else {
+                            currentInput.classList.remove('has-value');
+                        }
                     }
+                    closeNumpad();
+                } else if (personalViewOpen) {
+                    closePersonalView();
                 }
-                closeNumpad();
+            }
+        });
+
+        // Personal View Overlay Click Handler
+        document.getElementById('personalViewOverlay').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closePersonalView();
             }
         });
 
@@ -869,7 +1567,9 @@
             originalValue = '';
         }
 
-        // Score speichern
+        // ==========================================
+        // SCORE SPEICHERN
+        // ==========================================
         async function saveScore(input) {
             const playerId = parseInt(input.dataset.playerId);
             const track = parseInt(input.dataset.track);
@@ -898,6 +1598,11 @@
                     totals = result.totals;
                     updateTotalsDisplay();
                     showSaveIndicator();
+                    
+                    // Personal Total auch aktualisieren
+                    if (personalViewOpen) {
+                        updatePersonalTotal();
+                    }
                 } else {
                     throw new Error(result.message || 'Fehler beim Speichern');
                 }
@@ -911,7 +1616,9 @@
             }
         }
 
-        // Totals Display aktualisieren
+        // ==========================================
+        // TOTALS ANZEIGE
+        // ==========================================
         function updateTotalsDisplay() {
             let minScore = Infinity;
             let winners = [];
@@ -933,7 +1640,6 @@
                 }
             }
 
-            // Cards zurücksetzen
             for (const playerId of Object.keys(totals)) {
                 const cardElement = document.getElementById(`total-card-${playerId}`);
                 if (cardElement) {
@@ -941,7 +1647,6 @@
                 }
             }
 
-            // Gewinner markieren
             if (minScore !== Infinity && winners.length > 0) {
                 const isTie = winners.length > 1;
                 
@@ -958,7 +1663,6 @@
             }
         }
 
-        // Save Indicator
         function showSaveIndicator() {
             const indicator = document.getElementById('saveIndicator');
             indicator.classList.add('show');
@@ -967,16 +1671,13 @@
             }, 1500);
         }
 
-        // Initial Setup
         function calculateInitialTotals() {
             const inputs = document.querySelectorAll('.score-input');
             
-            // Totals zurücksetzen
             for (const playerId in totals) {
                 totals[playerId] = 0;
             }
 
-            // Alle Score-Inputs durchgehen und Werte laden
             inputs.forEach(input => {
                 const playerId = parseInt(input.dataset.playerId);
                 const value = parseInt(input.value) || 0;
@@ -1012,8 +1713,13 @@
             });
         }
 
+        // ==========================================
+        // INITIALISIERUNG
+        // ==========================================
         document.addEventListener('DOMContentLoaded', function() {
             calculateInitialTotals();
+            console.log('🏌️ Gopher Minigolf Score Page mit Personal View geladen');
+            console.log('☀️ Sonnenmodus Status:', sunmodeEnabled ? 'Aktiviert' : 'Deaktiviert');
         });
     </script>
 </body>
