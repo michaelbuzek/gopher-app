@@ -167,11 +167,14 @@
             background: rgba(248, 192, 152, 0.05);
         }
 
+        /* GEÄNDERT: Bahnnummer jetzt kräftiger und besser lesbar bei Sonnenlicht */
         .track-cell {
-            background: #fef7ed;
-            font-weight: 600;
-            color: #f8c098;
-            border-right: 2px solid #f8c098;
+            background: #f8c098;
+            font-weight: 700;
+            color: #2d3748;
+            border-right: 2px solid #e8a070;
+            font-size: 1.1em;
+            text-shadow: 0 1px 0 rgba(255, 255, 255, 0.5);
         }
 
         .score-input {
@@ -421,8 +424,9 @@
             transform: scale(1.05);
         }
 
+        /* GEÄNDERT: 0 nimmt jetzt die ganze untere Zeile ein (3 Spalten) */
         .numpad-btn.zero {
-            grid-column: span 2;
+            grid-column: span 3;
             width: auto;
         }
 
@@ -561,8 +565,7 @@
                                 data-track="{{ track }}" 
                                 value="{{ score_map.get((player.id, track), '') }}"
                                 placeholder=""
-                                min="1"
-                                max="20"
+                                min="0"
                                 inputmode="numeric"
                                 pattern="[0-9]*"
                                 >
@@ -596,7 +599,7 @@
         </div>
     </div>
 
-    <!-- Numpad Overlay -->
+    <!-- Numpad Overlay - GEÄNDERT: 10+ Button entfernt -->
     <div class="numpad-overlay" id="numpadOverlay">
         <div class="numpad">
             <div class="numpad-header">Score eingeben</div>
@@ -611,7 +614,6 @@
                 <button class="numpad-btn" data-number="8">8</button>
                 <button class="numpad-btn" data-number="9">9</button>
                 <button class="numpad-btn zero" data-number="0">0</button>
-                <button class="numpad-btn" data-number="10">10+</button>
             </div>
             <div class="numpad-actions">
                 <button class="numpad-action numpad-cancel">Abbrechen</button>
@@ -746,16 +748,23 @@
             btn.addEventListener('click', function() {
                 if (currentInput) {
                     const number = this.dataset.number;
-                    currentInput.value = number;
+                    // GEÄNDERT: Zahl anhängen statt ersetzen (für mehrstellige Zahlen wie 35)
+                    const currentValue = currentInput.value || '';
+                    currentInput.value = currentValue + number;
                     currentInput.classList.add('has-value');
                     
-                    saveScore(currentInput);
-                    closeNumpad();
+                    // Nicht automatisch schließen - User kann weitere Ziffern eingeben
+                    // saveScore wird erst beim Schließen aufgerufen
                 }
             });
         });
 
-        document.querySelector('.numpad-cancel').addEventListener('click', closeNumpad);
+        document.querySelector('.numpad-cancel').addEventListener('click', function() {
+            if (currentInput) {
+                saveScore(currentInput);
+            }
+            closeNumpad();
+        });
 
         document.querySelector('.numpad-clear').addEventListener('click', function() {
             if (currentInput) {
@@ -768,12 +777,18 @@
 
         document.getElementById('numpadOverlay').addEventListener('click', function(e) {
             if (e.target === this) {
+                if (currentInput) {
+                    saveScore(currentInput);
+                }
                 closeNumpad();
             }
         });
 
         document.addEventListener('keydown', function(e) {
             if (e.key === 'Escape' && numpadVisible) {
+                if (currentInput) {
+                    saveScore(currentInput);
+                }
                 closeNumpad();
             }
         });
@@ -784,7 +799,7 @@
             currentInput = null;
         }
 
-        // Score speichern
+        // Score speichern - GEÄNDERT: Keine Begrenzung mehr
         async function saveScore(input) {
             const playerId = parseInt(input.dataset.playerId);
             const track = parseInt(input.dataset.track);
