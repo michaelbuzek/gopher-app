@@ -290,7 +290,6 @@
             this.gameId = this.extractGameId();
             this.qrLibLoaded = false;
             this.modalOpen = false;
-            this.toastTimeout = null;  // Timeout-Referenz für Toast
 
             this.init();
         }
@@ -614,23 +613,14 @@
             }
         }
 
-        // Toast anzeigen - VERBESSERT mit clearTimeout
+        // Toast anzeigen
         showToast(message) {
             const toast = document.getElementById('qr-toast');
             if (toast) {
-                // Alten Timeout clearen falls vorhanden
-                if (this.toastTimeout) {
-                    clearTimeout(this.toastTimeout);
-                }
-                
-                // Toast anzeigen
                 toast.textContent = message;
                 toast.classList.add('show');
-                
-                // Nach 2.5 Sekunden ausblenden
-                this.toastTimeout = setTimeout(() => {
+                setTimeout(() => {
                     toast.classList.remove('show');
-                    this.toastTimeout = null;
                 }, 2500);
             }
         }
