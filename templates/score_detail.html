@@ -6,7 +6,7 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black">
     <meta name="apple-mobile-web-app-title" content="Gopher Minigolf">
-    <title>🏌️ Gopher Minigolf - Score Eingabe</title>
+    <title>ðŸŒï¸ Gopher Minigolf - Score Eingabe</title>
     <style>
         * {
             margin: 0;
@@ -165,7 +165,7 @@
         }
 
         .score-table th.player-header::after {
-            content: '👤';
+            content: 'ðŸ‘¤';
             font-size: 0.7em;
             margin-left: 5px;
             opacity: 0.5;
@@ -190,7 +190,7 @@
             background: rgba(248, 192, 152, 0.05);
         }
 
-        /* Bahnnummer kräftig für Sonnenlicht */
+        /* Bahnnummer krÃ¤ftig fÃ¼r Sonnenlicht */
         .track-cell {
             background: #f8c098;
             font-weight: 700;
@@ -282,7 +282,7 @@
         }
 
         .total-card.winner::before {
-            content: '🏆';
+            content: 'ðŸ†';
             font-size: 1.2em;
             display: block;
             margin-bottom: 5px;
@@ -294,7 +294,7 @@
         }
 
         .total-card.winner.tie::before {
-            content: '🤝';
+            content: 'ðŸ¤';
         }
 
         .player-name {
@@ -387,7 +387,7 @@
         }
 
         /* ==========================================
-           NUMPAD STYLES (unverändert)
+           NUMPAD STYLES (unverÃ¤ndert)
            ========================================== */
         .numpad-overlay {
             position: fixed;
@@ -650,7 +650,7 @@
         }
 
         .sunmode-toggle.active .sunmode-switch {
-            background: #FFD700;
+            background: #f8c098;
         }
 
         .sunmode-toggle.active .sunmode-switch::after {
@@ -680,18 +680,19 @@
         }
 
         .personal-track-number {
-            background: #f8c098;
-            color: #2d3748;
-            width: 45px;
-            height: 45px;
+            background: #f7f4f1;
+            color: #000000;
+            width: 50px;
+            height: 50px;
             border-radius: 10px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-weight: 700;
-            font-size: 1.2em;
+            font-weight: 900;
+            font-size: 1.4em;
             margin-right: 15px;
             flex-shrink: 0;
+            border: 2px solid #e2e8f0;
         }
 
         .personal-score-input-wrapper {
@@ -702,18 +703,18 @@
         }
 
         .personal-score-input {
-            width: 80px;
-            height: 55px;
-            border: 3px solid #e2e8f0;
-            border-radius: 12px;
+            width: 70px;
+            height: 50px;
+            border: 2px solid #e2e8f0;
+            border-radius: 10px;
             text-align: center;
-            font-size: 1.4em;
+            font-size: 1.3em;
             font-weight: 700;
             background: white;
             transition: all 0.3s ease;
             -webkit-appearance: none;
             appearance: none;
-            color: #2d3748;
+            color: #000000;
         }
 
         .personal-score-input:focus {
@@ -723,9 +724,10 @@
         }
 
         .personal-score-input.has-value {
-            background: #f8c098;
-            color: #2d3748;
-            border-color: #f2bc91;
+            background: white;
+            color: #000000;
+            border-color: #f8c098;
+            border-width: 3px;
         }
 
         /* Personal Footer */
@@ -759,35 +761,34 @@
         }
 
         /* ==========================================
-           SONNENMODUS STYLES
+           SONNENMODUS STYLES - Nur Inputs größer!
            ========================================== */
         .sunmode .personal-view {
             background: #ffffff;
-            border: 4px solid #000000;
         }
 
         .sunmode .personal-header {
-            background: #000000;
+            background: #3b5c6c;
             color: #ffffff;
         }
 
         .sunmode .personal-total {
-            color: #FFD700;
+            color: #f8c098;
         }
 
         .sunmode .personal-close {
-            background: #FFD700;
-            color: #000000;
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
         }
 
         .sunmode .sunmode-toggle {
-            background: #FFD700;
-            border-bottom: 3px solid #000000;
+            background: #f7f4f1;
+            border-bottom: 1px solid #e2e8f0;
         }
 
         .sunmode .sunmode-toggle-label {
-            color: #000000;
-            font-weight: 700;
+            color: #3b5c6c;
+            font-weight: 600;
         }
 
         .sunmode .personal-scores {
@@ -801,58 +802,59 @@
         }
 
         .sunmode .personal-track-number {
-            background: #FFD700;
+            background: #f7f4f1;
             color: #000000;
-            border: 2px solid #000000;
-            font-size: 1.4em;
-            width: 50px;
-            height: 50px;
+            border: 3px solid #000000;
+            font-size: 1.8em;
+            font-weight: 900;
+            width: 60px;
+            height: 60px;
         }
 
         .sunmode .personal-score-input {
             width: 90px;
             height: 60px;
-            border: 4px solid #000000;
-            font-size: 1.8em;
-            font-weight: 800;
+            border: 3px solid #000000;
+            font-size: 1.6em;
+            font-weight: 700;
             background: #ffffff;
             color: #000000;
         }
 
         .sunmode .personal-score-input.has-value {
-            background: #FFD700;
+            background: #ffffff;
             color: #000000;
             border-color: #000000;
         }
 
         .sunmode .personal-score-input:focus {
-            box-shadow: 0 0 0 5px rgba(255, 215, 0, 0.5);
+            box-shadow: 0 0 0 4px rgba(248, 192, 152, 0.3);
         }
 
         .sunmode .personal-footer {
-            background: #000000;
+            background: #f7f4f1;
         }
 
         .sunmode .personal-back-btn {
-            background: #FFD700;
-            color: #000000;
-            font-weight: 700;
-            font-size: 1.1em;
-            border: 3px solid #000000;
+            background: #3b5c6c;
+            color: white;
+            font-weight: 600;
+            font-size: 1em;
+            border: none;
         }
 
         .sunmode .personal-back-btn:hover {
-            background: #FFC000;
+            background: #2a4a58;
         }
 
         /* Numpad im Sonnenmodus */
         .sunmode .numpad {
             background: #ffffff;
-            border: 4px solid #000000;
+            border: 3px solid #000000;
         }
 
         .sunmode .numpad-header {
-            color: #000000;
+            color: #3b5c6c;
             font-weight: 700;
             font-size: 1.1em;
         }
@@ -865,8 +867,9 @@
         }
 
         .sunmode .numpad-display.has-value {
-            background: #FFD700;
-            border-color: #000000;
+            background: #ffffff;
+            border-color: #f8c098;
+            border-width: 4px;
             color: #000000;
         }
 
@@ -880,7 +883,7 @@
         }
 
         .sunmode .numpad-btn:hover {
-            background: #FFD700;
+            background: #f7f4f1;
         }
 
         .sunmode .numpad-cancel {
@@ -890,8 +893,8 @@
         }
 
         .sunmode .numpad-ok {
-            background: #FFD700;
-            color: #000000;
+            background: #10b981;
+            color: #ffffff;
             border: 2px solid #000000;
             font-weight: 700;
         }
@@ -971,6 +974,18 @@
                 font-size: 1.2em;
             }
 
+            .personal-track-number {
+                width: 45px;
+                height: 45px;
+                font-size: 1.3em;
+            }
+
+            .sunmode .personal-track-number {
+                width: 55px;
+                height: 55px;
+                font-size: 1.6em;
+            }
+
             .sunmode .personal-score-input {
                 width: 80px;
                 height: 55px;
@@ -984,29 +999,29 @@
         <div class="header">
             <!-- Gopher Icon -->
             <img src="/static/gopher_main.png" 
-                 alt="🐹 Gopher Maskottchen" 
+                 alt="ðŸ¹ Gopher Maskottchen" 
                  class="gopher-icon" 
                  id="gopherIcon"
                  onerror="this.style.display='none';">
             
             <h1>Score Eingabe</h1>
             <div class="game-info">
-                <div>📍 <strong>{{ game.place }}</strong></div>
-                <div>📅 <strong>{{ game.date }}</strong></div>
-                <div>⛳ <strong>{{ track_count }} Bahnen</strong></div>
+                <div>ðŸ“ <strong>{{ game.place }}</strong></div>
+                <div>ðŸ“… <strong>{{ game.date }}</strong></div>
+                <div>â›³ <strong>{{ track_count }} Bahnen</strong></div>
             </div>
         </div>
 
         <div class="nav">
-            <a href="/" class="nav-link">🏠 Home</a>
-            <a href="/history" class="nav-link">📜 History</a>
-            <a href="#" class="nav-link active">🏆 Score</a>
+            <a href="/" class="nav-link">ðŸ  Home</a>
+            <a href="/history" class="nav-link">ðŸ“œ History</a>
+            <a href="#" class="nav-link active">ðŸ† Score</a>
         </div>
 
         <div class="score-container">
-            <!-- Hinweis für Personal View -->
+            <!-- Hinweis fÃ¼r Personal View -->
             <div style="text-align: center; padding: 8px; background: #fef7ed; border-radius: 8px; margin-bottom: 15px; font-size: 0.85em; color: #64748b;">
-                💡 <strong>Tipp:</strong> Tippe auf einen Spielernamen für die Einzelansicht
+                ðŸ’¡ <strong>Tipp:</strong> Tippe auf einen Spielernamen fÃ¼r die Einzelansicht
             </div>
 
             <table class="score-table">
@@ -1048,7 +1063,7 @@
             </table>
 
             <div class="totals-section">
-                <h3 class="totals-title">🏆 Aktuelle Standings</h3>
+                <h3 class="totals-title">ðŸ† Aktuelle Standings</h3>
                 <div class="totals-grid">
                     {% for player in players %}
                         <div class="total-card" id="total-card-{{ player.id }}">
@@ -1061,10 +1076,10 @@
 
             <div class="action-buttons">
                 <a href="/" class="action-btn btn-primary">
-                    🏠 Neues Spiel
+                    ðŸ  Neues Spiel
                 </a>
                 <a href="/results/{{ game.id }}" class="action-btn btn-success">
-                    🏆 Spiel beenden
+                    ðŸ† Spiel beenden
                 </a>
             </div>
         </div>
@@ -1081,23 +1096,23 @@
                     <div class="personal-total-label">Total</div>
                     <div class="personal-total" id="personalTotal">0</div>
                 </div>
-                <button class="personal-close" onclick="closePersonalView()">✕</button>
+                <button class="personal-close" onclick="closePersonalView()">âœ•</button>
             </div>
 
             <!-- Sonnenmodus Toggle -->
             <div class="sunmode-toggle" id="sunmodeToggle" onclick="toggleSunmode()">
-                <span class="sunmode-toggle-label">☀️ Sonnenmodus</span>
+                <span class="sunmode-toggle-label">â˜€ï¸ Sonnenmodus</span>
                 <div class="sunmode-switch"></div>
             </div>
 
             <!-- Scores Liste -->
             <div class="personal-scores" id="personalScores">
-                <!-- Wird dynamisch gefüllt -->
+                <!-- Wird dynamisch gefÃ¼llt -->
             </div>
 
             <div class="personal-footer">
                 <button class="personal-back-btn" onclick="closePersonalView()">
-                    ← Zurück zur Übersicht
+                    â† ZurÃ¼ck zur Ãœbersicht
                 </button>
             </div>
         </div>
@@ -1107,7 +1122,7 @@
     <div class="numpad-overlay" id="numpadOverlay">
         <div class="numpad" id="numpad">
             <div class="numpad-header">Score eingeben</div>
-            <div class="numpad-display" id="numpadDisplay">–</div>
+            <div class="numpad-display" id="numpadDisplay">â€“</div>
             <div class="numpad-grid">
                 <button class="numpad-btn" data-number="1">1</button>
                 <button class="numpad-btn" data-number="2">2</button>
@@ -1129,7 +1144,7 @@
 
     <!-- Save Indicator -->
     <div class="save-indicator" id="saveIndicator">
-        ✅ Gespeichert!
+        âœ… Gespeichert!
     </div>
 
     <script>
@@ -1186,7 +1201,7 @@
             document.getElementById('personalViewOverlay').classList.add('show');
             document.body.style.overflow = 'hidden';
             
-            console.log(`🏌️ Personal View geöffnet für: ${playerName} (ID: ${playerId})`);
+            console.log(`ðŸŒï¸ Personal View geÃ¶ffnet fÃ¼r: ${playerName} (ID: ${playerId})`);
         }
 
         function closePersonalView() {
@@ -1221,7 +1236,7 @@
                                 data-player-id="${playerId}" 
                                 data-track="${track}"
                                 value="${value}"
-                                placeholder="–"
+                                placeholder="â€“"
                                 min="0"
                                 inputmode="numeric"
                                 pattern="[0-9]*"
@@ -1233,7 +1248,7 @@
             
             scoresContainer.innerHTML = html;
             
-            // Event Listeners für Personal Inputs
+            // Event Listeners fÃ¼r Personal Inputs
             scoresContainer.querySelectorAll('.personal-score-input').forEach(input => {
                 input.addEventListener('focus', function() {
                     if (this.value === '0' || this.value === '') {
@@ -1369,16 +1384,16 @@
             if (sunmodeEnabled) {
                 overlay.classList.add('sunmode');
                 toggle.classList.add('active');
-                console.log('☀️ Sonnenmodus aktiviert');
+                console.log('â˜€ï¸ Sonnenmodus aktiviert');
             } else {
                 overlay.classList.remove('sunmode');
                 toggle.classList.remove('active');
-                console.log('🌙 Sonnenmodus deaktiviert');
+                console.log('ðŸŒ™ Sonnenmodus deaktiviert');
             }
         }
 
         // ==========================================
-        // NUMPAD FUNKTIONEN (angepasst für beide Views)
+        // NUMPAD FUNKTIONEN (angepasst fÃ¼r beide Views)
         // ==========================================
         document.querySelectorAll('.score-input').forEach(input => {
             input.addEventListener('focus', function() {
@@ -1473,7 +1488,7 @@
                 display.textContent = numpadValue;
                 display.classList.add('has-value');
             } else {
-                display.textContent = '–';
+                display.textContent = 'â€“';
                 display.classList.remove('has-value');
             }
         }
@@ -1510,7 +1525,7 @@
                     currentInput.classList.remove('has-value');
                 }
                 
-                // Prüfen ob es ein Personal View Input ist
+                // PrÃ¼fen ob es ein Personal View Input ist
                 if (currentInput.classList.contains('personal-score-input')) {
                     savePersonalScore(currentInput);
                 } else {
@@ -1718,8 +1733,8 @@
         // ==========================================
         document.addEventListener('DOMContentLoaded', function() {
             calculateInitialTotals();
-            console.log('🏌️ Gopher Minigolf Score Page mit Personal View geladen');
-            console.log('☀️ Sonnenmodus Status:', sunmodeEnabled ? 'Aktiviert' : 'Deaktiviert');
+            console.log('ðŸŒï¸ Gopher Minigolf Score Page mit Personal View geladen');
+            console.log('â˜€ï¸ Sonnenmodus Status:', sunmodeEnabled ? 'Aktiviert' : 'Deaktiviert');
         });
     </script>
 </body>
