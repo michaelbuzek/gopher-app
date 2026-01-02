@@ -245,12 +245,16 @@
             border-radius: 10px;
             font-weight: 600;
             box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
-            transition: transform 0.3s ease;
+            transition: transform 0.3s ease, opacity 0.3s ease, visibility 0.3s ease;
             z-index: 3100;
+            visibility: hidden;
+            opacity: 0;
         }
 
         .qr-toast.show {
             transform: translateX(-50%) translateY(0);
+            visibility: visible;
+            opacity: 1;
         }
 
         /* Mobile Optimierung */
@@ -460,12 +464,12 @@
             }
         }
 
-        // Toast erstellen
+        // Toast erstellen (initial leer und versteckt)
         createToast() {
             const toast = document.createElement('div');
             toast.id = 'qr-toast';
             toast.className = 'qr-toast';
-            toast.textContent = '✅ Link kopiert!';
+            toast.textContent = '';  // Leer - Text kommt erst bei showToast()
             document.body.appendChild(toast);
         }
 
