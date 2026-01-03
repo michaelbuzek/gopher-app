@@ -284,8 +284,10 @@ def check_database_connection():
     """Test database connection"""
     try:
         db.session.execute(text('SELECT 1'))
+        db.session.commit()  # Commit nach erfolgreicher Query
         return True
     except Exception as e:
+        db.session.rollback()  # Rollback bei Fehler
         logger.error(f"❌ Database connection failed: {str(e)}")
         return False
 
@@ -300,69 +302,88 @@ def check_tables_exist():
         db.session.execute(text('SELECT 1 FROM track_types LIMIT 1'))
         db.session.execute(text('SELECT 1 FROM place_tracks LIMIT 1'))
         db.session.execute(text('SELECT 1 FROM scrabble_games LIMIT 1'))  # Scrabble Table
+        db.session.commit()  # Commit nach erfolgreichen Queries
         return True
     except Exception:
+        db.session.rollback()  # Rollback bei Fehler
         return False
 
 def initialize_default_data():
     """Setup default Track Types - UPDATED VERSION WITH CORRECT ICONS"""
-    
-    # 🔥 UPDATED: Track Types mit deinen tatsächlichen PNG-Dateien
-    default_track_types = [
-        {'name': 'Standard', 'description': 'Standard Minigolf Bahn', 'icon_filename': 'bahn_placeholder.png', 'is_default': True, 'sort_order': 1},
-        {'name': 'Kurve Links', 'description': 'Linkskurve', 'icon_filename': 'bahn_kurve_links.png', 'sort_order': 2},
-        {'name': 'Kurve Rechts', 'description': 'Rechtskurve', 'icon_filename': 'bahn_kurve_rechts.png', 'sort_order': 3},
-        {'name': 'Hindernis', 'description': 'Bahn mit Hindernis', 'icon_filename': 'bahn_hindernis.png', 'sort_order': 4},
-        {'name': 'Gerade', 'description': 'Gerade Bahn', 'icon_filename': 'gerade.png', 'sort_order': 5},
-        {'name': 'Berg', 'description': 'Berg-Bahn', 'icon_filename': 'berg.png', 'sort_order': 6},
-        {'name': 'Loop', 'description': 'Loop-Bahn', 'icon_filename': 'loop.png', 'sort_order': 7},
-        {'name': 'Rampe', 'description': 'Rampen-Bahn', 'icon_filename': 'rampe.png', 'sort_order': 8},
-        {'name': 'Tunnel', 'description': 'Tunnel-Bahn', 'icon_filename': 'tunnel.png', 'sort_order': 9},
-        {'name': 'S-Kurve', 'description': 'S-Kurven-Bahn', 'icon_filename': 's_kurve.png', 'sort_order': 10},
-        {'name': 'Rechtskurve Alt', 'description': 'Alternative Rechtskurve', 'icon_filename': 'rechtskurve.png', 'sort_order': 11},
-        {'name': 'Linkskurve Alt', 'description': 'Alternative Linkskurve', 'icon_filename': 'linkskurve.png', 'sort_order': 12},
-        {'name': 'Hindernis Alt', 'description': 'Alternative Hindernis-Bahn', 'icon_filename': 'hindernis.png', 'sort_order': 13},
-    ]
-    
-    for tt_data in default_track_types:
-        existing = TrackType.query.filter_by(name=tt_data['name']).first()
-        if not existing:
-            track_type = TrackType(**tt_data)
-            db.session.add(track_type)
-    
-    db.session.commit()
-    log_action("Track Types initialized with correct PNG files")
+    try:
+        # Track Types mit deinen tatsächlichen PNG-Dateien
+        default_track_types = [
+            {'name': 'Standard', 'description': 'Standard Minigolf Bahn', 'icon_filename': 'bahn_placeholder.png', 'is_default': True, 'sort_order': 1},
+            {'name': 'Kurve Links', 'description': 'Linkskurve', 'icon_filename': 'bahn_kurve_links.png', 'sort_order': 2},
+            {'name': 'Kurve Rechts', 'description': 'Rechtskurve', 'icon_filename': 'bahn_kurve_rechts.png', 'sort_order': 3},
+            {'name': 'Hindernis', 'description': 'Bahn mit Hindernis', 'icon_filename': 'bahn_hindernis.png', 'sort_order': 4},
+            {'name': 'Gerade', 'description': 'Gerade Bahn', 'icon_filename': 'gerade.png', 'sort_order': 5},
+            {'name': 'Berg', 'description': 'Berg-Bahn', 'icon_filename': 'berg.png', 'sort_order': 6},
+            {'name': 'Loop', 'description': 'Loop-Bahn', 'icon_filename': 'loop.png', 'sort_order': 7},
+            {'name': 'Rampe', 'description': 'Rampen-Bahn', 'icon_filename': 'rampe.png', 'sort_order': 8},
+            {'name': 'Tunnel', 'description': 'Tunnel-Bahn', 'icon_filename': 'tunnel.png', 'sort_order': 9},
+            {'name': 'S-Kurve', 'description': 'S-Kurven-Bahn', 'icon_filename': 's_kurve.png', 'sort_order': 10},
+            {'name': 'Rechtskurve Alt', 'description': 'Alternative Rechtskurve', 'icon_filename': 'rechtskurve.png', 'sort_order': 11},
+            {'name': 'Linkskurve Alt', 'description': 'Alternative Linkskurve', 'icon_filename': 'linkskurve.png', 'sort_order': 12},
+            {'name': 'Hindernis Alt', 'description': 'Alternative Hindernis-Bahn', 'icon_filename': 'hindernis.png', 'sort_order': 13},
+        ]
+        
+        for tt_data in default_track_types:
+            existing = TrackType.query.filter_by(name=tt_data['name']).first()
+            if not existing:
+                track_type = TrackType(**tt_data)
+                db.session.add(track_type)
+        
+        db.session.commit()
+        log_action("Track Types initialized with correct PNG files")
+        
+    except Exception as e:
+        db.session.rollback()  # Rollback bei Fehler
+        logger.error(f"❌ Error initializing default data: {str(e)}")
+        raise  # Re-raise damit safe_database_init() es mitbekommt
 
 
 def migrate_legacy_games():
     """Convert legacy games to use Place references"""
-    legacy_games = Game.query.filter(Game.place_id == None).all()
-    
-    for game in legacy_games:
-        # Versuche existing Place zu finden
-        existing_place = Place.query.filter_by(name=game.place).first()
+    try:
+        legacy_games = Game.query.filter(Game.place_id == None).all()
         
-        if not existing_place:
-            # Erstelle neuen Place für diesen legacy game
-            new_place = Place(name=game.place, track_count=game.track_count)
-            db.session.add(new_place)
-            db.session.flush()  # Get ID
-            new_place.setup_default_tracks()
-            game.place_id = new_place.id
-        else:
-            game.place_id = existing_place.id
-    
-    db.session.commit()
-    log_action(f"Migrated {len(legacy_games)} legacy games to Place references")
+        for game in legacy_games:
+            # Versuche existing Place zu finden
+            existing_place = Place.query.filter_by(name=game.place).first()
+            
+            if not existing_place:
+                # Erstelle neuen Place für diesen legacy game
+                new_place = Place(name=game.place, track_count=game.track_count)
+                db.session.add(new_place)
+                db.session.flush()  # Get ID
+                new_place.setup_default_tracks()
+                game.place_id = new_place.id
+            else:
+                game.place_id = existing_place.id
+        
+        db.session.commit()
+        log_action(f"Migrated {len(legacy_games)} legacy games to Place references")
+        
+    except Exception as e:
+        db.session.rollback()  # Rollback bei Fehler
+        logger.error(f"❌ Error migrating legacy games: {str(e)}")
+        raise  # Re-raise damit safe_database_init() es mitbekommt
 
 
 def safe_database_init():
     """Updated database initialization"""
     try:
-        if not check_database_connection():
-            raise Exception("Database connection failed")
+        # Erst rollback um sauberen Zustand zu haben
+        db.session.rollback()
+        
+        # Test connection
+        db.session.execute(text('SELECT 1'))
+        db.session.commit()
+        log_action("Database connection successful")
         
         # Create all tables (including new ones)
+        log_action("Creating database tables on startup")
         db.create_all()
         
         # Initialize default data
@@ -375,6 +396,7 @@ def safe_database_init():
         return True
         
     except Exception as e:
+        db.session.rollback()  # Rollback bei Fehler
         logger.error(f"❌ Database initialization failed: {str(e)}")
         return False
 
