@@ -604,30 +604,24 @@
             background: rgba(255,255,255,0.3);
         }
 
-        .modal-body {
+        .modal-content {
             flex: 1;
             overflow-y: auto;
             padding: 15px;
         }
 
-        .history-list {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
-
         .history-item {
-            background: var(--bg-main);
-            border-radius: 10px;
-            padding: 12px;
             display: flex;
-            justify-content: space-between;
             align-items: center;
+            background: var(--bg-main);
+            border-radius: 12px;
+            padding: 12px 15px;
+            margin-bottom: 10px;
             transition: all 0.3s ease;
         }
 
         .history-item:hover {
-            background: #f0ebe6;
+            background: #ede8e3;
         }
 
         .history-info {
@@ -635,36 +629,34 @@
         }
 
         .history-date {
-            font-size: 0.8em;
+            font-size: 0.75em;
             color: var(--text-placeholder);
             margin-bottom: 3px;
         }
 
         .history-players {
             font-weight: 600;
-            color: var(--primary-blue);
             margin-bottom: 2px;
-            font-size: 0.95em;
         }
 
         .history-result {
             font-size: 0.85em;
-            color: var(--text-dark);
+            color: var(--scrabble-gold-dark);
         }
 
         .history-winner {
-            color: var(--scrabble-gold);
             font-weight: 600;
         }
 
         .history-score {
             text-align: right;
+            margin-right: 12px;
         }
 
         .history-score-main {
-            font-size: 1.2em;
+            font-size: 1.3em;
             font-weight: 700;
-            color: var(--scrabble-gold-dark);
+            color: var(--primary-blue);
         }
 
         .history-score-sub {
@@ -673,163 +665,212 @@
         }
 
         .history-delete {
-            background: #fef2f2;
+            background: none;
             border: none;
-            color: var(--error-red);
-            width: 32px;
-            height: 32px;
-            border-radius: 8px;
+            font-size: 1.2em;
             cursor: pointer;
+            opacity: 0.5;
             transition: all 0.3s ease;
-            margin-left: 12px;
+            padding: 5px;
         }
 
         .history-delete:hover {
-            background: #fecaca;
+            opacity: 1;
+            transform: scale(1.1);
         }
 
         .empty-history {
             text-align: center;
-            padding: 35px;
+            padding: 50px 20px;
             color: var(--text-placeholder);
         }
 
         .empty-history-icon {
-            font-size: 2.5em;
+            font-size: 3em;
             margin-bottom: 12px;
+        }
+
+        .empty-history h3 {
+            font-weight: 600;
+            margin-bottom: 5px;
         }
 
         /* Toast */
         .toast {
             position: fixed;
-            bottom: 25px;
+            bottom: 30px;
             left: 50%;
             transform: translateX(-50%) translateY(100px);
-            background: var(--scrabble-gold);
+            background: var(--text-dark);
             color: white;
-            padding: 12px 22px;
-            border-radius: 10px;
+            padding: 12px 24px;
+            border-radius: 25px;
             font-weight: 600;
-            box-shadow: 0 8px 25px rgba(0,0,0,0.2);
+            box-shadow: 0 5px 20px rgba(0,0,0,0.3);
             transition: transform 0.3s ease;
-            z-index: 900;
+            z-index: 2000;
         }
 
         .toast.show {
             transform: translateX(-50%) translateY(0);
         }
 
-        /* Portrait Warning */
-        .portrait-warning {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: var(--scrabble-gold);
-            color: white;
-            justify-content: center;
-            align-items: center;
-            flex-direction: column;
-            gap: 20px;
-            z-index: 2000;
-            text-align: center;
-            padding: 40px;
-        }
-
-        .portrait-warning-icon {
-            font-size: 4em;
-            animation: rotate 2s ease-in-out infinite;
-        }
-
-        @keyframes rotate {
-            0%, 100% { transform: rotate(-15deg); }
-            50% { transform: rotate(15deg); }
-        }
-
-        .portrait-warning h2 {
-            font-size: 1.5em;
-        }
-
-        @media (orientation: portrait) and (max-width: 900px) {
-            .portrait-warning {
-                display: flex;
+        /* Mobile Responsive */
+        @media (max-width: 900px) {
+            .game-container {
+                flex-direction: column;
+                padding: 10px;
+                gap: 10px;
             }
-            .game-container, .header {
+
+            .player-column {
+                flex: none;
+                height: auto;
+                min-height: 0;
+            }
+
+            .player-header {
+                padding: 10px 12px;
+            }
+
+            .player-total {
+                font-size: 1.6em;
+            }
+
+            .score-list {
+                max-height: 120px;
+                min-height: 60px;
+            }
+
+            .numpad-container {
+                width: 100%;
+                flex-direction: row;
+                flex-wrap: wrap;
+                justify-content: center;
+                gap: 8px;
+                padding: 0;
+            }
+
+            .current-input-display {
+                flex: 1;
+                min-width: 150px;
+                padding: 10px 15px;
+            }
+
+            .input-value {
+                font-size: 1.8em;
+            }
+
+            .numpad {
+                padding: 8px;
+            }
+
+            .numpad-btn {
+                width: 55px;
+                height: 48px;
+                font-size: 1.2em;
+            }
+
+            .action-row {
+                flex: 1;
+                min-width: 150px;
+                flex-direction: column;
+                gap: 5px;
+            }
+
+            .action-btn {
+                padding: 8px;
+                font-size: 0.8em;
+            }
+        }
+
+        @media (max-width: 500px) {
+            .header {
+                padding: 10px 12px;
+            }
+
+            .header h1 {
+                font-size: 1.1em;
+            }
+
+            .header-btn {
+                padding: 6px 10px;
+                font-size: 0.8em;
+            }
+
+            .header-btn span {
                 display: none;
             }
-        }
 
-        /* Responsive: smaller screens */
-        @media (max-height: 600px) {
-            .header { padding: 8px 15px; }
-            .header h1 { font-size: 1.2em; }
-            .game-container { padding: 10px; gap: 10px; }
-            .player-header { padding: 8px 12px; }
-            .player-name { font-size: 1em; }
-            .player-total { font-size: 1.6em; }
-            .player-label { font-size: 0.7em; }
-            .numpad-container { width: 220px; gap: 8px; }
-            .numpad-btn { width: 55px; height: 45px; font-size: 1.2em; }
-            .numpad { padding: 10px; }
-            .numpad-grid { gap: 6px; }
-            .input-value { font-size: 1.8em; }
-            .current-input-display { padding: 10px 20px; }
-            .score-item { padding: 6px 10px; margin-bottom: 4px; }
-            .score-round { width: 20px; height: 20px; font-size: 0.7em; margin-right: 8px; }
-            .score-value { font-size: 1em; }
-            .action-btn { padding: 8px; font-size: 0.8em; }
-        }
+            .home-logo {
+                width: 35px;
+                height: 35px;
+            }
 
-        @media (max-height: 500px) {
-            .header { padding: 6px 12px; }
-            .header h1 { font-size: 1em; }
-            .home-logo { width: 32px; height: 32px; }
-            .game-container { padding: 8px; gap: 8px; }
-            .player-header { padding: 6px 10px; }
-            .player-name { font-size: 0.9em; }
-            .player-total { font-size: 1.4em; }
-            .numpad-container { width: 200px; }
-            .numpad-btn { width: 50px; height: 40px; font-size: 1em; }
+            .score-list {
+                max-height: 100px;
+            }
+
+            .score-item {
+                padding: 6px 10px;
+            }
+
+            .score-round {
+                width: 20px;
+                height: 20px;
+                font-size: 0.7em;
+            }
+
+            .score-value {
+                font-size: 1em;
+            }
+
+            .numpad-btn {
+                width: 50px;
+                height: 44px;
+                font-size: 1.1em;
+            }
+
+            .winner-card {
+                padding: 25px 30px;
+            }
+
+            .winner-trophy {
+                font-size: 2.5em;
+            }
+
+            .winner-name {
+                font-size: 1.6em;
+            }
         }
     </style>
 </head>
 <body>
-    <!-- Portrait Warning -->
-    <div class="portrait-warning">
-        <div class="portrait-warning-icon">📱↔️</div>
-        <h2>Bitte drehe dein Gerät</h2>
-        <p>Scrabble Score funktioniert am besten im Querformat</p>
-    </div>
-
     <!-- Header -->
     <div class="header">
         <div class="header-left">
             <a href="/" class="home-logo" title="Zurück zur Startseite">
-                <img src="/static/gopher_main.png" alt="🏠" onerror="this.parentNode.innerHTML='🏠';">
+                <img src="/static/gopher_main.png" alt="Gopher">
             </a>
             <div class="header-title">
-                <img src="/static/scapp_main_logo_4page.png" alt="S" onerror="this.style.display='none'">
-                <h1>Scrabble Score</h1>
+                <h1>🎯 Scrabble Score</h1>
             </div>
         </div>
         <div class="header-right">
-            <button class="header-btn" id="newGameBtn">🆕 Neu</button>
-            <button class="header-btn" id="historyBtn">📜 History</button>
+            <button class="header-btn" id="historyBtn">📜 <span>History</span></button>
+            <button class="header-btn" id="newGameBtn">🆕 <span>Neu</span></button>
         </div>
     </div>
 
-    <!-- Main Game -->
+    <!-- Game Container -->
     <div class="game-container">
         <!-- Player 1 -->
-        <div class="player-column" id="player1Column" data-player="1">
-            <div class="player-header" onclick="selectPlayer(1)">
-                <div class="selection-indicator">✏️</div>
+        <div class="player-column" id="player1Column" onclick="selectPlayer(1)">
+            <div class="player-header">
+                <span class="selection-indicator">✎</span>
                 <div class="player-name-container">
-                    <input type="text" class="player-name" id="player1Name" value="Manu" 
-                           onclick="event.stopPropagation()" onchange="updatePlayerName(1, this.value)" placeholder="Name">
-                    <span class="edit-name-icon" onclick="event.stopPropagation(); document.getElementById('player1Name').focus()">✎</span>
+                    <input type="text" class="player-name" id="player1Name" value="Spieler 1" onclick="event.stopPropagation()" onchange="updatePlayerName(1)">
+                    <span class="edit-name-icon">✏️</span>
                 </div>
                 <div class="player-total" id="player1Total">0</div>
                 <div class="player-label">Punkte</div>
@@ -837,7 +878,7 @@
             <div class="score-list" id="player1Scores">
                 <div class="empty-scores">
                     <div class="empty-scores-icon">📝</div>
-                    <div>Noch keine Wörter</div>
+                    <div>Tippe hier, dann Punkte eingeben</div>
                 </div>
             </div>
         </div>
@@ -846,7 +887,7 @@
         <div class="numpad-container">
             <div class="current-input-display">
                 <div class="input-label" id="inputLabel">Spieler antippen</div>
-                <div class="input-value empty" id="inputValue">–</div>
+                <div class="input-value empty" id="inputValue">—</div>
             </div>
             <div class="numpad">
                 <div class="numpad-grid">
@@ -859,27 +900,24 @@
                     <button class="numpad-btn" onclick="inputNumber(7)">7</button>
                     <button class="numpad-btn" onclick="inputNumber(8)">8</button>
                     <button class="numpad-btn" onclick="inputNumber(9)">9</button>
-                    <button class="numpad-btn cancel" onclick="cancelInput()">✕</button>
+                    <button class="numpad-btn cancel" onclick="cancelInput()">×</button>
                     <button class="numpad-btn" onclick="inputNumber(0)">0</button>
-                    <button class="numpad-btn confirm" id="confirmBtn" onclick="confirmInput()" disabled>✓</button>
+                    <button class="numpad-btn confirm" onclick="confirmInput()" id="confirmBtn" disabled>✓</button>
                 </div>
             </div>
             <div class="action-row">
                 <button class="action-btn btn-undo" id="undoBtn" onclick="undoLast()" disabled>↩️ Undo</button>
-            </div>
-            <div class="action-row">
                 <button class="action-btn btn-finish" onclick="finishGame()">🏁 Beenden</button>
             </div>
         </div>
 
         <!-- Player 2 -->
-        <div class="player-column" id="player2Column" data-player="2">
-            <div class="player-header" onclick="selectPlayer(2)">
-                <div class="selection-indicator">✏️</div>
+        <div class="player-column" id="player2Column" onclick="selectPlayer(2)">
+            <div class="player-header">
+                <span class="selection-indicator">✎</span>
                 <div class="player-name-container">
-                    <input type="text" class="player-name" id="player2Name" value="Misch" 
-                           onclick="event.stopPropagation()" onchange="updatePlayerName(2, this.value)" placeholder="Name">
-                    <span class="edit-name-icon" onclick="event.stopPropagation(); document.getElementById('player2Name').focus()">✎</span>
+                    <input type="text" class="player-name" id="player2Name" value="Spieler 2" onclick="event.stopPropagation()" onchange="updatePlayerName(2)">
+                    <span class="edit-name-icon">✏️</span>
                 </div>
                 <div class="player-total" id="player2Total">0</div>
                 <div class="player-label">Punkte</div>
@@ -887,7 +925,7 @@
             <div class="score-list" id="player2Scores">
                 <div class="empty-scores">
                     <div class="empty-scores-icon">📝</div>
-                    <div>Noch keine Wörter</div>
+                    <div>Tippe hier, dann Punkte eingeben</div>
                 </div>
             </div>
         </div>
@@ -897,13 +935,13 @@
     <div class="winner-overlay" id="winnerOverlay">
         <div class="winner-card">
             <div class="winner-trophy">🏆</div>
-            <div class="winner-title">Gewinner!</div>
-            <div class="winner-name" id="winnerName">-</div>
-            <div class="winner-score" id="winnerScore">0 Punkte</div>
-            <div class="winner-details" id="winnerDetails"></div>
+            <div class="winner-title">Gewinner</div>
+            <div class="winner-name" id="winnerName">—</div>
+            <div class="winner-score" id="winnerScore">—</div>
+            <div class="winner-details" id="winnerDetails">—</div>
             <div class="winner-actions">
-                <button class="winner-btn secondary" onclick="closeWinner()">✖️ Schliessen</button>
-                <button class="winner-btn primary" onclick="newGame()">🆕 Neues Spiel</button>
+                <button class="winner-btn secondary" onclick="closeWinner()">Schliessen</button>
+                <button class="winner-btn primary" onclick="newGame()">Neues Spiel</button>
             </div>
         </div>
     </div>
@@ -912,52 +950,64 @@
     <div class="modal-overlay" id="historyModal">
         <div class="modal">
             <div class="modal-header">
-                <div class="modal-title">📜 Spielverlauf</div>
-                <button class="modal-close" onclick="closeHistory()">✕</button>
+                <span class="modal-title">📜 Spielverlauf</span>
+                <button class="modal-close" onclick="closeHistory()">×</button>
             </div>
-            <div class="modal-body">
-                <div class="history-list" id="historyList"></div>
+            <div class="modal-content" id="historyList">
+                <!-- Filled by JS -->
             </div>
         </div>
     </div>
 
     <!-- Toast -->
-    <div class="toast" id="toast"></div>
+    <div class="toast" id="toast">Gespeichert</div>
 
     <script>
-        const STORAGE_KEY = 'gopher_scrabble_history';
-        const CURRENT_GAME_KEY = 'gopher_scrabble_current';
-        const DEFAULT_NAMES_KEY = 'gopher_scrabble_names';
+        // Constants
+        const STORAGE_KEY = 'scrabble_history';
+        const CURRENT_GAME_KEY = 'scrabble_current';
+        const NAMES_KEY = 'scrabble_names';
 
+        // Game State
+        let gameState = {
+            player1: { name: 'Spieler 1', scores: [], total: 0 },
+            player2: { name: 'Spieler 2', scores: [], total: 0 },
+            selectedPlayer: null,
+            currentInput: '',
+            editingIndex: null,
+            history: [],
+            startTime: null
+        };
+
+        // Load default names from localStorage
         function loadDefaultNames() {
-            const saved = localStorage.getItem(DEFAULT_NAMES_KEY);
-            return saved ? JSON.parse(saved) : { player1: 'Manu', player2: 'Misch' };
+            const saved = localStorage.getItem(NAMES_KEY);
+            if (saved) {
+                return JSON.parse(saved);
+            }
+            return { player1: 'Spieler 1', player2: 'Spieler 2' };
         }
 
+        // Save default names
         function saveDefaultNames() {
-            localStorage.setItem(DEFAULT_NAMES_KEY, JSON.stringify({
+            localStorage.setItem(NAMES_KEY, JSON.stringify({
                 player1: gameState.player1.name,
                 player2: gameState.player2.name
             }));
         }
 
-        const defaultNames = loadDefaultNames();
-        let gameState = {
-            player1: { name: defaultNames.player1, scores: [], total: 0 },
-            player2: { name: defaultNames.player2, scores: [], total: 0 },
-            selectedPlayer: null,
-            currentInput: '',
-            editingIndex: null,
-            history: [],
-            startTime: new Date().toISOString()
-        };
+        // Initialize
+        const names = loadDefaultNames();
+        gameState.player1.name = names.player1;
+        gameState.player2.name = names.player2;
+        document.getElementById('player1Name').value = names.player1;
+        document.getElementById('player2Name').value = names.player2;
 
-        document.getElementById('player1Name').value = gameState.player1.name;
-        document.getElementById('player2Name').value = gameState.player2.name;
-
-        function updatePlayerName(playerNum, newName) {
-            const playerKey = playerNum === 1 ? 'player1' : 'player2';
-            gameState[playerKey].name = newName.trim() || (playerNum === 1 ? 'Spieler 1' : 'Spieler 2');
+        function updatePlayerName(playerNum) {
+            const input = document.getElementById(`player${playerNum}Name`);
+            const name = input.value.trim() || `Spieler ${playerNum}`;
+            gameState[`player${playerNum}`].name = name;
+            input.value = name;
             saveDefaultNames();
             saveCurrentGame();
         }
@@ -970,8 +1020,7 @@
             document.getElementById('player1Column').classList.toggle('selected', playerNum === 1);
             document.getElementById('player2Column').classList.toggle('selected', playerNum === 2);
             
-            const playerName = playerNum === 1 ? gameState.player1.name : gameState.player2.name;
-            document.getElementById('inputLabel').textContent = `Punkte für ${playerName}`;
+            document.getElementById('inputLabel').textContent = `Punkte für ${gameState[`player${playerNum}`].name}`;
             updateInputDisplay();
             
             document.querySelectorAll('.score-item').forEach(item => item.classList.remove('editing'));
@@ -979,7 +1028,7 @@
 
         function inputNumber(num) {
             if (!gameState.selectedPlayer) {
-                showToast('Bitte zuerst einen Spieler antippen');
+                showToast('Erst Spieler antippen!');
                 return;
             }
             
@@ -998,7 +1047,7 @@
                 display.classList.remove('empty');
                 confirmBtn.disabled = false;
             } else {
-                display.textContent = '–';
+                display.textContent = '—';
                 display.classList.add('empty');
                 confirmBtn.disabled = true;
             }
@@ -1007,30 +1056,38 @@
         function cancelInput() {
             gameState.currentInput = '';
             gameState.editingIndex = null;
-            updateInputDisplay();
-            document.querySelectorAll('.score-item').forEach(item => item.classList.remove('editing'));
             
             if (gameState.selectedPlayer) {
-                const playerName = gameState.selectedPlayer === 1 ? gameState.player1.name : gameState.player2.name;
-                document.getElementById('inputLabel').textContent = `Punkte für ${playerName}`;
+                document.getElementById('inputLabel').textContent = `Punkte für ${gameState[`player${gameState.selectedPlayer}`].name}`;
             }
+            
+            updateInputDisplay();
+            document.querySelectorAll('.score-item').forEach(item => item.classList.remove('editing'));
         }
 
         function confirmInput() {
             if (!gameState.selectedPlayer || !gameState.currentInput) return;
             
             const score = parseInt(gameState.currentInput);
-            if (isNaN(score) || score < 0) return;
-            
             const playerKey = gameState.selectedPlayer === 1 ? 'player1' : 'player2';
             
             if (gameState.editingIndex !== null) {
+                // Editing existing score
                 const oldValue = gameState[playerKey].scores[gameState.editingIndex];
+                gameState.history.push({
+                    type: 'edit',
+                    player: playerKey,
+                    index: gameState.editingIndex,
+                    oldValue: oldValue
+                });
                 gameState[playerKey].scores[gameState.editingIndex] = score;
-                gameState.history.push({ type: 'edit', player: playerKey, index: gameState.editingIndex, oldValue });
             } else {
+                // Adding new score
                 gameState[playerKey].scores.push(score);
-                gameState.history.push({ type: 'add', player: playerKey });
+                gameState.history.push({
+                    type: 'add',
+                    player: playerKey
+                });
             }
             
             gameState[playerKey].total = gameState[playerKey].scores.reduce((sum, s) => sum + s, 0);
@@ -1042,11 +1099,9 @@
             
             gameState.currentInput = '';
             gameState.editingIndex = null;
+            document.getElementById('inputLabel').textContent = `Punkte für ${gameState[playerKey].name}`;
             updateInputDisplay();
             document.querySelectorAll('.score-item').forEach(item => item.classList.remove('editing'));
-            
-            const playerName = gameState.selectedPlayer === 1 ? gameState.player1.name : gameState.player2.name;
-            document.getElementById('inputLabel').textContent = `Punkte für ${playerName}`;
         }
 
         function renderScores(playerNum) {
@@ -1055,7 +1110,10 @@
             const scores = gameState[playerKey].scores;
             
             if (scores.length === 0) {
-                scoreList.innerHTML = '<div class="empty-scores"><div class="empty-scores-icon">📝</div><div>Noch keine Wörter</div></div>';
+                scoreList.innerHTML = `<div class="empty-scores">
+                    <div class="empty-scores-icon">📝</div>
+                    <div>Tippe hier, dann Punkte eingeben</div>
+                </div>`;
                 return;
             }
             
@@ -1064,7 +1122,7 @@
                 cumulative += score;
                 return `<div class="score-item" data-index="${index}" onclick="editScore(${playerNum}, ${index})">
                     <div class="score-round">${index + 1}</div>
-                    <div class="score-value">+${score}</div>
+                    <div class="score-value">${score}</div>
                     <div class="score-cumulative">Σ ${cumulative}</div>
                 </div>`;
             }).join('');
@@ -1146,23 +1204,107 @@
             saveGameToHistory(winnerName, isTie);
         }
 
-        function saveGameToHistory(winner, isTie) {
-            const history = loadHistory();
+        // ============================================
+        // API-BASIERTE FUNKTIONEN (ersetzen localStorage)
+        // ============================================
+
+        async function saveGameToHistory(winner, isTie) {
+            const gameData = {
+                player1: { 
+                    name: gameState.player1.name, 
+                    total: gameState.player1.total, 
+                    moves: gameState.player1.scores.length 
+                },
+                player2: { 
+                    name: gameState.player2.name, 
+                    total: gameState.player2.total, 
+                    moves: gameState.player2.scores.length 
+                },
+                winner: winner,
+                isTie: isTie
+            };
+            
+            try {
+                const response = await fetch('/api/scrabble/save', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(gameData)
+                });
+                
+                const result = await response.json();
+                
+                if (result.status === 'success') {
+                    console.log('✅ Game saved to database:', result.game_id);
+                    localStorage.removeItem(CURRENT_GAME_KEY);
+                } else {
+                    console.error('❌ Save failed:', result.message);
+                    // Fallback: localStorage
+                    fallbackSaveToLocalStorage(gameData, winner, isTie);
+                }
+            } catch (error) {
+                console.error('❌ API error:', error);
+                // Fallback: localStorage
+                fallbackSaveToLocalStorage(gameData, winner, isTie);
+            }
+        }
+
+        function fallbackSaveToLocalStorage(gameData, winner, isTie) {
+            // Fallback falls API nicht erreichbar
+            const history = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
             history.unshift({
                 id: Date.now(),
                 date: new Date().toISOString(),
-                player1: { name: gameState.player1.name, total: gameState.player1.total, moves: gameState.player1.scores.length },
-                player2: { name: gameState.player2.name, total: gameState.player2.total, moves: gameState.player2.scores.length },
-                winner, isTie
+                ...gameData,
+                winner, isTie,
+                _offline: true  // Markierung für offline-gespeicherte Spiele
             });
             if (history.length > 50) history.pop();
             localStorage.setItem(STORAGE_KEY, JSON.stringify(history));
             localStorage.removeItem(CURRENT_GAME_KEY);
+            showToast('⚠️ Offline gespeichert');
         }
 
-        function loadHistory() {
+        async function loadHistory() {
+            try {
+                const response = await fetch('/api/scrabble/history');
+                const result = await response.json();
+                
+                if (result.status === 'success') {
+                    return result.games;
+                }
+            } catch (error) {
+                console.error('❌ API error, falling back to localStorage:', error);
+            }
+            
+            // Fallback: localStorage
             const saved = localStorage.getItem(STORAGE_KEY);
             return saved ? JSON.parse(saved) : [];
+        }
+
+        async function deleteHistoryItem(gameId) {
+            if (!confirm('Spiel wirklich löschen?')) return;
+            
+            try {
+                const response = await fetch(`/api/scrabble/game/${gameId}`, {
+                    method: 'DELETE'
+                });
+                
+                const result = await response.json();
+                
+                if (result.status === 'success') {
+                    showToast('🗑️ Gelöscht');
+                    showHistory(); // Reload
+                } else {
+                    showToast('❌ Fehler beim Löschen');
+                }
+            } catch (error) {
+                console.error('❌ Delete error:', error);
+                // Fallback: localStorage löschen
+                let history = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+                history = history.filter(g => g.id !== gameId);
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(history));
+                showHistory();
+            }
         }
 
         function saveCurrentGame() {
@@ -1210,44 +1352,47 @@
             showToast('Neues Spiel!');
         }
 
-        function showHistory() {
-            const history = loadHistory();
+        // showHistory ist jetzt async
+        async function showHistory() {
+            const history = await loadHistory();
             const list = document.getElementById('historyList');
             
             if (history.length === 0) {
                 list.innerHTML = '<div class="empty-history"><div class="empty-history-icon">📜</div><h3>Noch keine Spiele</h3></div>';
             } else {
                 list.innerHTML = history.map(g => {
-                    const d = new Date(g.date);
-                    const dateStr = d.toLocaleDateString('de-CH', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
-                    return `<div class="history-item">
-                        <div class="history-info">
-                            <div class="history-date">${dateStr}</div>
-                            <div class="history-players">${g.player1.name} vs ${g.player2.name}</div>
-                            <div class="history-result">🏆 <span class="history-winner">${g.winner}</span></div>
+                    const date = new Date(g.date);
+                    const dateStr = date.toLocaleDateString('de-CH', { day: '2-digit', month: '2-digit', year: '2-digit' });
+                    const p1Class = !g.isTie && g.winner === g.player1.name ? 'winner' : '';
+                    const p2Class = !g.isTie && g.winner === g.player2.name ? 'winner' : '';
+                    const offlineTag = g._offline ? ' <small>(offline)</small>' : '';
+                    
+                    return `
+                        <div class="history-item">
+                            <div class="history-info">
+                                <div class="history-date">${dateStr}${offlineTag}</div>
+                                <div class="history-players">
+                                    <span class="${p1Class}">${g.player1.name}: ${g.player1.total}</span>
+                                    <span class="history-vs"> vs </span>
+                                    <span class="${p2Class}">${g.player2.name}: ${g.player2.total}</span>
+                                </div>
+                                <div class="history-result">${g.isTie ? '🤝 Unentschieden' : `🏆 ${g.winner}`}</div>
+                            </div>
+                            <div class="history-score">
+                                <div class="history-score-main">${g.player1.total} : ${g.player2.total}</div>
+                                <div class="history-score-sub">${g.player1.moves + g.player2.moves} Züge</div>
+                            </div>
+                            <button class="history-delete" onclick="deleteHistoryItem(${g.id})" title="Löschen">🗑️</button>
                         </div>
-                        <div class="history-score">
-                            <div class="history-score-main">${g.player1.total} : ${g.player2.total}</div>
-                            <div class="history-score-sub">${g.player1.moves + g.player2.moves} Züge</div>
-                        </div>
-                        <button class="history-delete" onclick="deleteHistoryItem(${g.id})" title="Löschen">🗑️</button>
-                    </div>`;
+                    `;
                 }).join('');
             }
+            
             document.getElementById('historyModal').classList.add('show');
         }
 
         function closeHistory() {
             document.getElementById('historyModal').classList.remove('show');
-        }
-
-        function deleteHistoryItem(id) {
-            if (!confirm('Spiel löschen?')) return;
-            let history = loadHistory();
-            history = history.filter(g => g.id !== id);
-            localStorage.setItem(STORAGE_KEY, JSON.stringify(history));
-            showHistory();
-            showToast('Gelöscht');
         }
 
         function showToast(msg) {
@@ -1285,7 +1430,7 @@
             }
         });
 
-        console.log('🎯 Scrabble Score loaded - Fixed version');
+        console.log('🎯 Scrabble Score loaded - API Version');
     </script>
 </body>
 </html>

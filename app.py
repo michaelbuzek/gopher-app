@@ -226,6 +226,56 @@ class Score(db.Model):
     def __repr__(self):
         return f'<Score {self.id}: Track {self.track} = {self.value}>'
 
+
+# ------------------------------
+# Scrabble Models
+# ------------------------------
+
+class ScrabbleGame(db.Model):
+    """Scrabble Spiel-Historie"""
+    __tablename__ = 'scrabble_games'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    date = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+    
+    # Spieler 1
+    player1_name = db.Column(db.String(100), nullable=False)
+    player1_total = db.Column(db.Integer, nullable=False, default=0)
+    player1_rounds = db.Column(db.Integer, nullable=False, default=0)
+    
+    # Spieler 2
+    player2_name = db.Column(db.String(100), nullable=False)
+    player2_total = db.Column(db.Integer, nullable=False, default=0)
+    player2_rounds = db.Column(db.Integer, nullable=False, default=0)
+    
+    # Ergebnis
+    winner_name = db.Column(db.String(100), nullable=True)  # null bei Tie
+    is_tie = db.Column(db.Boolean, default=False)
+    
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    
+    def __repr__(self):
+        return f'<ScrabbleGame {self.id}: {self.player1_name} vs {self.player2_name}>'
+    
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'date': self.date.isoformat(),
+            'player1': {
+                'name': self.player1_name,
+                'total': self.player1_total,
+                'moves': self.player1_rounds
+            },
+            'player2': {
+                'name': self.player2_name,
+                'total': self.player2_total,
+                'moves': self.player2_rounds
+            },
+            'winner': self.winner_name,
+            'isTie': self.is_tie
+        }
+
+
 # ------------------------------
 # Database Management & Health Check
 # ------------------------------
@@ -249,6 +299,7 @@ def check_tables_exist():
         db.session.execute(text('SELECT 1 FROM places LIMIT 1'))
         db.session.execute(text('SELECT 1 FROM track_types LIMIT 1'))
         db.session.execute(text('SELECT 1 FROM place_tracks LIMIT 1'))
+        db.session.execute(text('SELECT 1 FROM scrabble_games LIMIT 1'))  # Scrabble Table
         return True
     except Exception:
         return False
@@ -698,6 +749,86 @@ def minigolf_index():
 def scrabble():
     """Scrabble Score App"""
     return render_template('scrabble.html')
+
+
+# ------------------------------
+# Scrabble API Routes
+# ------------------------------
+
+@app.route('/api/scrabble/save', methods=['POST'])
+def scrabble_save():
+    """Scrabble Spiel speichern"""
+    try:
+        data = request.get_json()
+        
+        if not data:
+            return jsonify({'status': 'error', 'message': 'No data received'}), 400
+        
+        game = ScrabbleGame(
+            player1_name=data.get('player1', {}).get('name', 'Spieler 1'),
+            player1_total=data.get('player1', {}).get('total', 0),
+            player1_rounds=data.get('player1', {}).get('moves', 0),
+            player2_name=data.get('player2', {}).get('name', 'Spieler 2'),
+            player2_total=data.get('player2', {}).get('total', 0),
+            player2_rounds=data.get('player2', {}).get('moves', 0),
+            winner_name=data.get('winner'),
+            is_tie=data.get('isTie', False)
+        )
+        
+        db.session.add(game)
+        db.session.commit()
+        
+        log_action(f"Scrabble game saved: {game.player1_name} vs {game.player2_name}")
+        
+        return jsonify({
+            'status': 'success',
+            'game_id': game.id,
+            'message': 'Game saved successfully'
+        })
+        
+    except Exception as e:
+        db.session.rollback()
+        logger.error(f"❌ Scrabble save error: {str(e)}")
+        return jsonify({'status': 'error', 'message': 'Failed to save game'}), 500
+
+
+@app.route('/api/scrabble/history')
+def scrabble_history():
+    """Scrabble History laden (letzte 50 Spiele)"""
+    try:
+        games = ScrabbleGame.query.order_by(ScrabbleGame.date.desc()).limit(50).all()
+        
+        return jsonify({
+            'status': 'success',
+            'games': [game.to_dict() for game in games]
+        })
+        
+    except Exception as e:
+        logger.error(f"❌ Scrabble history error: {str(e)}")
+        return jsonify({'status': 'error', 'message': 'Failed to load history'}), 500
+
+
+@app.route('/api/scrabble/game/<int:game_id>', methods=['DELETE'])
+def scrabble_delete(game_id):
+    """Scrabble Spiel löschen"""
+    try:
+        game = ScrabbleGame.query.get_or_404(game_id)
+        
+        db.session.delete(game)
+        db.session.commit()
+        
+        log_action(f"Scrabble game deleted: {game_id}")
+        
+        return jsonify({
+            'status': 'success',
+            'message': 'Game deleted successfully'
+        })
+        
+    except Exception as e:
+        db.session.rollback()
+        logger.error(f"❌ Scrabble delete error: {str(e)}")
+        return jsonify({'status': 'error', 'message': 'Failed to delete game'}), 500
+
 
 @app.route('/save', methods=['POST'])
 def save():
