@@ -288,6 +288,59 @@
             z-index: 1;
         }
 
+        .player-input input {
+            padding-right: 44px;
+        }
+
+        .player-remove-btn {
+            position: absolute;
+            right: 8px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 32px;
+            height: 32px;
+            border: none;
+            border-radius: 50%;
+            background: transparent;
+            color: #94a3b8;
+            font-size: 1.2em;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+        }
+
+        .player-remove-btn:hover {
+            background: #fee2e2;
+            color: #dc2626;
+        }
+
+        .add-player-btn {
+            width: 100%;
+            background: transparent;
+            border: 2px dashed #3b5c6c;
+            color: #cbd5e1;
+            padding: 12px;
+            border-radius: 12px;
+            font-size: 0.95em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            margin-top: 4px;
+        }
+
+        .add-player-btn:hover {
+            border-color: #f8c098;
+            color: #f8c098;
+            background: rgba(248, 192, 152, 0.05);
+        }
+
+        .add-player-btn:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+
         .submit-btn {
             background: linear-gradient(135deg, #f8c098 0%, #f2bc91 100%);
             color: #2d3748;
@@ -495,13 +548,13 @@
                 </div>
 
                 <div class="form-group">
-                    <label class="form-label">👥 Anzahl Spieler</label>
-                    <input type="number" class="form-input" id="playerCount" name="players" 
-                           required min="1" max="8" placeholder="Wie viele Spieler?">
-                </div>
-
-                <div id="playersContainer" class="players-container" style="display: none;">
-                    <div id="playerInputs"></div>
+                    <label class="form-label">👥 Spieler</label>
+                    <div id="playersContainer" class="players-container has-players">
+                        <div id="playerInputs"></div>
+                        <button type="button" id="addPlayerBtn" class="add-player-btn">
+                            ➕ Weiterer Spieler
+                        </button>
+                    </div>
                 </div>
 
                 <button type="submit" class="submit-btn">
@@ -531,39 +584,68 @@
             document.getElementById('fallbackIcon').style.display = 'block';
         };
 
-        // Spieler-Eingaben dynamisch erstellen
-        document.getElementById('playerCount').addEventListener('input', function() {
-            const count = parseInt(this.value);
-            const container = document.getElementById('playersContainer');
-            const inputs = document.getElementById('playerInputs');
-            
-            inputs.innerHTML = '';
-            
-            if (!isNaN(count) && count > 0) {
-                container.style.display = 'block';
-                container.classList.add('has-players');
-                
-                for (let i = 0; i < count; i++) {
-                    const playerDiv = document.createElement('div');
-                    playerDiv.className = 'player-input';
-                    
-                    const input = document.createElement('input');
-                    input.type = 'text';
-                    input.className = 'form-input';
-                    input.name = `player_${i}`;
-                    input.required = true;
-                    input.placeholder = `Spieler ${i + 1} Name`;
-                    
-                    playerDiv.appendChild(input);
-                    inputs.appendChild(playerDiv);
+        // Spieler-Eingaben: Default Umpa + Lumpa, mit "+ Weiterer Spieler"-Button
+        const DEFAULT_PLAYERS = ['Umpa', 'Lumpa'];
+        const MAX_PLAYERS = 8;
+        const playerInputsEl = document.getElementById('playerInputs');
+        const addPlayerBtn = document.getElementById('addPlayerBtn');
+
+        function renumberPlayerInputs() {
+            const rows = playerInputsEl.querySelectorAll('.player-input');
+            rows.forEach((row, idx) => {
+                const input = row.querySelector('input');
+                input.name = `player_${idx}`;
+                if (!input.value) {
+                    input.placeholder = `Spieler ${idx + 1} Name`;
                 }
-                
-                // Fokus auf ersten Spieler
-                inputs.querySelector('input').focus();
-            } else {
-                container.style.display = 'none';
-                container.classList.remove('has-players');
-            }
+                // Erste zwei Spieler nicht entfernbar (Standard Umpa/Lumpa)
+                const removeBtn = row.querySelector('.player-remove-btn');
+                if (removeBtn) {
+                    removeBtn.style.display = idx >= 2 ? 'flex' : 'none';
+                }
+            });
+            addPlayerBtn.disabled = rows.length >= MAX_PLAYERS;
+        }
+
+        function addPlayerInput(value = '') {
+            const rows = playerInputsEl.querySelectorAll('.player-input');
+            if (rows.length >= MAX_PLAYERS) return;
+            const idx = rows.length;
+
+            const playerDiv = document.createElement('div');
+            playerDiv.className = 'player-input';
+
+            const input = document.createElement('input');
+            input.type = 'text';
+            input.className = 'form-input';
+            input.name = `player_${idx}`;
+            input.required = true;
+            input.value = value;
+            input.placeholder = `Spieler ${idx + 1} Name`;
+
+            const removeBtn = document.createElement('button');
+            removeBtn.type = 'button';
+            removeBtn.className = 'player-remove-btn';
+            removeBtn.setAttribute('aria-label', 'Spieler entfernen');
+            removeBtn.innerHTML = '✕';
+            removeBtn.addEventListener('click', () => {
+                playerDiv.remove();
+                renumberPlayerInputs();
+            });
+
+            playerDiv.appendChild(input);
+            playerDiv.appendChild(removeBtn);
+            playerInputsEl.appendChild(playerDiv);
+            renumberPlayerInputs();
+            return input;
+        }
+
+        // Initial: Umpa + Lumpa
+        DEFAULT_PLAYERS.forEach(name => addPlayerInput(name));
+
+        addPlayerBtn.addEventListener('click', () => {
+            const newInput = addPlayerInput('');
+            if (newInput) newInput.focus();
         });
 
         // Places Autocomplete System
@@ -755,21 +837,24 @@
                 const place = formData.get('place').trim();
                 const date = formData.get('date');
                 const track_count = parseInt(formData.get('tracks'));
-                const playerCount = parseInt(formData.get('players'));
 
                 // Validate place name
                 if (!place) {
                     throw new Error('Bitte gib einen Minigolf-Platz ein');
                 }
 
-                // Spieler sammeln
+                // Spieler aus den tatsächlichen Inputs sammeln (Umpa, Lumpa + ggf. zusätzliche)
                 const players = [];
-                for (let i = 0; i < playerCount; i++) {
-                    const name = formData.get(`player_${i}`);
-                    if (!name?.trim()) {
+                const playerInputs = playerInputsEl.querySelectorAll('input[name^="player_"]');
+                playerInputs.forEach((input, i) => {
+                    const name = (input.value || '').trim();
+                    if (!name) {
                         throw new Error(`Bitte gib einen Namen für Spieler ${i + 1} ein`);
                     }
-                    players.push({ name: name.trim() });
+                    players.push({ name });
+                });
+                if (players.length === 0) {
+                    throw new Error('Mindestens ein Spieler erforderlich');
                 }
 
                 const data = { 
