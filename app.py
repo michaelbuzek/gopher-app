@@ -277,6 +277,70 @@ class ScrabbleGame(db.Model):
 
 
 # ------------------------------
+# Ball Notes Models (Feature: persönliche Ball-Wahl pro Spieler/Anlage/Bahn)
+# ------------------------------
+
+class PlayerBall(db.Model):
+    """Ball aus dem Inventar eines Spielers (z.B. Lumpas 'hellblau')."""
+    __tablename__ = 'player_balls'
+
+    id = db.Column(db.Integer, primary_key=True)
+    player_name = db.Column(db.String(100), nullable=False)
+    label = db.Column(db.String(100), nullable=False)
+    color_hex = db.Column(db.String(9), nullable=True)
+    image_filename = db.Column(db.String(200), nullable=True)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    __table_args__ = (
+        db.UniqueConstraint('player_name', 'label', name='uq_player_ball_label'),
+        db.Index('idx_player_ball_player', 'player_name'),
+    )
+
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'player_name': self.player_name,
+            'label': self.label,
+            'color_hex': self.color_hex,
+            'image_filename': self.image_filename,
+        }
+
+
+class PlayerTrackChoice(db.Model):
+    """Append-only Historie der Ball-/Notiz-Wahl pro (Anlage, Bahn, Spieler).
+
+    Aktuelle Wahl = jüngster Eintrag pro (place_id, track_number, player_name).
+    Ältere Einträge bilden die Historie.
+    """
+    __tablename__ = 'player_track_choices'
+
+    id = db.Column(db.Integer, primary_key=True)
+    place_id = db.Column(db.Integer, db.ForeignKey('places.id'), nullable=False)
+    track_number = db.Column(db.Integer, nullable=False)
+    player_name = db.Column(db.String(100), nullable=False)
+    ball_id = db.Column(db.Integer, db.ForeignKey('player_balls.id'), nullable=True)
+    note = db.Column(db.Text, nullable=True)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    ball = db.relationship('PlayerBall', lazy='joined')
+
+    __table_args__ = (
+        db.Index('idx_choice_lookup', 'place_id', 'track_number', 'player_name', 'created_at'),
+    )
+
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'place_id': self.place_id,
+            'track_number': self.track_number,
+            'player_name': self.player_name,
+            'ball': self.ball.to_dict() if self.ball else None,
+            'note': self.note,
+            'created_at': self.created_at.isoformat() if self.created_at else None,
+        }
+
+
+# ------------------------------
 # Database Management & Health Check
 # ------------------------------
 
@@ -936,23 +1000,59 @@ def score_detail(game_id):
     """Score input page for a specific game"""
     try:
         game = Game.query.get_or_404(game_id)
-        
+
         # Build score map for template
         score_map = {}
         for player in game.players:
             for score in player.scores:
                 score_map[(player.id, score.track)] = score.value
-        
+
+        # Ball-Notes: aktuelle Wahl pro (player_name, track) + Ball-Inventar pro Spieler
+        # Nur wenn place_id verfügbar (legacy games haben evtl. keins)
+        balls_by_player = {}      # player_name -> [ball_dict, ...] (sortiert: zuletzt benutzt zuerst)
+        choice_by_player_track = {}  # (player_name, track) -> choice_dict (jüngster)
+
+        if game.place_id:
+            player_names = list({p.name for p in game.players})
+
+            if player_names:
+                # Inventar
+                balls = (
+                    PlayerBall.query
+                    .filter(PlayerBall.player_name.in_(player_names))
+                    .order_by(PlayerBall.created_at.desc())
+                    .all()
+                )
+                for b in balls:
+                    balls_by_player.setdefault(b.player_name, []).append(b.to_dict())
+
+                # Aktuelle Wahl: jüngster Eintrag pro (place, track, player) für dieses place
+                choices = (
+                    PlayerTrackChoice.query
+                    .filter(
+                        PlayerTrackChoice.place_id == game.place_id,
+                        PlayerTrackChoice.player_name.in_(player_names),
+                    )
+                    .order_by(PlayerTrackChoice.created_at.desc())
+                    .all()
+                )
+                for c in choices:
+                    key = (c.player_name, c.track_number)
+                    if key not in choice_by_player_track:
+                        choice_by_player_track[key] = c.to_dict()
+
         log_action(f"Score page accessed for game {game_id}")
-        
+
         return render_template(
             'score_detail.html',
             game=game,
             players=game.players,
             track_count=game.track_count,
-            score_map=score_map
+            score_map=score_map,
+            balls_by_player=balls_by_player,
+            choice_by_player_track=choice_by_player_track,
         )
-        
+
     except Exception as e:
         logger.error(f"❌ Score detail error: {str(e)}")
         return f"<h1>Error</h1><p>Game not found or error loading game.</p>", 404
@@ -1510,6 +1610,139 @@ def handle_exception(e):
         # In production, show generic error page
         db.session.rollback()
         return f"<h1>🏌️ Gopher Minigolf</h1><p>Something went wrong. Please try again.</p>", 500
+
+# ------------------------------
+# Ball Notes API (PlayerBall + PlayerTrackChoice)
+# ------------------------------
+
+@app.route('/api/balls', methods=['GET'])
+def api_balls_list():
+    """Liste aller Bälle eines Spielers (sortiert nach 'zuletzt benutzt')."""
+    player_name = (request.args.get('player_name') or '').strip()
+    if not player_name:
+        return jsonify({'status': 'error', 'message': 'player_name required'}), 400
+
+    balls = (
+        PlayerBall.query
+        .filter_by(player_name=player_name)
+        .order_by(PlayerBall.created_at.desc())
+        .all()
+    )
+    return jsonify({'status': 'success', 'balls': [b.to_dict() for b in balls]})
+
+
+@app.route('/api/balls', methods=['POST'])
+def api_balls_create():
+    """Neuen Ball anlegen. Bei Duplikat (player_name+label) den existierenden zurückgeben."""
+    try:
+        data = request.get_json() or {}
+        player_name = (data.get('player_name') or '').strip()
+        label = (data.get('label') or '').strip()
+        color_hex = (data.get('color_hex') or '').strip() or None
+
+        if not player_name or not label:
+            return jsonify({'status': 'error', 'message': 'player_name und label required'}), 400
+
+        existing = PlayerBall.query.filter_by(player_name=player_name, label=label).first()
+        if existing:
+            # Optional: Farbe aktualisieren, wenn neu mitgegeben
+            if color_hex and existing.color_hex != color_hex:
+                existing.color_hex = color_hex
+                db.session.commit()
+            return jsonify({'status': 'success', 'ball': existing.to_dict(), 'created': False})
+
+        ball = PlayerBall(player_name=player_name, label=label, color_hex=color_hex)
+        db.session.add(ball)
+        db.session.commit()
+        log_action(f"Ball created: {player_name} / {label}")
+        return jsonify({'status': 'success', 'ball': ball.to_dict(), 'created': True})
+
+    except Exception as e:
+        db.session.rollback()
+        logger.error(f"❌ api_balls_create error: {str(e)}")
+        return jsonify({'status': 'error', 'message': 'Failed to create ball'}), 500
+
+
+@app.route('/api/track-choice', methods=['POST'])
+def api_track_choice_create():
+    """Append-only: neue Wahl (Ball + optional Notiz) für (place, track, player).
+
+    Nimmt entweder ball_id (existierender Ball) oder ball (label/color) für inline-Anlage.
+    """
+    try:
+        data = request.get_json() or {}
+        place_id = data.get('place_id')
+        track_number = data.get('track_number')
+        player_name = (data.get('player_name') or '').strip()
+        ball_id = data.get('ball_id')
+        ball_inline = data.get('ball')  # {label, color_hex} optional
+        note = data.get('note')
+        if note is not None:
+            note = note.strip() or None
+
+        if not place_id or not track_number or not player_name:
+            return jsonify({'status': 'error', 'message': 'place_id, track_number, player_name required'}), 400
+
+        # Place validieren
+        place = Place.query.get(int(place_id))
+        if not place:
+            return jsonify({'status': 'error', 'message': 'place not found'}), 404
+
+        # Inline-Ball anlegen oder existierenden nehmen
+        if not ball_id and ball_inline:
+            label = (ball_inline.get('label') or '').strip()
+            color_hex = (ball_inline.get('color_hex') or '').strip() or None
+            if label:
+                existing = PlayerBall.query.filter_by(player_name=player_name, label=label).first()
+                if existing:
+                    if color_hex and existing.color_hex != color_hex:
+                        existing.color_hex = color_hex
+                    ball_id = existing.id
+                else:
+                    new_ball = PlayerBall(player_name=player_name, label=label, color_hex=color_hex)
+                    db.session.add(new_ball)
+                    db.session.flush()
+                    ball_id = new_ball.id
+
+        if not ball_id and not note:
+            return jsonify({'status': 'error', 'message': 'ball oder note required'}), 400
+
+        choice = PlayerTrackChoice(
+            place_id=int(place_id),
+            track_number=int(track_number),
+            player_name=player_name,
+            ball_id=int(ball_id) if ball_id else None,
+            note=note,
+        )
+        db.session.add(choice)
+        db.session.commit()
+        log_action(f"TrackChoice: {player_name} @ place={place_id} bahn={track_number}")
+        return jsonify({'status': 'success', 'choice': choice.to_dict()})
+
+    except Exception as e:
+        db.session.rollback()
+        logger.error(f"❌ api_track_choice_create error: {str(e)}")
+        return jsonify({'status': 'error', 'message': 'Failed to save choice'}), 500
+
+
+@app.route('/api/track-choice/history', methods=['GET'])
+def api_track_choice_history():
+    """Historie für (place, track, player) — neuester Eintrag zuerst."""
+    place_id = request.args.get('place_id', type=int)
+    track_number = request.args.get('track_number', type=int)
+    player_name = (request.args.get('player_name') or '').strip()
+
+    if not place_id or not track_number or not player_name:
+        return jsonify({'status': 'error', 'message': 'place_id, track_number, player_name required'}), 400
+
+    rows = (
+        PlayerTrackChoice.query
+        .filter_by(place_id=place_id, track_number=track_number, player_name=player_name)
+        .order_by(PlayerTrackChoice.created_at.desc())
+        .all()
+    )
+    return jsonify({'status': 'success', 'history': [r.to_dict() for r in rows]})
+
 
 # ------------------------------
 # Application Startup & Initialization
