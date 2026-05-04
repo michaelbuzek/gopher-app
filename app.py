@@ -366,6 +366,8 @@ def check_tables_exist():
         db.session.execute(text('SELECT 1 FROM track_types LIMIT 1'))
         db.session.execute(text('SELECT 1 FROM place_tracks LIMIT 1'))
         db.session.execute(text('SELECT 1 FROM scrabble_games LIMIT 1'))  # Scrabble Table
+        db.session.execute(text('SELECT 1 FROM player_balls LIMIT 1'))  # Ball-Notes Feature
+        db.session.execute(text('SELECT 1 FROM player_track_choices LIMIT 1'))  # Ball-Notes Feature
         db.session.commit()  # Commit nach erfolgreichen Queries
         return True
     except Exception:
@@ -1009,37 +1011,44 @@ def score_detail(game_id):
 
         # Ball-Notes: aktuelle Wahl pro (player_name, track) + Ball-Inventar pro Spieler
         # Nur wenn place_id verfügbar (legacy games haben evtl. keins)
+        # Try/Except: falls Migration noch nicht durch, Seite trotzdem anzeigen ohne Ball-UI
         balls_by_player = {}      # player_name -> [ball_dict, ...] (sortiert: zuletzt benutzt zuerst)
         choice_by_player_track = {}  # (player_name, track) -> choice_dict (jüngster)
 
         if game.place_id:
-            player_names = list({p.name for p in game.players})
+            try:
+                player_names = list({p.name for p in game.players})
 
-            if player_names:
-                # Inventar
-                balls = (
-                    PlayerBall.query
-                    .filter(PlayerBall.player_name.in_(player_names))
-                    .order_by(PlayerBall.created_at.desc())
-                    .all()
-                )
-                for b in balls:
-                    balls_by_player.setdefault(b.player_name, []).append(b.to_dict())
-
-                # Aktuelle Wahl: jüngster Eintrag pro (place, track, player) für dieses place
-                choices = (
-                    PlayerTrackChoice.query
-                    .filter(
-                        PlayerTrackChoice.place_id == game.place_id,
-                        PlayerTrackChoice.player_name.in_(player_names),
+                if player_names:
+                    # Inventar
+                    balls = (
+                        PlayerBall.query
+                        .filter(PlayerBall.player_name.in_(player_names))
+                        .order_by(PlayerBall.created_at.desc())
+                        .all()
                     )
-                    .order_by(PlayerTrackChoice.created_at.desc())
-                    .all()
-                )
-                for c in choices:
-                    key = (c.player_name, c.track_number)
-                    if key not in choice_by_player_track:
-                        choice_by_player_track[key] = c.to_dict()
+                    for b in balls:
+                        balls_by_player.setdefault(b.player_name, []).append(b.to_dict())
+
+                    # Aktuelle Wahl: jüngster Eintrag pro (place, track, player) für dieses place
+                    choices = (
+                        PlayerTrackChoice.query
+                        .filter(
+                            PlayerTrackChoice.place_id == game.place_id,
+                            PlayerTrackChoice.player_name.in_(player_names),
+                        )
+                        .order_by(PlayerTrackChoice.created_at.desc())
+                        .all()
+                    )
+                    for c in choices:
+                        key = (c.player_name, c.track_number)
+                        if key not in choice_by_player_track:
+                            choice_by_player_track[key] = c.to_dict()
+            except Exception as ball_err:
+                db.session.rollback()
+                logger.warning(f"⚠️ Ball-Notes nicht verfügbar (vermutlich Migration ausstehend): {ball_err}")
+                balls_by_player = {}
+                choice_by_player_track = {}
 
         log_action(f"Score page accessed for game {game_id}")
 
