@@ -277,6 +277,70 @@ class ScrabbleGame(db.Model):
 
 
 # ------------------------------
+# Ball Notes Models (Feature: persönliche Ball-Wahl pro Spieler/Anlage/Bahn)
+# ------------------------------
+
+class PlayerBall(db.Model):
+    """Ball aus dem Inventar eines Spielers (z.B. Lumpas 'hellblau')."""
+    __tablename__ = 'player_balls'
+
+    id = db.Column(db.Integer, primary_key=True)
+    player_name = db.Column(db.String(100), nullable=False)
+    label = db.Column(db.String(100), nullable=False)
+    color_hex = db.Column(db.String(9), nullable=True)
+    image_filename = db.Column(db.String(200), nullable=True)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    __table_args__ = (
+        db.UniqueConstraint('player_name', 'label', name='uq_player_ball_label'),
+        db.Index('idx_player_ball_player', 'player_name'),
+    )
+
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'player_name': self.player_name,
+            'label': self.label,
+            'color_hex': self.color_hex,
+            'image_filename': self.image_filename,
+        }
+
+
+class PlayerTrackChoice(db.Model):
+    """Append-only Historie der Ball-/Notiz-Wahl pro (Anlage, Bahn, Spieler).
+
+    Aktuelle Wahl = jüngster Eintrag pro (place_id, track_number, player_name).
+    Ältere Einträge bilden die Historie.
+    """
+    __tablename__ = 'player_track_choices'
+
+    id = db.Column(db.Integer, primary_key=True)
+    place_id = db.Column(db.Integer, db.ForeignKey('places.id'), nullable=False)
+    track_number = db.Column(db.Integer, nullable=False)
+    player_name = db.Column(db.String(100), nullable=False)
+    ball_id = db.Column(db.Integer, db.ForeignKey('player_balls.id'), nullable=True)
+    note = db.Column(db.Text, nullable=True)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    ball = db.relationship('PlayerBall', lazy='joined')
+
+    __table_args__ = (
+        db.Index('idx_choice_lookup', 'place_id', 'track_number', 'player_name', 'created_at'),
+    )
+
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'place_id': self.place_id,
+            'track_number': self.track_number,
+            'player_name': self.player_name,
+            'ball': self.ball.to_dict() if self.ball else None,
+            'note': self.note,
+            'created_at': self.created_at.isoformat() if self.created_at else None,
+        }
+
+
+# ------------------------------
 # Database Management & Health Check
 # ------------------------------
 
