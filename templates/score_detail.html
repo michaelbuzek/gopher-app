@@ -746,30 +746,28 @@
         /* ==========================================
            BALL-WAHL (Persönliche Ansicht)
            ========================================== */
-        .ball-pick-btn {
-            display: flex;
-            align-items: center;
-            gap: 8px;
+        .ball-detail-block {
             background: #f8fafc;
             border: 2px solid #e2e8f0;
-            border-radius: 10px;
-            padding: 6px 10px 6px 6px;
+            border-radius: 12px;
+            padding: 10px 12px;
             cursor: pointer;
-            font-size: 0.85em;
-            font-weight: 600;
-            color: #475569;
-            margin-top: 6px;
+            margin-top: 8px;
             transition: all 0.2s ease;
-            max-width: 100%;
+            width: 100%;
         }
-        .ball-pick-btn:hover {
+        .ball-detail-block:hover {
             border-color: #f8c098;
             background: white;
         }
-        .ball-pick-btn.has-ball {
-            border-color: #f8c098;
+        .ball-detail-block.has-ball {
             background: white;
-            color: #1e293b;
+            border-color: #f8c098;
+        }
+        .ball-detail-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
         }
         .ball-dot {
             width: 22px;
@@ -780,21 +778,100 @@
             box-shadow: 0 0 0 1px #cbd5e1;
             flex-shrink: 0;
         }
-        .ball-pick-btn.has-ball .ball-dot {
+        .ball-detail-block.has-ball .ball-dot {
             box-shadow: 0 0 0 1px #94a3b8;
         }
-        .ball-label-text {
+        .ball-detail-label {
+            flex: 1;
+            font-size: 0.95em;
+            font-weight: 700;
+            color: #1e293b;
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
-            max-width: 140px;
+            text-align: left;
         }
-        .ball-note-preview {
-            font-size: 0.75em;
-            color: #64748b;
-            font-weight: 500;
-            margin-left: 4px;
+        .ball-detail-block:not(.has-ball) .ball-detail-label {
+            color: #94a3b8;
+            font-weight: 600;
+        }
+        .ball-detail-edit {
+            font-size: 0.9em;
+            opacity: 0.55;
+            flex-shrink: 0;
+        }
+        .ball-detail-block:hover .ball-detail-edit {
+            opacity: 1;
+        }
+        .ball-detail-note {
+            margin-top: 6px;
+            margin-left: 32px;
+            font-size: 0.85em;
+            color: #475569;
             font-style: italic;
+            line-height: 1.35;
+        }
+
+        /* Ball-Setup Übersicht (Variante B) */
+        .ball-setup-overview {
+            padding: 16px 20px;
+            background: #f8fafc;
+            border-top: 1px solid #e2e8f0;
+        }
+        .ball-setup-title {
+            font-size: 0.78em;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: #64748b;
+            margin-bottom: 10px;
+        }
+        .ball-setup-list {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+        .ball-setup-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 10px;
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .ball-setup-item:hover {
+            border-color: #f8c098;
+            transform: translateX(2px);
+        }
+        .ball-setup-bahn {
+            font-weight: 700;
+            color: #1e293b;
+            min-width: 60px;
+            font-size: 0.9em;
+        }
+        .ball-setup-info {
+            flex: 1;
+            font-size: 0.9em;
+            color: #1e293b;
+            overflow: hidden;
+        }
+        .ball-setup-label {
+            font-weight: 600;
+        }
+        .ball-setup-note {
+            color: #64748b;
+            font-style: italic;
+            font-size: 0.88em;
+        }
+        .ball-setup-empty {
+            color: #94a3b8;
+            font-size: 0.85em;
+            font-style: italic;
+            text-align: center;
+            padding: 8px 0;
         }
 
         /* Modal */
@@ -1402,6 +1479,11 @@
                 <!-- Wird dynamisch gefüllt -->
             </div>
 
+            <!-- Ball-Setup Übersicht (Variante B) -->
+            <div class="ball-setup-overview" id="ballSetupOverview" style="display:none;">
+                <!-- Wird dynamisch gefüllt -->
+            </div>
+
             <div class="personal-footer">
                 <button class="personal-back-btn" onclick="closePersonalView()">
                     ← Zurück zur Übersicht
@@ -1538,13 +1620,18 @@
             const hasChoice = !!(ball || note);
             const color = ball && ball.color_hex ? ball.color_hex : '#cbd5e1';
             const label = ball ? ball.label : 'Ball wählen';
-            const notePreview = note ? `<span class="ball-note-preview">📝</span>` : '';
+            const noteLine = note
+                ? `<div class="ball-detail-note">↳ ${escapeHtml(note)}</div>`
+                : '';
             return `
-                <button type="button" class="ball-pick-btn ${hasChoice ? 'has-ball' : ''}" data-track="${track}">
-                    <span class="ball-dot" style="background:${escapeHtml(color)};"></span>
-                    <span class="ball-label-text">${escapeHtml(label)}</span>
-                    ${notePreview}
-                </button>
+                <div class="ball-detail-block ${hasChoice ? 'has-ball' : ''}" data-track="${track}">
+                    <div class="ball-detail-row">
+                        <span class="ball-dot" style="background:${escapeHtml(color)};"></span>
+                        <span class="ball-detail-label">${escapeHtml(label)}</span>
+                        <span class="ball-detail-edit">✏️</span>
+                    </div>
+                    ${noteLine}
+                </div>
             `;
         }
 
@@ -1695,6 +1782,55 @@
             setTimeout(() => ind.classList.remove('show'), 1500);
         }
 
+        function renderBallSetupOverview(playerName, trackCount) {
+            const overview = document.getElementById('ballSetupOverview');
+            if (!GAME_PLACE_ID) {
+                overview.style.display = 'none';
+                return;
+            }
+
+            // Alle Bahnen mit gesetztem Ball ODER Notiz, sortiert nach Bahn-Nr
+            const items = [];
+            for (let track = 1; track <= trackCount; track++) {
+                const c = CHOICES[choiceKey(playerName, track)];
+                if (c && (c.ball || c.note)) items.push({ track, choice: c });
+            }
+
+            if (!items.length) {
+                overview.style.display = 'none';
+                return;
+            }
+
+            overview.style.display = 'block';
+            overview.innerHTML = `
+                <div class="ball-setup-title">🎱 Setup für ${escapeHtml(playerName)}</div>
+                <div class="ball-setup-list">
+                    ${items.map(({ track, choice }) => {
+                        const ball = choice.ball;
+                        const color = ball && ball.color_hex ? ball.color_hex : '#cbd5e1';
+                        const label = ball ? ball.label : '(nur Notiz)';
+                        const note = choice.note ? ` · <span class="ball-setup-note">${escapeHtml(choice.note)}</span>` : '';
+                        return `
+                            <div class="ball-setup-item" data-track="${track}">
+                                <span class="ball-dot" style="background:${escapeHtml(color)};"></span>
+                                <span class="ball-setup-bahn">Bahn ${track}</span>
+                                <span class="ball-setup-info">
+                                    <span class="ball-setup-label">${escapeHtml(label)}</span>${note}
+                                </span>
+                            </div>
+                        `;
+                    }).join('')}
+                </div>
+            `;
+
+            overview.querySelectorAll('.ball-setup-item').forEach(el => {
+                el.addEventListener('click', function() {
+                    const track = parseInt(this.dataset.track);
+                    openBallModal(playerName, track);
+                });
+            });
+        }
+
         // ==========================================
         // PERSONAL VIEW FUNKTIONEN
         // ==========================================
@@ -1771,15 +1907,18 @@
 
             scoresContainer.innerHTML = html;
 
-            // Ball-Buttons interaktiv machen
-            scoresContainer.querySelectorAll('.ball-pick-btn').forEach(btn => {
-                btn.addEventListener('click', function(e) {
+            // Ball-Detail-Blöcke interaktiv machen
+            scoresContainer.querySelectorAll('.ball-detail-block').forEach(block => {
+                block.addEventListener('click', function(e) {
                     e.preventDefault();
                     e.stopPropagation();
                     const track = parseInt(this.dataset.track);
                     openBallModal(playerName, track);
                 });
             });
+
+            // Ball-Setup-Übersicht (Variante B) am Ende rendern
+            renderBallSetupOverview(playerName, trackCount);
             
             // Event Listeners für Personal Inputs
             scoresContainer.querySelectorAll('.personal-score-input').forEach(input => {
