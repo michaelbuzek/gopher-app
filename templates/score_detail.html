@@ -1152,6 +1152,44 @@
             cursor: pointer;
         }
 
+        /* Color-Swatches */
+        .color-swatches {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(36px, 1fr));
+            gap: 8px;
+            margin-top: 8px;
+            margin-bottom: 4px;
+        }
+        .color-swatch {
+            width: 100%;
+            aspect-ratio: 1 / 1;
+            border-radius: 50%;
+            border: 2px solid white;
+            box-shadow: 0 0 0 1px #cbd5e1;
+            cursor: pointer;
+            padding: 0;
+            transition: transform 0.15s ease, box-shadow 0.15s ease;
+        }
+        .color-swatch:hover {
+            transform: scale(1.1);
+        }
+        .color-swatch.selected {
+            box-shadow: 0 0 0 3px #f8c098;
+            transform: scale(1.05);
+        }
+        .color-swatch-custom {
+            background: linear-gradient(135deg,
+                #ff0000, #ff8000, #ffff00, #00ff00,
+                #00ffff, #0080ff, #8000ff, #ff00ff);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.9em;
+            font-weight: 700;
+            color: white;
+            text-shadow: 0 0 2px rgba(0,0,0,0.5);
+        }
+
         .ball-note-input {
             width: 100%;
             padding: 10px 12px;
@@ -1694,8 +1732,9 @@
                     <div class="ball-editor-title" id="ballEditorTitle">Ball bearbeiten</div>
                     <div class="ball-editor-form">
                         <input type="text" id="ballEditorLabel" placeholder="Ball-Name" maxlength="100" autocomplete="off">
-                        <input type="color" id="ballEditorColor" value="#87CEEB" title="Farbe">
                     </div>
+                    <input type="hidden" id="ballEditorColor" value="#87CEEB">
+                    <div class="color-swatches" data-target="ballEditorColor"></div>
                     <div class="ball-editor-actions">
                         <button type="button" class="ball-editor-btn delete" onclick="deleteBall()">🗑️ Löschen</button>
                         <button type="button" class="ball-editor-btn cancel" onclick="closeBallEditor()">Abbrechen</button>
@@ -1707,9 +1746,13 @@
                 <div class="ball-new-form">
                     <input type="text" id="newBallLabel" placeholder="z.B. hellblau, springender Ball" maxlength="100"
                            list="userBallsDatalist" autocomplete="off">
-                    <input type="color" id="newBallColor" value="#87CEEB" title="Farbe">
                 </div>
+                <input type="hidden" id="newBallColor" value="#87CEEB">
+                <div class="color-swatches" data-target="newBallColor"></div>
                 <datalist id="userBallsDatalist"></datalist>
+
+                <!-- Verstecktes Native-Picker als Fallback für "andere Farbe" -->
+                <input type="color" id="customColorPicker" style="position:absolute; opacity:0; pointer-events:none; width:1px; height:1px;">
 
                 <div class="ball-modal-section-title">📝 Notiz für diese Bahn (optional)</div>
                 <textarea class="ball-note-input" id="ballNoteInput" placeholder="z.B. oben rechts anzielen, sanfter Schlag, …"></textarea>
@@ -1780,6 +1823,78 @@
             }[c]));
         }
 
+        // ==========================================
+        // COLOR-SWATCHES
+        // ==========================================
+        const COLOR_PALETTE = [
+            '#FFFFFF', '#000000', '#6B7280', '#92400E',
+            '#DC2626', '#F97316', '#EAB308', '#22C55E',
+            '#10B981', '#06B6D4', '#87CEEB', '#2563EB',
+            '#8B5CF6', '#EC4899', '#F472B6', '#FBBF24',
+        ];
+
+        function renderColorSwatches() {
+            document.querySelectorAll('.color-swatches').forEach(grid => {
+                if (grid.dataset.rendered === '1') return;
+                const targetId = grid.dataset.target;
+                grid.innerHTML = COLOR_PALETTE.map(hex =>
+                    `<button type="button" class="color-swatch" data-color="${hex}" style="background:${hex};" title="${hex}"></button>`
+                ).join('') +
+                `<button type="button" class="color-swatch color-swatch-custom" data-target="${targetId}" title="Andere Farbe">🎨</button>`;
+                grid.dataset.rendered = '1';
+            });
+        }
+
+        function syncSwatches(targetId) {
+            const input = document.getElementById(targetId);
+            if (!input) return;
+            const value = (input.value || '').toUpperCase();
+            const grid = document.querySelector(`.color-swatches[data-target="${targetId}"]`);
+            if (!grid) return;
+            grid.querySelectorAll('.color-swatch').forEach(sw => {
+                if (sw.classList.contains('color-swatch-custom')) return;
+                const isMatch = (sw.dataset.color || '').toUpperCase() === value;
+                sw.classList.toggle('selected', isMatch);
+            });
+        }
+
+        // Klick-Delegation für alle Swatches
+        document.addEventListener('click', function(e) {
+            const sw = e.target.closest('.color-swatch');
+            if (!sw) return;
+            e.preventDefault();
+            e.stopPropagation();
+
+            const grid = sw.closest('.color-swatches');
+            if (!grid) return;
+            const targetId = grid.dataset.target;
+            const input = document.getElementById(targetId);
+            if (!input) return;
+
+            if (sw.classList.contains('color-swatch-custom')) {
+                // Native Picker als Fallback öffnen
+                const picker = document.getElementById('customColorPicker');
+                if (!picker) return;
+                picker.value = input.value || '#87CEEB';
+                picker.onchange = () => {
+                    input.value = picker.value;
+                    syncSwatches(targetId);
+                };
+                picker.click();
+                return;
+            }
+
+            input.value = sw.dataset.color;
+            syncSwatches(targetId);
+        });
+
+        // Beim Page-Load die Swatches einmal rendern
+        document.addEventListener('DOMContentLoaded', () => {
+            renderColorSwatches();
+            syncSwatches('newBallColor');
+            syncSwatches('ballEditorColor');
+        });
+
         function renderBallPickButton(playerName, track) {
             // Wenn Game kein place_id hat (Legacy), keine Ball-Wahl anzeigen
             if (!GAME_PLACE_ID) return '';
@@ -1818,6 +1933,10 @@
             ballModalState.selectedBallId = current && current.ball ? current.ball.id : null;
             document.getElementById('ballNoteInput').value = current && current.note ? current.note : '';
             document.getElementById('newBallLabel').value = '';
+            document.getElementById('newBallColor').value = '#87CEEB';
+            renderColorSwatches();
+            syncSwatches('newBallColor');
+            closeBallEditor();
 
             renderBallGridInModal();
             populateBallDatalist(playerName);
@@ -1887,6 +2006,8 @@
             document.getElementById('ballEditorColor').value = ball.color_hex || '#87CEEB';
             editor.dataset.ballId = ballId;
             editor.style.display = 'block';
+            renderColorSwatches();
+            syncSwatches('ballEditorColor');
         }
 
         function closeBallEditor() {
