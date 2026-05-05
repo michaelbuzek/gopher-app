@@ -14,6 +14,11 @@
             box-sizing: border-box;
         }
 
+        html, body {
+            overflow-x: hidden;
+            max-width: 100vw;
+        }
+
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             background: linear-gradient(135deg, #f7f4f1 0%, #ede8e3 100%);
@@ -22,11 +27,12 @@
         }
 
         .container {
-            max-width: 1000px;
+            max-width: min(1000px, 100vw);
             margin: 0 auto;
             background: #ffffff;
             min-height: 100vh;
             box-shadow: 0 0 30px rgba(0, 0, 0, 0.05);
+            overflow-x: hidden;
         }
 
         .header {
@@ -131,6 +137,8 @@
 
         .score-table {
             width: 100%;
+            max-width: 100%;
+            table-layout: fixed;
             border-collapse: collapse;
             background: white;
             margin-bottom: 30px;
@@ -679,55 +687,76 @@
 
         .personal-score-item {
             display: flex;
-            align-items: center;
-            padding: 12px 15px;
+            flex-direction: column;
+            gap: 10px;
+            padding: 12px;
             background: #f8fafc;
-            border-radius: 12px;
+            border-radius: 14px;
             margin-bottom: 10px;
-            transition: all 0.3s ease;
+            transition: all 0.2s ease;
             border: 2px solid transparent;
+            box-sizing: border-box;
+            width: 100%;
+            min-width: 0;
         }
 
         .personal-score-item:hover {
             border-color: #f8c098;
         }
 
+        .personal-item-header {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 12px;
+            min-width: 0;
+        }
+
+        .personal-item-header-left {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            min-width: 0;
+        }
+
         .personal-track-number {
             background: #f7f4f1;
             color: #000000;
-            width: 50px;
-            height: 50px;
+            width: 44px;
+            height: 44px;
             border-radius: 10px;
             display: flex;
             align-items: center;
             justify-content: center;
             font-weight: 900;
-            font-size: 1.4em;
-            margin-right: 15px;
+            font-size: 1.25em;
             flex-shrink: 0;
             border: 2px solid #e2e8f0;
         }
 
         .personal-score-input-wrapper {
-            flex: 1;
             display: flex;
             align-items: center;
             justify-content: flex-end;
+            flex-shrink: 0;
         }
 
         .personal-score-input {
             width: 70px;
-            height: 50px;
+            height: 44px;
+            box-sizing: border-box;
             border: 2px solid #e2e8f0;
             border-radius: 10px;
             text-align: center;
-            font-size: 1.3em;
+            font-size: 1.25em;
             font-weight: 700;
             background: white;
             transition: all 0.3s ease;
             -webkit-appearance: none;
             appearance: none;
             color: #000000;
+            margin: 0;
+            padding: 0;
         }
 
         .personal-score-input:focus {
@@ -1517,11 +1546,15 @@
 
             /* Personal View Mobile */
             .personal-view-overlay {
-                padding: 10px;
+                padding: 8px;
+                box-sizing: border-box;
             }
 
             .personal-view {
                 max-width: 100%;
+                width: 100%;
+                box-sizing: border-box;
+                overflow: hidden;
             }
 
             .personal-header {
@@ -1573,27 +1606,46 @@
 
         /* Mobile compact mode - app-haftiger, weniger Whitespace */
         @media (max-width: 600px) {
+            .score-container {
+                padding: 10px;
+            }
+            .score-table {
+                font-size: 0.85em;
+            }
+            .score-table th,
+            .score-table td {
+                padding: 8px 4px;
+            }
+            .score-input {
+                width: 100%;
+                max-width: 42px;
+                height: 32px;
+                font-size: 0.95em;
+            }
             .personal-scores {
                 padding: 10px;
                 max-height: 55vh;
             }
             .personal-score-item {
-                padding: 8px 10px;
+                padding: 10px;
                 margin-bottom: 8px;
-                border-radius: 10px;
+                border-radius: 12px;
+                gap: 8px;
             }
             .personal-track-number {
-                width: 38px;
-                height: 38px;
-                font-size: 1.1em;
-                border-radius: 8px;
-                margin-right: 10px;
+                width: 40px;
+                height: 40px;
+                font-size: 1.15em;
+                border-radius: 9px;
+            }
+            .personal-item-track-label {
+                font-size: 0.65em;
             }
             .personal-score-input {
-                width: 56px;
-                height: 38px;
-                font-size: 1.05em;
-                border-radius: 8px;
+                width: 64px;
+                height: 40px;
+                font-size: 1.15em;
+                border-radius: 9px;
             }
             /* Ball-Detail-Block kompakter */
             .ball-detail-block {
@@ -2461,8 +2513,8 @@
 
                 html += `
                     <div class="personal-score-item">
-                        <div class="personal-track-number">${track}</div>
-                        <div class="personal-score-input-wrapper" style="flex-direction:column; align-items:flex-end; gap:4px;">
+                        <div class="personal-item-header">
+                            <div class="personal-track-number">${track}</div>
                             <input
                                 type="number"
                                 class="personal-score-input ${hasValue ? 'has-value' : ''}"
@@ -2474,8 +2526,8 @@
                                 inputmode="numeric"
                                 pattern="[0-9]*"
                             >
-                            ${renderBallPickButton(playerName, track)}
                         </div>
+                        ${renderBallPickButton(playerName, track)}
                     </div>
                 `;
             }
