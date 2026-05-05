@@ -1672,6 +1672,74 @@ def api_balls_create():
         return jsonify({'status': 'error', 'message': 'Failed to create ball'}), 500
 
 
+@app.route('/api/balls/<int:ball_id>', methods=['PUT', 'PATCH'])
+def api_balls_update(ball_id):
+    """Ball-Details (label und/oder color_hex) aktualisieren."""
+    try:
+        ball = PlayerBall.query.get(ball_id)
+        if not ball:
+            return jsonify({'status': 'error', 'message': 'ball not found'}), 404
+
+        data = request.get_json() or {}
+        new_label = data.get('label')
+        new_color = data.get('color_hex')
+
+        if new_label is not None:
+            new_label = new_label.strip()
+            if not new_label:
+                return jsonify({'status': 'error', 'message': 'label darf nicht leer sein'}), 400
+            # Konflikt-Check: anderer Ball mit gleichem Label desselben Spielers?
+            conflict = (
+                PlayerBall.query
+                .filter(
+                    PlayerBall.player_name == ball.player_name,
+                    PlayerBall.label == new_label,
+                    PlayerBall.id != ball.id,
+                )
+                .first()
+            )
+            if conflict:
+                return jsonify({'status': 'error', 'message': f'Spieler hat bereits einen Ball "{new_label}"'}), 409
+            ball.label = new_label
+
+        if new_color is not None:
+            new_color = new_color.strip() or None
+            ball.color_hex = new_color
+
+        db.session.commit()
+        log_action(f"Ball {ball.id} aktualisiert: {ball.player_name} / {ball.label}")
+        return jsonify({'status': 'success', 'ball': ball.to_dict()})
+
+    except Exception as e:
+        db.session.rollback()
+        logger.error(f"❌ api_balls_update error: {str(e)}")
+        return jsonify({'status': 'error', 'message': 'Failed to update ball'}), 500
+
+
+@app.route('/api/balls/<int:ball_id>', methods=['DELETE'])
+def api_balls_delete(ball_id):
+    """Ball löschen. Referenzen in PlayerTrackChoice werden auf NULL gesetzt
+    (Historie bleibt erhalten, nur ohne Ball-Verknüpfung).
+    """
+    try:
+        ball = PlayerBall.query.get(ball_id)
+        if not ball:
+            return jsonify({'status': 'error', 'message': 'ball not found'}), 404
+
+        # Alle Track-Choices mit Verweis auf diesen Ball: ball_id = NULL
+        affected = PlayerTrackChoice.query.filter_by(ball_id=ball.id).update({'ball_id': None})
+
+        db.session.delete(ball)
+        db.session.commit()
+        log_action(f"Ball gelöscht: {ball.player_name} / {ball.label} (Refs auf NULL: {affected})")
+        return jsonify({'status': 'success', 'deleted_id': ball_id, 'unlinked_choices': affected})
+
+    except Exception as e:
+        db.session.rollback()
+        logger.error(f"❌ api_balls_delete error: {str(e)}")
+        return jsonify({'status': 'error', 'message': 'Failed to delete ball'}), 500
+
+
 @app.route('/api/track-choice', methods=['POST'])
 def api_track_choice_create():
     """Append-only: neue Wahl (Ball + optional Notiz) für (place, track, player).

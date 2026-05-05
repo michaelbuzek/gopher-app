@@ -990,19 +990,14 @@
             gap: 8px;
         }
         .ball-grid-item {
+            position: relative;
             display: flex;
-            align-items: center;
-            gap: 8px;
-            padding: 10px;
+            align-items: stretch;
             border: 2px solid #e2e8f0;
             border-radius: 12px;
             background: white;
-            cursor: pointer;
-            font-size: 0.9em;
-            font-weight: 600;
-            color: #1e293b;
-            text-align: left;
             transition: all 0.2s ease;
+            overflow: hidden;
         }
         .ball-grid-item:hover {
             border-color: #f8c098;
@@ -1012,9 +1007,116 @@
             border-color: #f8c098;
             background: #fff7ed;
         }
+        .ball-grid-select {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px;
+            border: none;
+            background: transparent;
+            cursor: pointer;
+            font-size: 0.9em;
+            font-weight: 600;
+            color: #1e293b;
+            text-align: left;
+            min-width: 0;
+        }
+        .ball-grid-select span:not(.ball-dot) {
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
         .ball-grid-item .ball-dot {
             width: 26px;
             height: 26px;
+            flex-shrink: 0;
+        }
+        .ball-grid-edit {
+            border: none;
+            background: transparent;
+            padding: 0 10px;
+            cursor: pointer;
+            font-size: 0.95em;
+            opacity: 0.5;
+            border-left: 1px solid #e2e8f0;
+            transition: all 0.2s ease;
+        }
+        .ball-grid-edit:hover {
+            opacity: 1;
+            background: #fff7ed;
+        }
+
+        /* Ball-Editor Panel */
+        .ball-editor {
+            margin-top: 12px;
+            padding: 14px;
+            background: #fff7ed;
+            border: 2px solid #f8c098;
+            border-radius: 12px;
+        }
+        .ball-editor-title {
+            font-size: 0.85em;
+            font-weight: 700;
+            color: #1e293b;
+            margin-bottom: 10px;
+        }
+        .ball-editor-form {
+            display: flex;
+            gap: 8px;
+            align-items: stretch;
+            margin-bottom: 10px;
+        }
+        .ball-editor-form input[type="text"] {
+            flex: 1;
+            padding: 10px 12px;
+            border: 2px solid white;
+            border-radius: 10px;
+            font-size: 0.95em;
+            font-weight: 500;
+            background: white;
+            color: #1e293b;
+        }
+        .ball-editor-form input[type="text"]:focus {
+            outline: none;
+            border-color: #f8c098;
+        }
+        .ball-editor-form input[type="color"] {
+            width: 50px;
+            padding: 0;
+            border: 2px solid white;
+            border-radius: 10px;
+            background: white;
+            cursor: pointer;
+        }
+        .ball-editor-actions {
+            display: flex;
+            gap: 8px;
+        }
+        .ball-editor-btn {
+            flex: 1;
+            padding: 10px;
+            border-radius: 10px;
+            font-size: 0.9em;
+            font-weight: 700;
+            cursor: pointer;
+            border: 2px solid transparent;
+        }
+        .ball-editor-btn.delete {
+            background: white;
+            color: #dc2626;
+            border-color: #fecaca;
+        }
+        .ball-editor-btn.delete:hover {
+            background: #fee2e2;
+        }
+        .ball-editor-btn.cancel {
+            background: white;
+            color: #475569;
+        }
+        .ball-editor-btn.save {
+            background: #f8c098;
+            color: #1e293b;
         }
         .ball-grid-empty {
             color: #94a3b8;
@@ -1587,6 +1689,20 @@
                     <div class="ball-grid-empty">Noch keine Bälle gespeichert.</div>
                 </div>
 
+                <!-- Ball-Editor (Bearbeiten / Löschen eines bestehenden Balls) -->
+                <div class="ball-editor" id="ballEditor" style="display:none;">
+                    <div class="ball-editor-title" id="ballEditorTitle">Ball bearbeiten</div>
+                    <div class="ball-editor-form">
+                        <input type="text" id="ballEditorLabel" placeholder="Ball-Name" maxlength="100" autocomplete="off">
+                        <input type="color" id="ballEditorColor" value="#87CEEB" title="Farbe">
+                    </div>
+                    <div class="ball-editor-actions">
+                        <button type="button" class="ball-editor-btn delete" onclick="deleteBall()">🗑️ Löschen</button>
+                        <button type="button" class="ball-editor-btn cancel" onclick="closeBallEditor()">Abbrechen</button>
+                        <button type="button" class="ball-editor-btn save" onclick="saveBallEdit()">Speichern</button>
+                    </div>
+                </div>
+
                 <div class="ball-modal-section-title">➕ Neuer Ball</div>
                 <div class="ball-new-form">
                     <input type="text" id="newBallLabel" placeholder="z.B. hellblau, springender Ball" maxlength="100"
@@ -1735,17 +1851,139 @@
                 const sel = b.id === ballModalState.selectedBallId ? ' selected' : '';
                 const color = b.color_hex || '#cbd5e1';
                 return `
-                    <button type="button" class="ball-grid-item${sel}" data-ball-id="${b.id}">
-                        <span class="ball-dot" style="background:${escapeHtml(color)};"></span>
-                        <span>${escapeHtml(b.label)}</span>
-                    </button>
+                    <div class="ball-grid-item${sel}" data-ball-id="${b.id}">
+                        <button type="button" class="ball-grid-select" data-ball-id="${b.id}">
+                            <span class="ball-dot" style="background:${escapeHtml(color)};"></span>
+                            <span>${escapeHtml(b.label)}</span>
+                        </button>
+                        <button type="button" class="ball-grid-edit" data-ball-id="${b.id}" title="Bearbeiten">✏️</button>
+                    </div>
                 `;
             }).join('');
-            grid.querySelectorAll('.ball-grid-item').forEach(el => {
-                el.addEventListener('click', function() {
+            grid.querySelectorAll('.ball-grid-select').forEach(el => {
+                el.addEventListener('click', function(e) {
+                    e.stopPropagation();
                     ballModalState.selectedBallId = parseInt(this.dataset.ballId);
                     renderBallGridInModal();
                 });
+            });
+            grid.querySelectorAll('.ball-grid-edit').forEach(el => {
+                el.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    openBallEditor(parseInt(this.dataset.ballId));
+                });
+            });
+        }
+
+        // Ball-Editor (Edit/Delete eines bestehenden Balls)
+        function openBallEditor(ballId) {
+            const balls = BALLS_BY_PLAYER[ballModalState.playerName] || [];
+            const ball = balls.find(b => b.id === ballId);
+            if (!ball) return;
+
+            const editor = document.getElementById('ballEditor');
+            document.getElementById('ballEditorTitle').textContent = `Ball bearbeiten: ${ball.label}`;
+            document.getElementById('ballEditorLabel').value = ball.label;
+            document.getElementById('ballEditorColor').value = ball.color_hex || '#87CEEB';
+            editor.dataset.ballId = ballId;
+            editor.style.display = 'block';
+        }
+
+        function closeBallEditor() {
+            const editor = document.getElementById('ballEditor');
+            editor.style.display = 'none';
+            editor.dataset.ballId = '';
+        }
+
+        async function saveBallEdit() {
+            const editor = document.getElementById('ballEditor');
+            const ballId = parseInt(editor.dataset.ballId);
+            if (!ballId) return;
+            const label = (document.getElementById('ballEditorLabel').value || '').trim();
+            const color = document.getElementById('ballEditorColor').value;
+            if (!label) { alert('Label darf nicht leer sein.'); return; }
+
+            try {
+                const res = await fetch(`/api/balls/${ballId}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ label, color_hex: color }),
+                });
+                const data = await res.json();
+                if (data.status !== 'success') throw new Error(data.message || 'Fehler');
+
+                // BALLS_BY_PLAYER updaten
+                const list = BALLS_BY_PLAYER[ballModalState.playerName] || [];
+                const idx = list.findIndex(b => b.id === ballId);
+                if (idx >= 0) list[idx] = data.ball;
+
+                // CHOICES updaten (alle Eintraege mit dieser ball_id bekommen den neuen Ball)
+                Object.keys(CHOICES).forEach(k => {
+                    const c = CHOICES[k];
+                    if (c && c.ball && c.ball.id === ballId) {
+                        c.ball = data.ball;
+                    }
+                });
+
+                closeBallEditor();
+                renderBallGridInModal();
+                renderBallSetupOverview(ballModalState.playerName, {{ track_count }});
+                refreshAllCellIndicators(ballModalState.playerName);
+                showSaveIndicator();
+            } catch (e) {
+                alert('Speichern fehlgeschlagen: ' + e.message);
+            }
+        }
+
+        async function deleteBall() {
+            const editor = document.getElementById('ballEditor');
+            const ballId = parseInt(editor.dataset.ballId);
+            if (!ballId) return;
+            const label = document.getElementById('ballEditorLabel').value;
+            if (!confirm(`Ball "${label}" wirklich loeschen? Die Historie bleibt erhalten, aber die Ball-Verknuepfung geht verloren.`)) return;
+
+            try {
+                const res = await fetch(`/api/balls/${ballId}`, { method: 'DELETE' });
+                const data = await res.json();
+                if (data.status !== 'success') throw new Error(data.message || 'Fehler');
+
+                // Aus BALLS_BY_PLAYER entfernen
+                const list = BALLS_BY_PLAYER[ballModalState.playerName] || [];
+                BALLS_BY_PLAYER[ballModalState.playerName] = list.filter(b => b.id !== ballId);
+
+                // Aus CHOICES: ball-Verknuepfungen auf null setzen, choice mit nur-ball entfernen
+                Object.keys(CHOICES).forEach(k => {
+                    const c = CHOICES[k];
+                    if (c && c.ball && c.ball.id === ballId) {
+                        c.ball = null;
+                        if (!c.note) {
+                            // Choice hat keinen Ball mehr und keine Notiz -> entfernen
+                            delete CHOICES[k];
+                        }
+                    }
+                });
+
+                // Falls dieser Ball gerade ausgewaehlt war: Auswahl zuruecksetzen
+                if (ballModalState.selectedBallId === ballId) {
+                    ballModalState.selectedBallId = null;
+                }
+
+                closeBallEditor();
+                renderBallGridInModal();
+                renderBallSetupOverview(ballModalState.playerName, {{ track_count }});
+                refreshAllCellIndicators(ballModalState.playerName);
+                showSaveIndicator();
+            } catch (e) {
+                alert('Loeschen fehlgeschlagen: ' + e.message);
+            }
+        }
+
+        // Tabellen-Indikatoren fuer einen Spieler komplett neu rendern (nach Edit/Delete)
+        function refreshAllCellIndicators(playerName) {
+            document.querySelectorAll(`.cell-ball-indicator[data-player-name="${CSS.escape(playerName)}"]`).forEach(el => {
+                const track = parseInt(el.dataset.track);
+                const choice = CHOICES[choiceKey(playerName, track)];
+                updateCellBallIndicator(playerName, track, choice || null);
             });
         }
 
