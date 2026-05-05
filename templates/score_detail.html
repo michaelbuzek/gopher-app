@@ -744,6 +744,44 @@
         }
 
         /* ==========================================
+           BALL-INDIKATOR in der Tabellen-Zelle
+           ========================================== */
+        .score-cell {
+            position: relative;
+        }
+        .cell-ball-indicator {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            margin-top: 4px;
+            font-size: 0.7em;
+            font-weight: 600;
+            color: #475569;
+            line-height: 1.2;
+            padding: 2px 4px;
+            justify-content: center;
+        }
+        .cell-ball-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: #cbd5e1;
+            box-shadow: 0 0 0 1px rgba(0,0,0,0.1);
+            flex-shrink: 0;
+        }
+        .cell-ball-label {
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 80px;
+        }
+        @media (max-width: 600px) {
+            .cell-ball-indicator { font-size: 0.62em; gap: 3px; }
+            .cell-ball-dot { width: 8px; height: 8px; }
+            .cell-ball-label { max-width: 60px; }
+        }
+
+        /* ==========================================
            BALL-WAHL (Persönliche Ansicht)
            ========================================== */
         .ball-detail-block {
@@ -1412,18 +1450,31 @@
                     <tr>
                         <td class="track-cell">{{ track }}</td>
                         {% for player in players %}
-                            <td>
-                                <input 
-                                type="number" 
-                                class="score-input" 
-                                data-player-id="{{ player.id }}" 
-                                data-track="{{ track }}" 
+                            {% set _choice = choice_by_player_track.get((player.name, track)) %}
+                            <td class="score-cell">
+                                <input
+                                type="number"
+                                class="score-input"
+                                data-player-id="{{ player.id }}"
+                                data-track="{{ track }}"
                                 value="{{ score_map.get((player.id, track), '') }}"
                                 placeholder=""
                                 min="0"
                                 inputmode="numeric"
                                 pattern="[0-9]*"
                                 >
+                                <div class="cell-ball-indicator"
+                                     data-player-name="{{ player.name }}"
+                                     data-track="{{ track }}"
+                                     {% if not _choice %}style="display:none;"{% endif %}>
+                                    {% if _choice and _choice.ball %}
+                                        <span class="cell-ball-dot" style="background: {{ _choice.ball.color_hex or '#cbd5e1' }};"></span>
+                                        <span class="cell-ball-label">{{ _choice.ball.label }}</span>
+                                    {% elif _choice and _choice.note %}
+                                        <span class="cell-ball-dot" style="background:#cbd5e1;"></span>
+                                        <span class="cell-ball-label">📝</span>
+                                    {% endif %}
+                                </div>
                             </td>
                         {% endfor %}
                     </tr>
@@ -1538,9 +1589,11 @@
 
                 <div class="ball-modal-section-title">➕ Neuer Ball</div>
                 <div class="ball-new-form">
-                    <input type="text" id="newBallLabel" placeholder="z.B. hellblau, springender Ball" maxlength="100">
+                    <input type="text" id="newBallLabel" placeholder="z.B. hellblau, springender Ball" maxlength="100"
+                           list="userBallsDatalist" autocomplete="off">
                     <input type="color" id="newBallColor" value="#87CEEB" title="Farbe">
                 </div>
+                <datalist id="userBallsDatalist"></datalist>
 
                 <div class="ball-modal-section-title">📝 Notiz für diese Bahn (optional)</div>
                 <textarea class="ball-note-input" id="ballNoteInput" placeholder="z.B. oben rechts anzielen, sanfter Schlag, …"></textarea>
@@ -1651,9 +1704,19 @@
             document.getElementById('newBallLabel').value = '';
 
             renderBallGridInModal();
+            populateBallDatalist(playerName);
             loadBallHistory(playerName, track);
 
             document.getElementById('ballModalOverlay').classList.add('show');
+        }
+
+        function populateBallDatalist(playerName) {
+            const datalist = document.getElementById('userBallsDatalist');
+            if (!datalist) return;
+            const balls = BALLS_BY_PLAYER[playerName] || [];
+            datalist.innerHTML = balls.map(b =>
+                `<option value="${escapeHtml(b.label)}"></option>`
+            ).join('');
         }
 
         function closeBallModal() {
@@ -1767,12 +1830,38 @@
                 if (currentPersonalPlayerId !== null) {
                     renderPersonalScores(currentPersonalPlayerId);
                 }
+                // Tabellen-Zelle (Hauptansicht) aktualisieren
+                updateCellBallIndicator(playerName, track, data.choice);
                 showSaveIndicator();
             } catch (e) {
                 alert('Speichern fehlgeschlagen: ' + e.message);
             } finally {
                 saveBtn.disabled = false;
             }
+        }
+
+        function updateCellBallIndicator(playerName, track, choice) {
+            const cell = document.querySelector(
+                `.cell-ball-indicator[data-player-name="${CSS.escape(playerName)}"][data-track="${track}"]`
+            );
+            if (!cell) return;
+
+            const ball = choice && choice.ball ? choice.ball : null;
+            const note = choice && choice.note ? choice.note : null;
+
+            if (!ball && !note) {
+                cell.style.display = 'none';
+                cell.innerHTML = '';
+                return;
+            }
+
+            const color = ball && ball.color_hex ? ball.color_hex : '#cbd5e1';
+            const label = ball ? ball.label : '📝';
+            cell.innerHTML = `
+                <span class="cell-ball-dot" style="background:${escapeHtml(color)};"></span>
+                <span class="cell-ball-label">${escapeHtml(label)}</span>
+            `;
+            cell.style.display = 'flex';
         }
 
         function showSaveIndicator() {
