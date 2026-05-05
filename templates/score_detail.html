@@ -852,17 +852,48 @@
 
         /* Ball-Setup Übersicht (Variante B) */
         .ball-setup-overview {
-            padding: 16px 20px;
+            padding: 0;
             background: #f8fafc;
             border-top: 1px solid #e2e8f0;
         }
+        .ball-setup-header {
+            width: 100%;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 14px 20px;
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            text-align: left;
+            transition: background 0.2s ease;
+        }
+        .ball-setup-header:hover { background: #f1f5f9; }
         .ball-setup-title {
+            flex: 1;
             font-size: 0.78em;
             font-weight: 700;
             text-transform: uppercase;
             letter-spacing: 0.5px;
             color: #64748b;
-            margin-bottom: 10px;
+        }
+        .ball-setup-counter {
+            font-size: 0.78em;
+            font-weight: 700;
+            color: #f8c098;
+            background: #fff7ed;
+            padding: 3px 10px;
+            border-radius: 999px;
+        }
+        .ball-setup-chevron {
+            font-size: 0.9em;
+            color: #94a3b8;
+            min-width: 14px;
+            text-align: center;
+        }
+        .ball-setup-body {
+            flex-direction: column;
+            padding: 0 20px 14px 20px;
         }
         .ball-setup-list {
             display: flex;
@@ -1538,6 +1569,74 @@
                 height: 55px;
                 font-size: 1.5em;
             }
+        }
+
+        /* Mobile compact mode - app-haftiger, weniger Whitespace */
+        @media (max-width: 600px) {
+            .personal-scores {
+                padding: 10px;
+                max-height: 55vh;
+            }
+            .personal-score-item {
+                padding: 8px 10px;
+                margin-bottom: 8px;
+                border-radius: 10px;
+            }
+            .personal-track-number {
+                width: 38px;
+                height: 38px;
+                font-size: 1.1em;
+                border-radius: 8px;
+                margin-right: 10px;
+            }
+            .personal-score-input {
+                width: 56px;
+                height: 38px;
+                font-size: 1.05em;
+                border-radius: 8px;
+            }
+            /* Ball-Detail-Block kompakter */
+            .ball-detail-block {
+                padding: 7px 9px;
+                margin-top: 6px;
+                border-radius: 9px;
+            }
+            .ball-detail-row { gap: 8px; }
+            .ball-detail-label { font-size: 0.85em; }
+            .ball-detail-note {
+                margin-top: 4px;
+                margin-left: 28px;
+                font-size: 0.78em;
+            }
+            .ball-dot { width: 18px; height: 18px; }
+            .ball-detail-block .ball-dot { width: 20px; height: 20px; }
+            .ball-detail-edit { font-size: 0.8em; }
+            /* Setup-Übersicht kompakter */
+            .ball-setup-header { padding: 11px 14px; gap: 8px; }
+            .ball-setup-title { font-size: 0.72em; }
+            .ball-setup-counter { font-size: 0.72em; padding: 2px 8px; }
+            .ball-setup-body { padding: 0 14px 11px 14px; }
+            .ball-setup-item { padding: 7px 9px; gap: 8px; }
+            .ball-setup-bahn { min-width: 50px; font-size: 0.85em; }
+            .ball-setup-info { font-size: 0.85em; }
+            /* Personal-Header kompakter */
+            .personal-header { padding: 12px 14px; }
+            /* Footer kompakter */
+            .personal-footer { padding: 10px 14px; }
+            .personal-back-btn { padding: 12px; font-size: 0.95em; }
+            /* Sonnenmodus-Toggle weniger Platz */
+            .sunmode-toggle { padding: 8px 14px; }
+            /* Modal: sicheres Box-Sizing + voller Bildschirm bündig */
+            .ball-modal-overlay { padding: 0; }
+            .ball-modal {
+                width: 100%;
+                max-width: 100%;
+                box-sizing: border-box;
+                border-radius: 18px 18px 0 0;
+            }
+            .ball-modal-body { padding: 14px 16px; }
+            .ball-modal-header { padding: 14px 16px; }
+            .ball-modal-footer { padding: 12px 16px; }
         }
     </style>
 </head>
@@ -2230,6 +2329,23 @@
             setTimeout(() => ind.classList.remove('show'), 1500);
         }
 
+        // Default-State: auf Mobile eingeklappt, sonst aufgeklappt
+        let ballSetupExpanded = window.matchMedia('(min-width: 600px)').matches;
+        // Persistenz: aus localStorage lesen
+        try {
+            const saved = localStorage.getItem('gopher_ball_setup_expanded');
+            if (saved !== null) ballSetupExpanded = saved === '1';
+        } catch (e) {}
+
+        function setBallSetupExpanded(expanded) {
+            ballSetupExpanded = expanded;
+            try { localStorage.setItem('gopher_ball_setup_expanded', expanded ? '1' : '0'); } catch (e) {}
+            const body = document.querySelector('.ball-setup-body');
+            const chev = document.querySelector('.ball-setup-chevron');
+            if (body) body.style.display = expanded ? 'flex' : 'none';
+            if (chev) chev.textContent = expanded ? '▾' : '▸';
+        }
+
         function renderBallSetupOverview(playerName, trackCount) {
             const overview = document.getElementById('ballSetupOverview');
             if (!GAME_PLACE_ID) {
@@ -2251,25 +2367,36 @@
 
             overview.style.display = 'block';
             overview.innerHTML = `
-                <div class="ball-setup-title">🎱 Setup für ${escapeHtml(playerName)}</div>
-                <div class="ball-setup-list">
-                    ${items.map(({ track, choice }) => {
-                        const ball = choice.ball;
-                        const color = ball && ball.color_hex ? ball.color_hex : '#cbd5e1';
-                        const label = ball ? ball.label : '(nur Notiz)';
-                        const note = choice.note ? ` · <span class="ball-setup-note">${escapeHtml(choice.note)}</span>` : '';
-                        return `
-                            <div class="ball-setup-item" data-track="${track}">
-                                <span class="ball-dot" style="background:${escapeHtml(color)};"></span>
-                                <span class="ball-setup-bahn">Bahn ${track}</span>
-                                <span class="ball-setup-info">
-                                    <span class="ball-setup-label">${escapeHtml(label)}</span>${note}
-                                </span>
-                            </div>
-                        `;
-                    }).join('')}
+                <button type="button" class="ball-setup-header" id="ballSetupHeaderBtn">
+                    <span class="ball-setup-title">🎱 Setup für ${escapeHtml(playerName)}</span>
+                    <span class="ball-setup-counter">${items.length} / ${trackCount}</span>
+                    <span class="ball-setup-chevron">${ballSetupExpanded ? '▾' : '▸'}</span>
+                </button>
+                <div class="ball-setup-body" style="display:${ballSetupExpanded ? 'flex' : 'none'};">
+                    <div class="ball-setup-list">
+                        ${items.map(({ track, choice }) => {
+                            const ball = choice.ball;
+                            const color = ball && ball.color_hex ? ball.color_hex : '#cbd5e1';
+                            const label = ball ? ball.label : '(nur Notiz)';
+                            const note = choice.note ? ` · <span class="ball-setup-note">${escapeHtml(choice.note)}</span>` : '';
+                            return `
+                                <div class="ball-setup-item" data-track="${track}">
+                                    <span class="ball-dot" style="background:${escapeHtml(color)};"></span>
+                                    <span class="ball-setup-bahn">Bahn ${track}</span>
+                                    <span class="ball-setup-info">
+                                        <span class="ball-setup-label">${escapeHtml(label)}</span>${note}
+                                    </span>
+                                </div>
+                            `;
+                        }).join('')}
+                    </div>
                 </div>
             `;
+
+            const headerBtn = overview.querySelector('#ballSetupHeaderBtn');
+            if (headerBtn) {
+                headerBtn.addEventListener('click', () => setBallSetupExpanded(!ballSetupExpanded));
+            }
 
             overview.querySelectorAll('.ball-setup-item').forEach(el => {
                 el.addEventListener('click', function() {
