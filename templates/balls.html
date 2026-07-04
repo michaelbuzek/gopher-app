@@ -76,6 +76,7 @@
 
     <div id="sheetOv" class="sheet-ov"><div id="sheet" class="sheet"></div></div>
     <input type="file" id="fileIn" accept="image/*" style="display:none;">
+    <input type="file" id="fileCam" accept="image/*" capture="environment" style="display:none;">
     <div id="toast" class="toast"></div>
 
     <script>
@@ -115,8 +116,10 @@
         sheet.innerHTML =
             '<div class="sheet-head"><div class="sheet-title">'+(ball?'Ball bearbeiten':'Neuer Ball')+'</div><div class="sheet-x" id="sx"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"/></svg></div></div>'
             +'<div class="preview-row"><div class="preview" id="prev">'+previewInner(curImg, pending.color)+'</div>'
-            +'<div class="photo-btns"><button class="btn btn-ghost" id="photoBtn" style="height:40px;padding:0 14px;">Foto wählen</button>'
-            +'<button class="link" id="rmPhoto" style="'+(curImg?'':'display:none;')+'">Foto entfernen</button></div></div>'
+            +'<div class="photo-btns"><div style="display:flex;gap:8px;">'
+            +'<button class="btn btn-ghost" id="camBtn" style="height:40px;padding:0 12px;font-size:14px;"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>Aufnehmen</button>'
+            +'<button class="btn btn-ghost" id="photoBtn" style="height:40px;padding:0 12px;font-size:14px;"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12"/></svg>Hochladen</button></div>'
+            +'<button class="link" id="rmPhoto" style="margin-top:6px;'+(curImg?'':'display:none;')+'">Foto entfernen</button></div></div>'
             +'<div class="field-label">NAME</div><input type="text" id="lbl" placeholder="z.B. Migo blau, springender Ball" maxlength="100" value="'+(ball?esc(ball.label):'')+'">'
             +'<div class="field-label">FARBE</div><div class="swatches" id="sw">'+swatches+'</div>'
             +'<div class="field-label">BESCHREIBUNG (OPTIONAL)</div><textarea id="desc" placeholder="z.B. hart, springt gut, für lange Bahnen" style="width:100%;min-height:64px;border:1px solid var(--line);border-radius:12px;padding:10px 13px;font-size:14px;font-family:inherit;resize:vertical;margin-bottom:16px;">'+(ball?esc(ball.description||''):'')+'</textarea>'
@@ -126,6 +129,7 @@
         document.getElementById('cancel').onclick=closeSheet;
         document.getElementById('save').onclick=saveBall;
         document.getElementById('photoBtn').onclick=function(){ document.getElementById('fileIn').click(); };
+        document.getElementById('camBtn').onclick=function(){ document.getElementById('fileCam').click(); };
         document.getElementById('rmPhoto').onclick=function(){ pending.image=''; document.getElementById('prev').innerHTML=previewInner(null, pending.color); document.getElementById('rmPhoto').style.display='none'; };
         if (ball) document.getElementById('del').onclick=deleteBall;
         sheet.querySelectorAll('[data-sw]').forEach(function(el){ el.onclick=function(){ pending.color=el.dataset.sw; sheet.querySelectorAll('.sw').forEach(function(s){s.classList.remove('sel');}); el.classList.add('sel'); if(pending.image===undefined?!curImg:!pending.image) document.getElementById('prev').innerHTML=previewInner(null,pending.color); }; });
@@ -134,15 +138,17 @@
     function previewInner(img, color){ if(img) return '<img src="'+img+'" alt="">'; return '<div class="dot" style="width:46px;height:46px;background:'+(color||'#d7d9d2')+';"><span class="hl"></span></div>'; }
     function closeSheet(){ document.getElementById('sheetOv').classList.remove('show'); editing=null; }
 
-    document.getElementById('fileIn').onchange=function(e){
+    function onPhotoPicked(e){
         var f=e.target.files && e.target.files[0]; if(!f) return;
         resizeImage(f, 320, function(dataUrl){
             pending.image = dataUrl;
             document.getElementById('prev').innerHTML = previewInner(dataUrl, pending.color);
-            document.getElementById('rmPhoto').style.display='';
+            var rm=document.getElementById('rmPhoto'); if(rm) rm.style.display='';
         });
         e.target.value='';
-    };
+    }
+    document.getElementById('fileIn').onchange=onPhotoPicked;
+    document.getElementById('fileCam').onchange=onPhotoPicked;
     function resizeImage(file, maxSize, cb){
         var reader=new FileReader();
         reader.onload=function(ev){ var img=new Image(); img.onload=function(){

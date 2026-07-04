@@ -17,9 +17,15 @@
         .head .who { font-size:13px; font-weight:600; }
         .head .av { width:34px; height:34px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:15px; font-weight:600; }
         .lead { font-size:14px; color:var(--ink-2); margin-bottom:14px; }
-        .chips { display:flex; gap:9px; flex-wrap:wrap; margin-bottom:18px; }
-        .chip { display:flex; align-items:center; gap:7px; padding:9px 15px; border-radius:20px; border:1.5px solid var(--line); background:var(--card); color:var(--ink-3); font-size:14px; font-weight:600; cursor:pointer; }
-        .chip svg { width:15px; height:15px; }
+        .selbar { display:none; align-items:center; justify-content:space-between; margin-bottom:10px; }
+        .selbar .lab { font-size:12px; letter-spacing:1px; color:var(--ink-3); font-weight:600; }
+        .selbar .tog { font-size:13px; font-weight:600; cursor:pointer; }
+        .chips { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:18px; }
+        .chip { display:flex; align-items:center; gap:9px; padding:11px 12px; border-radius:14px; border:1.5px solid var(--line); background:var(--card); cursor:pointer; }
+        .chip .cpin { width:26px; height:26px; border-radius:8px; display:flex; align-items:center; justify-content:center; flex:0 0 auto; }
+        .chip .cpin svg { width:15px; height:15px; }
+        .chip .cname { flex:1; font-size:14px; font-weight:600; line-height:1.25; min-width:0; }
+        .chip .ccount { font-size:12px; color:var(--ink-4); font-weight:600; flex:0 0 auto; }
         .count { font-size:12px; letter-spacing:1px; color:var(--ink-3); font-weight:600; margin-bottom:10px; }
         .brow { display:flex; align-items:center; gap:12px; background:var(--card); border:1px solid var(--line); border-radius:13px; padding:12px 14px; margin-bottom:10px; cursor:pointer; }
         .brow.packed { opacity:0.55; }
@@ -46,6 +52,7 @@
             <div class="av" id="whoAv"></div>
         </div>
         <div class="lead">Welche Anlage(n) besuchst du? Tipp sie an — die Bälle werden zusammengefasst.</div>
+        <div id="selbar" class="selbar"><span class="lab">ANLAGEN</span><span id="toggleAll" class="tog"></span></div>
         <div id="chips" class="chips"></div>
         <div id="count" class="count" style="display:none;"></div>
         <div id="list"></div>
@@ -71,9 +78,15 @@
         if(!VENUES.length){ box.innerHTML=''; return; }
         box.innerHTML = VENUES.map(function(v){
             var on=selected.has(v.place_id);
-            return '<div class="chip" data-pid="'+v.place_id+'" style="border-color:'+(on?PCOLOR:'var(--line)')+';background:'+(on?tint(PCOLOR):'var(--card)')+';color:'+(on?PCOLOR:'var(--ink-3)')+';">'+pin()+esc(v.name)+' ('+v.balls.length+')</div>';
+            return '<div class="chip" data-pid="'+v.place_id+'" style="border-color:'+(on?PCOLOR:'var(--line)')+';background:'+(on?tint(PCOLOR):'var(--card)')+';">'
+                +'<span class="cpin" style="background:'+(on?'#fff':'var(--tile)')+';color:'+(on?PCOLOR:'var(--ink-3)')+';">'+pin()+'</span>'
+                +'<span class="cname" style="color:'+(on?PCOLOR:'var(--ink)')+';">'+esc(v.name)+'</span>'
+                +'<span class="ccount">'+v.balls.length+'</span></div>';
         }).join('');
         box.querySelectorAll('[data-pid]').forEach(function(el){ el.onclick=function(){ var pid=parseInt(el.dataset.pid); if(selected.has(pid)) selected.delete(pid); else selected.add(pid); renderChips(); renderList(); }; });
+        var t=document.getElementById('toggleAll');
+        t.textContent = (selected.size===VENUES.length) ? 'Alle abwählen' : 'Alle wählen';
+        t.style.color = PCOLOR;
     }
 
     function combinedBalls(){
@@ -118,6 +131,11 @@
         if(!VENUES.length){ document.getElementById('list').innerHTML='<div class="empty">Noch keine Bälle einer Anlage zugeordnet.<br>Trag im Spiel pro Bahn einen Ball ein — dann erscheint hier die Packliste.</div>'; return; }
         // Standard: alle Anlagen gewählt
         VENUES.forEach(function(v){ selected.add(v.place_id); });
+        document.getElementById('selbar').style.display='flex';
+        document.getElementById('toggleAll').onclick=function(){
+            if(selected.size===VENUES.length){ selected.clear(); } else { VENUES.forEach(function(v){ selected.add(v.place_id); }); }
+            renderChips(); renderList();
+        };
         renderChips(); renderList();
     }
     init();
