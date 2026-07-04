@@ -30,6 +30,11 @@
         .players { border:1px solid var(--line); border-radius:16px; padding:12px; background:#fbfcfa; }
         .prow { display:flex; align-items:center; gap:10px; margin-bottom:10px; }
         .prow .av { width:34px; height:34px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:14px; font-weight:600; flex:0 0 auto; }
+        .prow.prof { cursor:pointer; user-select:none; }
+        .prow .pname { flex:1; font-size:16px; font-weight:500; }
+        .prow .chk { width:26px; height:26px; border-radius:50%; border:1.5px solid var(--muted); display:flex; align-items:center; justify-content:center; flex:0 0 auto; color:#fff; }
+        .prow .chk svg { width:15px; height:15px; }
+        .prow .av.gav { background:#eceee7; color:#8a8f88; }
         .prow input { flex:1; height:48px; border:1px solid var(--line); border-radius:12px; padding:0 13px; font-size:16px; background:var(--card); }
         .prow input:focus { outline:none; border-color:var(--green); box-shadow:0 0 0 3px rgba(22,163,74,0.10); }
         .prow .rm { width:34px; height:34px; border-radius:10px; border:none; background:transparent; color:var(--muted); cursor:pointer; display:flex; align-items:center; justify-content:center; flex:0 0 auto; }
@@ -83,7 +88,8 @@
 
     <script>
     var PLACES = [], PROFILES = [], selectedPlaceId = null;
-    var players = []; // {name, fixed}
+    var PROFILE_SEL = {}, guests = [];  // Profile: name->ausgewählt; guests: freie Zusatzspieler
+    var CHK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>';
     var MAX = 6;
 
     function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];}); }
@@ -94,21 +100,26 @@
 
     function renderPlayers(){
         var box=document.getElementById('prows');
-        box.innerHTML = players.map(function(p, i){
-            var prof=profileFor(p.name);
-            var col = prof ? (prof.color_hex||'#16a34a') : '#8a8f88';
-            var initial = (p.name||'?').trim().charAt(0).toUpperCase() || '?';
-            return '<div class="prow">'
-                + '<span class="av" style="background:'+tint(col)+';color:'+col+';">'+esc(initial)+'</span>'
-                + '<input data-i="'+i+'" value="'+esc(p.name)+'" placeholder="Name" maxlength="100">'
-                + (p.fixed ? '<span style="width:34px;flex:0 0 auto;"></span>' : '<button class="rm" data-rm="'+i+'" title="Entfernen"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"/></svg></button>')
-                + '</div>';
-        }).join('');
-        box.querySelectorAll('input[data-i]').forEach(function(el){
-            el.addEventListener('input', function(){ players[parseInt(el.dataset.i)].name = el.value; var prof=profileFor(el.value); var col=prof?(prof.color_hex||'#16a34a'):'#8a8f88'; var av=el.previousElementSibling; av.style.background=tint(col); av.style.color=col; av.textContent=(el.value||'?').trim().charAt(0).toUpperCase()||'?'; });
+        var html='';
+        PROFILES.forEach(function(p){
+            var sel=PROFILE_SEL[p.name], c=p.color_hex||'#16a34a';
+            html += '<div class="prow prof" data-prof="'+esc(p.name)+'" style="opacity:'+(sel?1:0.5)+';">'
+                + '<span class="av" style="background:'+tint(c)+';color:'+c+';">'+esc(p.name.charAt(0).toUpperCase())+'</span>'
+                + '<span class="pname">'+esc(p.name)+'</span>'
+                + '<span class="chk" style="'+(sel?'background:'+c+';border-color:'+c+';':'')+'">'+(sel?CHK:'')+'</span></div>';
         });
-        box.querySelectorAll('[data-rm]').forEach(function(el){ el.addEventListener('click', function(){ players.splice(parseInt(el.dataset.rm),1); renderPlayers(); }); });
-        document.getElementById('addP').disabled = players.length >= MAX;
+        guests.forEach(function(g, i){
+            var initial=(g.name||'?').trim().charAt(0).toUpperCase()||'?';
+            html += '<div class="prow">'
+                + '<span class="av gav">'+esc(initial)+'</span>'
+                + '<input data-gi="'+i+'" value="'+esc(g.name)+'" placeholder="Gastname" maxlength="100">'
+                + '<button class="rm" data-rm="'+i+'" title="Entfernen"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"/></svg></button></div>';
+        });
+        box.innerHTML=html;
+        box.querySelectorAll('[data-prof]').forEach(function(el){ el.addEventListener('click', function(){ var n=el.getAttribute('data-prof'); PROFILE_SEL[n]=!PROFILE_SEL[n]; renderPlayers(); }); });
+        box.querySelectorAll('input[data-gi]').forEach(function(el){ el.addEventListener('input', function(){ guests[parseInt(el.dataset.gi)].name=el.value; var av=el.previousElementSibling; av.textContent=(el.value||'?').trim().charAt(0).toUpperCase()||'?'; }); });
+        box.querySelectorAll('[data-rm]').forEach(function(el){ el.addEventListener('click', function(){ guests.splice(parseInt(el.dataset.rm),1); renderPlayers(); }); });
+        document.getElementById('addP').disabled = (PROFILES.length + guests.length) >= MAX;
     }
 
     function matchPlace(){
@@ -118,7 +129,7 @@
         else { selectedPlaceId=null; }
     }
 
-    document.getElementById('addP').addEventListener('click', function(){ if(players.length<MAX){ players.push({name:'', fixed:false}); renderPlayers(); var ins=document.querySelectorAll('#prows input[data-i]'); if(ins.length) ins[ins.length-1].focus(); } });
+    document.getElementById('addP').addEventListener('click', function(){ if((PROFILES.length+guests.length)<MAX){ guests.push({name:''}); renderPlayers(); var ins=document.querySelectorAll('#prows input[data-gi]'); if(ins.length) ins[ins.length-1].focus(); } });
     var placeEl = document.getElementById('place'), placeDrop = document.getElementById('placeDrop');
     function showDrop(items){
         if(!items.length){ placeDrop.style.display='none'; return; }
@@ -137,7 +148,9 @@
         var track_count=parseInt(document.getElementById('tracks').value)||18;
         if(!place){ showErr('Bitte einen Minigolf-Platz eingeben.'); return; }
         if(!date){ showErr('Bitte ein Datum wählen.'); return; }
-        var names = players.map(function(p){return (p.name||'').trim();}).filter(function(n){return n;});
+        var names = [];
+        PROFILES.forEach(function(p){ if(PROFILE_SEL[p.name]) names.push(p.name); });
+        guests.forEach(function(g){ var n=(g.name||'').trim(); if(n) names.push(n); });
         if(!names.length){ showErr('Mindestens ein Spieler erforderlich.'); return; }
         var btn=this; btn.disabled=true; btn.style.opacity='0.7';
         try {
@@ -155,8 +168,8 @@
         document.getElementById('date').value=iso;
         // Profile (für Standard-Spieler + Farben)
         try { var rp=await fetch('/api/profiles'); var dp=await rp.json(); PROFILES=dp.profiles||[]; } catch(e){}
-        var defaults = PROFILES.length ? PROFILES.map(function(p){return p.name;}) : ['Umpa','Lumpa'];
-        players = defaults.map(function(n){return {name:n, fixed:true};});
+        if(!PROFILES.length) PROFILES = [{name:'Umpa',color_hex:'#16a34a'},{name:'Lumpa',color_hex:'#e0672e'}];
+        PROFILES.forEach(function(p){ PROFILE_SEL[p.name]=true; });
         renderPlayers();
         // Plätze für Autocomplete
         try {
