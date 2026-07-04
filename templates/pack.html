@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <title>🏌️ Bälle mitnehmen</title>
+    <style>
+        * { box-sizing: border-box; }
+        :root { --bg:#f5f6f2; --card:#fff; --line:#e6e7e1; --tile:#edefe8; --ink:#1c1d1a; --ink-2:#5b5f58; --ink-3:#8a8f88; --ink-4:#a0a49d; --muted:#c2c6bf; --green:#16a34a; }
+        html, body { margin:0; padding:0; background:var(--bg); color:var(--ink); font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif; -webkit-font-smoothing:antialiased; }
+        .wrap { max-width:480px; margin:0 auto; padding:18px 18px 40px; }
+        .head { display:flex; align-items:center; gap:12px; margin-bottom:14px; }
+        .back { width:40px; height:40px; border-radius:12px; background:var(--card); border:1px solid var(--line); display:flex; align-items:center; justify-content:center; cursor:pointer; }
+        .back svg { width:20px; height:20px; }
+        .head .t { font-size:20px; font-weight:600; }
+        .head .who { font-size:13px; font-weight:600; }
+        .head .av { width:34px; height:34px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:15px; font-weight:600; }
+        .lead { font-size:14px; color:var(--ink-2); margin-bottom:14px; }
+        .chips { display:flex; gap:9px; flex-wrap:wrap; margin-bottom:18px; }
+        .chip { display:flex; align-items:center; gap:7px; padding:9px 15px; border-radius:20px; border:1.5px solid var(--line); background:var(--card); color:var(--ink-3); font-size:14px; font-weight:600; cursor:pointer; }
+        .chip svg { width:15px; height:15px; }
+        .count { font-size:12px; letter-spacing:1px; color:var(--ink-3); font-weight:600; margin-bottom:10px; }
+        .brow { display:flex; align-items:center; gap:12px; background:var(--card); border:1px solid var(--line); border-radius:13px; padding:12px 14px; margin-bottom:10px; cursor:pointer; }
+        .brow.packed { opacity:0.55; }
+        .thumb { width:38px; height:38px; border-radius:50%; overflow:hidden; display:flex; align-items:center; justify-content:center; background:#eef0ea; flex:0 0 auto; }
+        .thumb img { width:100%; height:100%; object-fit:cover; }
+        .dot { width:30px; height:30px; border-radius:50%; position:relative; border:1px solid rgba(0,0,0,0.06); }
+        .dot .hl { position:absolute; top:5px; left:6px; width:7px; height:7px; border-radius:50%; background:rgba(255,255,255,0.7); }
+        .brow .info { flex:1; min-width:0; }
+        .brow .lbl { font-size:16px; font-weight:600; }
+        .brow .lbl.done { text-decoration:line-through; }
+        .brow .dsc { font-size:12px; color:var(--ink-3); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+        .chk { width:26px; height:26px; border-radius:8px; border:1.5px solid #cdd0c8; display:flex; align-items:center; justify-content:center; color:#fff; flex:0 0 auto; }
+        .chk svg { width:16px; height:16px; }
+        .empty { text-align:center; color:var(--ink-4); font-size:14px; padding:36px 12px; line-height:1.6; }
+        .toast { position:fixed; bottom:22px; left:50%; transform:translateX(-50%) translateY(20px); background:var(--ink); color:#fff; font-size:14px; padding:9px 16px; border-radius:20px; opacity:0; transition:all .2s; z-index:60; pointer-events:none; }
+        .toast.show { opacity:1; transform:translateX(-50%) translateY(0); }
+    </style>
+</head>
+<body>
+    <div class="wrap">
+        <div class="head">
+            <div class="back" onclick="location.href='/'"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg></div>
+            <div style="flex:1;"><div class="t">Bälle mitnehmen</div><div class="who" id="whoLbl"></div></div>
+            <div class="av" id="whoAv"></div>
+        </div>
+        <div class="lead">Welche Anlage(n) besuchst du? Tipp sie an — die Bälle werden zusammengefasst.</div>
+        <div id="chips" class="chips"></div>
+        <div id="count" class="count" style="display:none;"></div>
+        <div id="list"></div>
+    </div>
+    <div id="toast" class="toast"></div>
+
+    <script>
+    var PLAYER=null, PCOLOR='#16a34a', VENUES=[], selected=new Set(), packed=new Set();
+
+    function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];}); }
+    function tint(hex){ var h=(hex||'').replace('#',''); if(h.length<6) return '#eef0ea'; var r=parseInt(h.substr(0,2),16),g=parseInt(h.substr(2,2),16),b=parseInt(h.substr(4,2),16),m=function(x){return Math.round(255-(255-x)*0.16);}; return 'rgb('+m(r)+','+m(g)+','+m(b)+')'; }
+    function toast(msg){ var t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show'); clearTimeout(window._tt); window._tt=setTimeout(function(){t.classList.remove('show');},1500); }
+    function pin(){ return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8c0 4.5-6 10-6 10S6 12.5 6 8a6 6 0 0 1 12 0Z"/><circle cx="12" cy="8" r="2"/></svg>'; }
+    function check(){ return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>'; }
+    function ballVisual(b){
+        if (b.image_data) return '<div class="thumb"><img src="'+b.image_data+'" alt=""></div>';
+        var c = b.color_hex || '#d7d9d2';
+        return '<div class="thumb" style="background:transparent;"><div class="dot" style="background:'+c+';"><span class="hl"></span></div></div>';
+    }
+
+    function renderChips(){
+        var box=document.getElementById('chips');
+        if(!VENUES.length){ box.innerHTML=''; return; }
+        box.innerHTML = VENUES.map(function(v){
+            var on=selected.has(v.place_id);
+            return '<div class="chip" data-pid="'+v.place_id+'" style="border-color:'+(on?PCOLOR:'var(--line)')+';background:'+(on?tint(PCOLOR):'var(--card)')+';color:'+(on?PCOLOR:'var(--ink-3)')+';">'+pin()+esc(v.name)+' ('+v.balls.length+')</div>';
+        }).join('');
+        box.querySelectorAll('[data-pid]').forEach(function(el){ el.onclick=function(){ var pid=parseInt(el.dataset.pid); if(selected.has(pid)) selected.delete(pid); else selected.add(pid); renderChips(); renderList(); }; });
+    }
+
+    function combinedBalls(){
+        var map={};
+        VENUES.forEach(function(v){ if(selected.has(v.place_id)){ v.balls.forEach(function(b){ map[b.id]=b; }); } });
+        return Object.keys(map).map(function(k){return map[k];}).sort(function(a,b){return (a.label||'').toLowerCase()<(b.label||'').toLowerCase()?-1:1;});
+    }
+
+    function renderList(){
+        var list=document.getElementById('list'), cnt=document.getElementById('count');
+        if(!selected.size){ cnt.style.display='none'; list.innerHTML='<div class="empty">Wähle oben eine oder mehrere Anlagen.</div>'; return; }
+        var balls=combinedBalls();
+        var names=VENUES.filter(function(v){return selected.has(v.place_id);}).map(function(v){return v.name;}).join(' + ');
+        cnt.style.display='block';
+        cnt.textContent=balls.length+' '+(balls.length===1?'BALL':'BÄLLE')+' FÜR '+names.toUpperCase();
+        if(!balls.length){ list.innerHTML='<div class="empty">Für diese Auswahl keine Bälle eingetragen.</div>'; return; }
+        list.innerHTML=balls.map(function(b){
+            var on=packed.has(b.id);
+            return '<div class="brow'+(on?' packed':'')+'" data-id="'+b.id+'">'+ballVisual(b)
+                +'<div class="info"><div class="lbl'+(on?' done':'')+'">'+esc(b.label)+'</div>'+(b.description?'<div class="dsc">'+esc(b.description)+'</div>':'')+'</div>'
+                +'<div class="chk" style="'+(on?'background:'+PCOLOR+';border-color:'+PCOLOR+';':'')+'">'+(on?check():'')+'</div></div>';
+        }).join('');
+        list.querySelectorAll('[data-id]').forEach(function(el){ el.onclick=function(){ var id=parseInt(el.dataset.id); if(packed.has(id)) packed.delete(id); else packed.add(id); renderList(); }; });
+    }
+
+    async function init(){
+        var param=new URLSearchParams(location.search).get('player');
+        PLAYER = param || localStorage.getItem('gopher_profile') || null;
+        try {
+            var res=await fetch('/api/profiles'); var data=await res.json(); var profs=data.profiles||[];
+            if(!PLAYER && profs.length) PLAYER=profs[0].name;
+            var p=profs.filter(function(x){return x.name===PLAYER;})[0]; if(p) PCOLOR=p.color_hex||'#16a34a';
+        } catch(e){}
+        if(!PLAYER){ document.getElementById('list').innerHTML='<div class="empty">Kein Profil gewählt.</div>'; return; }
+        document.getElementById('whoLbl').textContent=PLAYER;
+        document.getElementById('whoLbl').style.color=PCOLOR;
+        var av=document.getElementById('whoAv'); av.textContent=PLAYER.charAt(0).toUpperCase(); av.style.background=tint(PCOLOR); av.style.color=PCOLOR;
+        try {
+            var r2=await fetch('/api/pack?player_name='+encodeURIComponent(PLAYER)); var d2=await r2.json();
+            VENUES=d2.venues||[];
+        } catch(e){ VENUES=[]; }
+        if(!VENUES.length){ document.getElementById('list').innerHTML='<div class="empty">Noch keine Bälle einer Anlage zugeordnet.<br>Trag im Spiel pro Bahn einen Ball ein — dann erscheint hier die Packliste.</div>'; return; }
+        // Standard: alle Anlagen gewählt
+        VENUES.forEach(function(v){ selected.add(v.place_id); });
+        renderChips(); renderList();
+    }
+    init();
+    </script>
+</body>
+</html>

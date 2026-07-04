@@ -162,7 +162,7 @@
     });
     document.getElementById('tilePack').addEventListener('click', () => {
         const p = activeProfile(); if(!p){ toast('Erst ein Profil wählen'); return; }
-        toast('„Bälle mitnehmen" kommt als Nächstes 🔧');
+        location.href = '/pack?player=' + encodeURIComponent(p.name);
     });
 
     async function loadProfiles(){

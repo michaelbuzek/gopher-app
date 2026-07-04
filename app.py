@@ -929,6 +929,12 @@ def balls_admin():
     """Ball-Verwaltung 'Meine Bälle' — Spieler kommt per ?player= oder localStorage."""
     return render_template('balls.html')
 
+# --- BÄLLE MITNEHMEN (Packliste) ---
+@app.route('/pack')
+def pack_list():
+    """'Bälle mitnehmen' — Packliste pro Anlage (Mehrfachauswahl)."""
+    return render_template('pack.html')
+
 # --- SCRABBLE ---
 @app.route('/scrabble')
 def scrabble():
@@ -1733,6 +1739,48 @@ def api_profiles_list():
     """Alle Profile (kanonische Spieler-Identitäten)."""
     profiles = Profile.query.order_by(Profile.sort_order, Profile.name).all()
     return jsonify({'status': 'success', 'profiles': [p.to_dict() for p in profiles]})
+
+
+@app.route('/api/pack', methods=['GET'])
+def api_pack():
+    """'Bälle mitnehmen': pro Anlage die Bälle, die der Spieler dort je eingetragen hat.
+    Frontend kann mehrere Anlagen wählen und die Bälle vereinen."""
+    player_name = (request.args.get('player_name') or '').strip()
+    if not player_name:
+        return jsonify({'status': 'error', 'message': 'player_name required'}), 400
+    try:
+        # distinct (place, ball) für diesen Spieler, wo ein Ball gesetzt ist
+        rows = (
+            db.session.query(PlayerTrackChoice.place_id, PlayerTrackChoice.ball_id)
+            .filter(PlayerTrackChoice.player_name == player_name,
+                    PlayerTrackChoice.ball_id.isnot(None))
+            .distinct().all()
+        )
+        place_balls = {}
+        for pid, bid in rows:
+            place_balls.setdefault(pid, set()).add(bid)
+
+        place_ids = list(place_balls.keys())
+        places = {p.id: p for p in Place.query.filter(Place.id.in_(place_ids)).all()} if place_ids else {}
+        all_ball_ids = set().union(*place_balls.values()) if place_balls else set()
+        balls = {b.id: b.to_dict() for b in PlayerBall.query.filter(PlayerBall.id.in_(all_ball_ids)).all()} if all_ball_ids else {}
+
+        venues = []
+        for pid, bids in place_balls.items():
+            place = places.get(pid)
+            if not place:
+                continue
+            venues.append({
+                'place_id': pid,
+                'name': place.name,
+                'balls': sorted([balls[b] for b in bids if b in balls], key=lambda x: (x.get('label') or '').lower()),
+            })
+        venues.sort(key=lambda v: v['name'].lower())
+        return jsonify({'status': 'success', 'venues': venues})
+    except Exception as e:
+        db.session.rollback()
+        logger.error(f"❌ api_pack error: {str(e)}")
+        return jsonify({'status': 'error', 'message': 'Failed to load pack list'}), 500
 
 
 @app.route('/api/balls', methods=['GET'])
