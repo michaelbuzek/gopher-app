@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <meta name="apple-mobile-web-app-title" content="Gopher Minigolf">
+    <title>🏌️ Gopher Minigolf</title>
+    <style>
+        * { box-sizing: border-box; }
+        :root {
+            --bg: #f5f6f2; --card: #fff; --line: #e6e7e1; --tile: #edefe8;
+            --ink: #1c1d1a; --ink-2: #5b5f58; --ink-3: #8a8f88; --ink-4: #a0a49d;
+            --muted: #c2c6bf; --green: #16a34a;
+        }
+        html, body { margin: 0; padding: 0; background: var(--bg); color: var(--ink);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; -webkit-font-smoothing: antialiased; }
+        .wrap { max-width: 480px; margin: 0 auto; padding: 18px 18px 28px; min-height: 100vh; display: flex; flex-direction: column; }
+        a { text-decoration: none; color: inherit; }
+
+        .logo-row { display: flex; align-items: center; gap: 11px; margin-bottom: 18px; }
+        .logo-row img { width: 42px; height: 42px; border-radius: 50%; object-fit: cover; background: #dfe6e4; }
+        .logo-row .title { font-size: 21px; font-weight: 600; }
+
+        .btn-new { height: 60px; border-radius: 16px; background: var(--green); color: #fff; border: none;
+            width: 100%; font-size: 18px; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 9px; cursor: pointer; margin-bottom: 12px; }
+        .btn-new svg { width: 21px; height: 21px; }
+
+        .shared-row { display: flex; gap: 10px; margin-bottom: 20px; }
+        .shared-tile { flex: 1; display: flex; flex-direction: column; gap: 9px; background: var(--card);
+            border: 1px solid var(--line); border-radius: 14px; padding: 15px; cursor: pointer; }
+        .shared-tile .ic { width: 38px; height: 38px; border-radius: 11px; background: var(--tile); color: var(--ink-2);
+            display: flex; align-items: center; justify-content: center; }
+        .shared-tile .ic svg { width: 21px; height: 21px; }
+        .shared-tile .lbl { font-size: 15px; font-weight: 600; }
+
+        .divider { border-top: 1px solid var(--line); margin-bottom: 14px; }
+        .section-label { font-size: 12px; letter-spacing: 1px; color: var(--ink-3); font-weight: 600; margin-bottom: 10px; }
+
+        .chips { display: flex; gap: 10px; margin-bottom: 16px; }
+        .chip { flex: 1; display: flex; align-items: center; gap: 9px; justify-content: center; padding: 11px;
+            border-radius: 13px; cursor: pointer; border: 1.5px solid var(--line); background: var(--card); }
+        .chip .av { width: 27px; height: 27px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 600; }
+        .chip .nm { font-size: 15px; font-weight: 600; color: var(--ink-3); }
+
+        .mtile { display: flex; align-items: center; gap: 13px; background: var(--card); border: 1px solid var(--line);
+            border-radius: 16px; padding: 15px; margin-bottom: 12px; cursor: pointer; }
+        .mtile .ic { width: 42px; height: 42px; border-radius: 12px; display: flex; align-items: center; justify-content: center; }
+        .mtile .ic svg { width: 22px; height: 22px; }
+        .mtile .t { font-size: 17px; font-weight: 600; }
+        .mtile .s { font-size: 13px; color: var(--ink-3); }
+        .mtile .chev { margin-left: auto; color: var(--muted); }
+        .mtile .chev svg { width: 20px; height: 20px; }
+
+        .spacer { flex: 1 1 auto; min-height: 12px; }
+        .footer { border-top: 1px solid var(--line); padding-top: 14px; text-align: center; }
+        .footer a { font-size: 13px; color: var(--ink-3); }
+
+        .toast { position: fixed; bottom: 22px; left: 50%; transform: translateX(-50%) translateY(20px);
+            background: var(--ink); color: #fff; font-size: 14px; padding: 9px 16px; border-radius: 20px; opacity: 0; transition: all .2s; z-index: 60; pointer-events: none; }
+        .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+    </style>
+</head>
+<body>
+    <div class="wrap">
+        <div class="logo-row">
+            <img src="/static/gopher_main.png" alt="Gopher" onerror="this.style.visibility='hidden'">
+            <span class="title">Gopher</span>
+        </div>
+
+        <a href="/minigolf" class="btn-new" id="newGame">
+            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+            Neues Spiel
+        </a>
+
+        <div class="shared-row">
+            <a href="/history" class="shared-tile">
+                <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v5h5"/><path d="M3.05 13A9 9 0 1 0 6 5.3L3 8"/><path d="M12 7v5l3 3"/></svg></span>
+                <span class="lbl">History</span>
+            </a>
+            <a href="/settings" class="shared-tile">
+                <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6l6-3 6 3 6-3v15l-6 3-6-3-6 3z"/><path d="M9 3v15M15 6v15"/></svg></span>
+                <span class="lbl">Bahnen</span>
+            </a>
+        </div>
+
+        <div class="divider"></div>
+        <div class="section-label">MEIN STUFF</div>
+        <div class="chips" id="chips"></div>
+
+        <div class="mtile" id="tileBalls">
+            <span class="ic" id="icBalls"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 3a15 15 0 0 0 0 18M12 3a15 15 0 0 1 0 18M3 12h18"/></svg></span>
+            <div><div class="t">Meine Bälle</div><div class="s" id="ballsSub">Bälle verwalten</div></div>
+            <span class="chev"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg></span>
+        </div>
+
+        <div class="mtile" id="tilePack">
+            <span class="ic" id="icPack"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8h12v12a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2z"/><path d="M9 8V5a3 3 0 0 1 6 0v3M10 12v6M14 12v6"/></svg></span>
+            <div><div class="t">Bälle mitnehmen</div><div class="s">Packliste pro Anlage</div></div>
+            <span class="chev"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg></span>
+        </div>
+
+        <div class="spacer"></div>
+        <div class="footer"><a href="/classic">Alte Startseite · Scrabble &nbsp;›</a></div>
+    </div>
+    <div id="toast" class="toast"></div>
+
+    <script>
+    let PROFILES = [];
+    let activeName = localStorage.getItem('gopher_profile') || '';
+
+    function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+    function activeProfile(){ return PROFILES.find(p => p.name === activeName) || PROFILES[0] || null; }
+
+    function renderChips(){
+        const box = document.getElementById('chips');
+        if (!PROFILES.length){ box.innerHTML = '<div style="color:var(--ink-4);font-size:14px;">Keine Profile</div>'; return; }
+        box.innerHTML = PROFILES.map(p => {
+            const on = p.name === activeName;
+            const c = p.color_hex || '#16a34a';
+            return '<div class="chip" data-name="'+esc(p.name)+'" style="border-color:'+(on?c:'var(--line)')+';background:'+(on?tint(c):'var(--card)')+';">'
+                + '<span class="av" style="background:'+(on?'#fff':tint(c))+';color:'+c+';">'+esc(p.name.charAt(0).toUpperCase())+'</span>'
+                + '<span class="nm" style="color:'+(on?c:'var(--ink-3)')+';">'+esc(p.name)+'</span></div>';
+        }).join('');
+        box.querySelectorAll('[data-name]').forEach(el => el.addEventListener('click', () => {
+            activeName = el.dataset.name;
+            localStorage.setItem('gopher_profile', activeName);
+            renderChips(); syncStuff();
+        }));
+    }
+
+    function tint(hex){
+        // helle Tönung der Profilfarbe (0.14 alpha auf weiß)
+        const h = hex.replace('#',''); if (h.length < 6) return '#eef0ea';
+        const r=parseInt(h.substr(0,2),16), g=parseInt(h.substr(2,2),16), b=parseInt(h.substr(4,2),16);
+        const mix = (x)=>Math.round(255 - (255-x)*0.16);
+        return 'rgb('+mix(r)+','+mix(g)+','+mix(b)+')';
+    }
+
+    function syncStuff(){
+        const p = activeProfile();
+        const c = p ? (p.color_hex || '#16a34a') : '#16a34a';
+        const t = tint(c);
+        document.getElementById('icBalls').style.background = t;
+        document.getElementById('icBalls').style.color = c;
+        document.getElementById('icPack').style.background = t;
+        document.getElementById('icPack').style.color = c;
+    }
+
+    function toast(msg){
+        const el = document.getElementById('toast');
+        el.textContent = msg; el.classList.add('show');
+        clearTimeout(window._tt); window._tt = setTimeout(()=>el.classList.remove('show'), 1500);
+    }
+
+    // MEIN-STUFF-Kacheln: Ziele kommen als Nächstes (Meine Bälle / Bälle mitnehmen)
+    document.getElementById('tileBalls').addEventListener('click', () => {
+        const p = activeProfile(); if(!p){ toast('Erst ein Profil wählen'); return; }
+        toast('„Meine Bälle" kommt als Nächstes 🔧');
+    });
+    document.getElementById('tilePack').addEventListener('click', () => {
+        const p = activeProfile(); if(!p){ toast('Erst ein Profil wählen'); return; }
+        toast('„Bälle mitnehmen" kommt als Nächstes 🔧');
+    });
+
+    async function loadProfiles(){
+        try {
+            const res = await fetch('/api/profiles');
+            const data = await res.json();
+            PROFILES = (data.profiles || []);
+            if (!activeName && PROFILES.length) activeName = PROFILES[0].name;
+            renderChips(); syncStuff();
+        } catch(e){
+            console.error('profiles', e);
+            document.getElementById('chips').innerHTML = '<div style="color:var(--ink-4);font-size:14px;">Profile konnten nicht geladen werden</div>';
+        }
+    }
+    loadProfiles();
+    </script>
+</body>
+</html>

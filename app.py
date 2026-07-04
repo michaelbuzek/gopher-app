@@ -895,10 +895,16 @@ def cleanup_standard_places():
 # Main Application Routes
 # ------------------------------
 
-# --- LANDING PAGE ---
+# --- HOME (neuer Hub) ---
 @app.route('/')
-def landing():
-    """Landing page - Game selection"""
+def home():
+    """Neue Startseite / Hub (Neues Spiel, History, Bahnen, MEIN STUFF)"""
+    return render_template('home.html')
+
+# --- ALTE STARTSEITE (Spielauswahl Minigolf/Scrabble) ---
+@app.route('/classic')
+def classic_landing():
+    """Alte Landing-Page, erreichbar über den Footer-Link auf der neuen Home"""
     return render_template('landing.html')
 
 # --- MINIGOLF ---
