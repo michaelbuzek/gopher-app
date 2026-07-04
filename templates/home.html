@@ -158,7 +158,7 @@
     // MEIN-STUFF-Kacheln: Ziele kommen als Nächstes (Meine Bälle / Bälle mitnehmen)
     document.getElementById('tileBalls').addEventListener('click', () => {
         const p = activeProfile(); if(!p){ toast('Erst ein Profil wählen'); return; }
-        toast('„Meine Bälle" kommt als Nächstes 🔧');
+        location.href = '/balls?player=' + encodeURIComponent(p.name);
     });
     document.getElementById('tilePack').addEventListener('click', () => {
         const p = activeProfile(); if(!p){ toast('Erst ein Profil wählen'); return; }

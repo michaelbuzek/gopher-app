@@ -288,7 +288,8 @@ class PlayerBall(db.Model):
     player_name = db.Column(db.String(100), nullable=False)
     label = db.Column(db.String(100), nullable=False)
     color_hex = db.Column(db.String(9), nullable=True)
-    image_filename = db.Column(db.String(200), nullable=True)
+    image_filename = db.Column(db.String(200), nullable=True)  # Legacy (Dateipfad)
+    image_data = db.Column(db.Text, nullable=True)  # Foto als kompaktes data:-URL (Render-sicher, DB-persistiert)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
     __table_args__ = (
@@ -303,6 +304,7 @@ class PlayerBall(db.Model):
             'label': self.label,
             'color_hex': self.color_hex,
             'image_filename': self.image_filename,
+            'image_data': self.image_data,
         }
 
 
@@ -473,8 +475,11 @@ def ensure_schema_additions():
                 "ALTER TABLE player_track_choices "
                 "ADD COLUMN IF NOT EXISTS slot INTEGER NOT NULL DEFAULT 0"
             ))
+            db.session.execute(text(
+                "ALTER TABLE player_balls ADD COLUMN IF NOT EXISTS image_data TEXT"
+            ))
             db.session.commit()
-            log_action("Schema-Ergänzung geprüft: player_track_choices.slot")
+            log_action("Schema-Ergänzung geprüft: player_track_choices.slot, player_balls.image_data")
     except Exception as e:
         db.session.rollback()
         logger.warning(f"⚠️ ensure_schema_additions übersprungen: {e}")
@@ -912,6 +917,12 @@ def classic_landing():
 def minigolf_index():
     """Minigolf - New game page"""
     return render_template('index.html')
+
+# --- MEINE BÄLLE (Ball-Verwaltung) ---
+@app.route('/balls')
+def balls_admin():
+    """Ball-Verwaltung 'Meine Bälle' — Spieler kommt per ?player= oder localStorage."""
+    return render_template('balls.html')
 
 # --- SCRABBLE ---
 @app.route('/scrabble')
@@ -1743,19 +1754,22 @@ def api_balls_create():
         player_name = (data.get('player_name') or '').strip()
         label = (data.get('label') or '').strip()
         color_hex = (data.get('color_hex') or '').strip() or None
+        image_data = data.get('image_data') or None
 
         if not player_name or not label:
             return jsonify({'status': 'error', 'message': 'player_name und label required'}), 400
 
         existing = PlayerBall.query.filter_by(player_name=player_name, label=label).first()
         if existing:
-            # Optional: Farbe aktualisieren, wenn neu mitgegeben
+            # Optional: Farbe/Foto aktualisieren, wenn neu mitgegeben
             if color_hex and existing.color_hex != color_hex:
                 existing.color_hex = color_hex
-                db.session.commit()
+            if image_data is not None:
+                existing.image_data = image_data
+            db.session.commit()
             return jsonify({'status': 'success', 'ball': existing.to_dict(), 'created': False})
 
-        ball = PlayerBall(player_name=player_name, label=label, color_hex=color_hex)
+        ball = PlayerBall(player_name=player_name, label=label, color_hex=color_hex, image_data=image_data)
         db.session.add(ball)
         db.session.commit()
         log_action(f"Ball created: {player_name} / {label}")
@@ -1800,6 +1814,10 @@ def api_balls_update(ball_id):
         if new_color is not None:
             new_color = new_color.strip() or None
             ball.color_hex = new_color
+
+        new_image = data.get('image_data')
+        if new_image is not None:
+            ball.image_data = new_image or None  # leerer String -> Foto entfernen
 
         db.session.commit()
         log_action(f"Ball {ball.id} aktualisiert: {ball.player_name} / {ball.label}")
