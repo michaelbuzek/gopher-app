@@ -171,8 +171,11 @@
     {% endif %}{% endfor %}{% endfor %}
 
     let BALLS_BY_PLAYER = {{ balls_by_player | tojson }};  // { name: [ {id,label,color_hex,image_filename}, ... ] }
-    const CHOICES = {};  // "name|track" -> { ball:{...}|null, note, ... }
+    const CHOICES = {};  // "name|track" -> Haupt-Ball { ball, note, slot:0 }
     {% for (pname, track), choice in choice_by_player_track.items() %}CHOICES[{{ (pname ~ '|' ~ track) | tojson }}] = {{ choice | tojson }};
+    {% endfor %}
+    const ALT_CHOICES = {};  // "name|track" -> Alternativ-Ball { ball, slot:1 }
+    {% for (pname, track), choice in alt_by_player_track.items() %}ALT_CHOICES[{{ (pname ~ '|' ~ track) | tojson }}] = {{ choice | tojson }};
     {% endfor %}
 
     // ==========================================================
@@ -194,6 +197,7 @@
     function playedOf(pid) { let n = 0; for (let h = 1; h <= TRACK_COUNT; h++) if (scoreOf(pid, h) > 0) n++; return n; }
     function avgOf(pid) { const n = playedOf(pid); return n > 0 ? (totalOf(pid) / n).toFixed(1) : '–'; }
     function choiceOf(name, track) { return CHOICES[name + '|' + track] || null; }
+    function altOf(name, track) { return ALT_CHOICES[name + '|' + track] || null; }
     function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 
     function leaderId() {
@@ -315,6 +319,12 @@
             ? ballTileHTML(ball.color_hex, ball.image_filename) + '<span class="ball-name">' + esc(ball.label) + '</span>' + '<span class="icon-pencil">' + IC.pencil + '</span>'
             : ballTileHTML(null, null) + '<span class="ball-name empty">Ball wählen</span>' + '<span class="icon-pencil">' + IC.pencil + '</span>';
 
+        const alt = altOf(name, hole);
+        const altBall = alt && alt.ball ? alt.ball : null;
+        const altRowHtml = altBall
+            ? '<div class="ball-row" id="altRow" style="margin-bottom:14px;">' + ballTileHTML(altBall.color_hex, altBall.image_filename) + '<span class="ball-name">' + esc(altBall.label) + '</span><span style="font-size:11px;color:var(--ink-4);letter-spacing:1px;margin-right:2px;">ALT</span><span class="icon-pencil">' + IC.pencil + '</span></div>'
+            : '<div class="alt-row" id="altRow" style="margin-bottom:14px;">' + IC.plus + '<span>Alternativ-Ball</span></div>';
+
         app.innerHTML =
             '<div class="row-between" style="margin-bottom:10px;">'
             + '<div class="loc">' + IC.pin + '<span style="font-size:15px;">' + esc(PLACE_NAME) + '</span></div>'
@@ -334,7 +344,7 @@
             + '<div class="step step-plus" id="plus">+</div></div>'
             + '<div class="field-label">BALL FÜR DIESE BAHN</div>'
             + '<div class="ball-row" id="ballRow" style="margin-bottom:8px;">' + ballInner + '</div>'
-            + '<div class="alt-row" id="altRow" style="margin-bottom:14px;">' + IC.plus + '<span>Alternativ-Ball</span></div>'
+            + altRowHtml
             + '<div class="field-label">NOTIZ</div>'
             + '<div class="note-row" id="noteRow">' + IC.note + '<span class="note-txt' + (note ? '' : ' empty') + '">' + (note ? esc(note) : 'Notiz hinzufügen …') + '</span></div>'
             + '</div>'
@@ -350,8 +360,9 @@
         document.getElementById('weiterBtn').addEventListener('click', () => { if (hole < TRACK_COUNT) { state.hole++; render(); } else { state.view = 'main'; render(); } });
         document.getElementById('minus').addEventListener('click', () => changeScore(pid, hole, -1));
         document.getElementById('plus').addEventListener('click', () => changeScore(pid, hole, +1));
-        document.getElementById('ballRow').addEventListener('click', () => openBallSheet(name, hole));
-        document.getElementById('noteRow').addEventListener('click', () => openBallSheet(name, hole));
+        document.getElementById('ballRow').addEventListener('click', () => openBallSheet(name, hole, 0));
+        document.getElementById('noteRow').addEventListener('click', () => openBallSheet(name, hole, 0));
+        document.getElementById('altRow').addEventListener('click', () => openBallSheet(name, hole, 1));
         app.querySelectorAll('[data-jump]').forEach(el => {
             el.addEventListener('click', () => { state.hole = parseInt(el.dataset.jump); render(); });
         });
@@ -416,11 +427,12 @@
     // ==========================================================
     let sheetCtx = null;
 
-    function openBallSheet(playerName, track) {
+    function openBallSheet(playerName, track, slot) {
+        slot = slot || 0;
         if (!GAME_PLACE_ID) { toast('Für dieses Spiel nicht verfügbar'); return; }
-        const ch = choiceOf(playerName, track);
+        const ch = slot === 1 ? altOf(playerName, track) : choiceOf(playerName, track);
         sheetCtx = {
-            playerName, track,
+            playerName, track, slot,
             selectedBallId: ch && ch.ball ? ch.ball.id : null,
             newColor: '#22c55e',
             note: ch && ch.note ? ch.note : ''
@@ -438,17 +450,20 @@
             '<div class="swatch' + (hex === sheetCtx.newColor ? ' sel' : '') + '" data-swatch="' + hex + '" style="background:' + hex + ';"></div>'
         ).join('');
 
+        const titleSuffix = slot === 1 ? ' · Alternativ' : '';
+        const noteSection = slot === 1 ? '' :
+            '<div class="field-label">NOTIZ FÜR DIESE BAHN (OPTIONAL)</div>'
+            + '<textarea class="note-area" id="noteArea" placeholder="z.B. oben rechts anzielen, sanfter Schlag …">' + esc(sheetCtx.note) + '</textarea>';
         const sheet = document.getElementById('sheet');
         sheet.innerHTML =
-            '<div class="sheet-head"><div class="sheet-title">' + esc(playerName) + ' – Bahn ' + track + '</div>'
+            '<div class="sheet-head"><div class="sheet-title">' + esc(playerName) + ' – Bahn ' + track + titleSuffix + '</div>'
             + '<div class="sheet-x" id="sheetClose">' + IC.x + '</div></div>'
             + '<div class="field-label">DEINE BÄLLE</div>'
             + '<div class="ball-chips" id="ballChips">' + chips + '</div>'
             + '<div class="field-label">NEUER BALL</div>'
             + '<input class="new-ball-in" id="newBallLabel" placeholder="z.B. hellblau, springender Ball" maxlength="100" autocomplete="off">'
             + '<div class="swatches" id="swatches">' + swatches + '</div>'
-            + '<div class="field-label">NOTIZ FÜR DIESE BAHN (OPTIONAL)</div>'
-            + '<textarea class="note-area" id="noteArea" placeholder="z.B. oben rechts anzielen, sanfter Schlag …">' + esc(sheetCtx.note) + '</textarea>'
+            + noteSection
             + '<div class="sheet-actions"><button class="btn btn-ghost" id="sheetCancel">Abbrechen</button>'
             + '<button class="btn btn-green" id="sheetSave">Speichern</button></div>';
 
@@ -474,8 +489,9 @@
     async function saveSheet() {
         if (!sheetCtx) return;
         const label = (document.getElementById('newBallLabel').value || '').trim();
-        const note = (document.getElementById('noteArea').value || '').trim();
-        const payload = { place_id: GAME_PLACE_ID, track_number: sheetCtx.track, player_name: sheetCtx.playerName, note: note || null };
+        const noteEl = document.getElementById('noteArea');
+        const note = noteEl ? (noteEl.value || '').trim() : '';
+        const payload = { place_id: GAME_PLACE_ID, track_number: sheetCtx.track, player_name: sheetCtx.playerName, slot: sheetCtx.slot, note: note || null };
         if (label) payload.ball = { label: label, color_hex: sheetCtx.newColor };
         else if (sheetCtx.selectedBallId) payload.ball_id = sheetCtx.selectedBallId;
 
@@ -488,7 +504,9 @@
             });
             const data = await res.json();
             if (data.status !== 'success') throw new Error(data.message || 'Fehler');
-            CHOICES[sheetCtx.playerName + '|' + sheetCtx.track] = data.choice;
+            const key = sheetCtx.playerName + '|' + sheetCtx.track;
+            if (sheetCtx.slot === 1) ALT_CHOICES[key] = data.choice;
+            else CHOICES[key] = data.choice;
             // Neuer Ball ins Inventar aufnehmen, falls angelegt
             if (data.choice.ball) {
                 const list = BALLS_BY_PLAYER[sheetCtx.playerName] || (BALLS_BY_PLAYER[sheetCtx.playerName] = []);

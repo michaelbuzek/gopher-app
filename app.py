@@ -320,6 +320,7 @@ class PlayerTrackChoice(db.Model):
     player_name = db.Column(db.String(100), nullable=False)
     ball_id = db.Column(db.Integer, db.ForeignKey('player_balls.id'), nullable=True)
     note = db.Column(db.Text, nullable=True)
+    slot = db.Column(db.Integer, nullable=False, default=0, server_default='0')  # 0 = Haupt-Ball, 1 = Alternativ-Ball
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
     ball = db.relationship('PlayerBall', lazy='joined')
@@ -336,6 +337,7 @@ class PlayerTrackChoice(db.Model):
             'player_name': self.player_name,
             'ball': self.ball.to_dict() if self.ball else None,
             'note': self.note,
+            'slot': self.slot if self.slot is not None else 0,
             'created_at': self.created_at.isoformat() if self.created_at else None,
         }
 
@@ -437,6 +439,22 @@ def migrate_legacy_games():
         raise  # Re-raise damit safe_database_init() es mitbekommt
 
 
+def ensure_schema_additions():
+    """Additive, idempotente Schema-Ergänzungen ohne Alembic.
+    NUR neue Spalten/Tabellen, niemals destruktiv (siehe DB-Schutzregel)."""
+    try:
+        if db.engine.dialect.name == 'postgresql':
+            db.session.execute(text(
+                "ALTER TABLE player_track_choices "
+                "ADD COLUMN IF NOT EXISTS slot INTEGER NOT NULL DEFAULT 0"
+            ))
+            db.session.commit()
+            log_action("Schema-Ergänzung geprüft: player_track_choices.slot")
+    except Exception as e:
+        db.session.rollback()
+        logger.warning(f"⚠️ ensure_schema_additions übersprungen: {e}")
+
+
 def safe_database_init():
     """Updated database initialization"""
     try:
@@ -451,7 +469,10 @@ def safe_database_init():
         # Create all tables (including new ones)
         log_action("Creating database tables on startup")
         db.create_all()
-        
+
+        # Additive, idempotente Schema-Ergänzungen (kein Alembic)
+        ensure_schema_additions()
+
         # Initialize default data
         initialize_default_data()
         
@@ -492,7 +513,8 @@ def ensure_database():
                         logger.error("❌ Database auto-initialization failed")
                 else:
                     log_action("✅ Database tables verified")
-                
+                    ensure_schema_additions()
+
                 app._database_checked = True
             else:
                 logger.error("❌ Database connection failed during auto-check")
@@ -1013,7 +1035,8 @@ def score_detail(game_id):
         # Nur wenn place_id verfügbar (legacy games haben evtl. keins)
         # Try/Except: falls Migration noch nicht durch, Seite trotzdem anzeigen ohne Ball-UI
         balls_by_player = {}      # player_name -> [ball_dict, ...] (sortiert: zuletzt benutzt zuerst)
-        choice_by_player_track = {}  # (player_name, track) -> choice_dict (jüngster)
+        choice_by_player_track = {}  # (player_name, track) -> Haupt-Ball (slot 0, jüngster)
+        alt_by_player_track = {}     # (player_name, track) -> Alternativ-Ball (slot 1, jüngster)
 
         if game.place_id:
             try:
@@ -1042,13 +1065,18 @@ def score_detail(game_id):
                     )
                     for c in choices:
                         key = (c.player_name, c.track_number)
-                        if key not in choice_by_player_track:
-                            choice_by_player_track[key] = c.to_dict()
+                        if (c.slot or 0) == 1:
+                            if key not in alt_by_player_track:
+                                alt_by_player_track[key] = c.to_dict()
+                        else:
+                            if key not in choice_by_player_track:
+                                choice_by_player_track[key] = c.to_dict()
             except Exception as ball_err:
                 db.session.rollback()
                 logger.warning(f"⚠️ Ball-Notes nicht verfügbar (vermutlich Migration ausstehend): {ball_err}")
                 balls_by_player = {}
                 choice_by_player_track = {}
+                alt_by_player_track = {}
 
         log_action(f"Score page accessed for game {game_id}")
 
@@ -1060,6 +1088,7 @@ def score_detail(game_id):
             score_map=score_map,
             balls_by_player=balls_by_player,
             choice_by_player_track=choice_by_player_track,
+            alt_by_player_track=alt_by_player_track,
         )
 
     except Exception as e:
@@ -1756,6 +1785,10 @@ def api_track_choice_create():
         note = data.get('note')
         if note is not None:
             note = note.strip() or None
+        try:
+            slot = int(data.get('slot') or 0)
+        except (TypeError, ValueError):
+            slot = 0
 
         if not place_id or not track_number or not player_name:
             return jsonify({'status': 'error', 'message': 'place_id, track_number, player_name required'}), 400
@@ -1790,6 +1823,7 @@ def api_track_choice_create():
             player_name=player_name,
             ball_id=int(ball_id) if ball_id else None,
             note=note,
+            slot=slot,
         )
         db.session.add(choice)
         db.session.commit()
