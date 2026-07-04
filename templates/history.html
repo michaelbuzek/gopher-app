@@ -47,7 +47,7 @@
         {% for g in games_data %}
             {% set ns = namespace(win=None, min=999999) %}
             {% for p in g.players %}{% if p.total and p.total > 0 and p.total < ns.min %}{% set ns.min = p.total %}{% set ns.win = loop.index0 %}{% endif %}{% endfor %}
-            <div class="gcard" onclick="location.href='/score/{{ g.id }}'">
+            <div class="gcard" onclick="location.href='/score/{{ g.id }}?from=history'">
                 <div class="gtop">
                     <div>
                         <div class="gplace"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8c0 4.5-6 10-6 10S6 12.5 6 8a6 6 0 0 1 12 0Z"/><circle cx="12" cy="8" r="2"/></svg>{{ g.place }}</div>

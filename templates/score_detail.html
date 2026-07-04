@@ -232,6 +232,8 @@
     // ==========================================================
     // State + Router
     // ==========================================================
+    const FROM_HISTORY = new URLSearchParams(location.search).get('from') === 'history';
+    const ORIGINAL = Object.assign({}, SCORES);  // Snapshot für Abbrechen im History-Modus
     let state = { view: 'main', playerId: null, hole: 1 };
     const app = document.getElementById('app');
 
@@ -282,7 +284,9 @@
             + '<div class="section-label" style="margin:6px 0 10px;">STAND</div>'
             + '<div class="stand">' + stand + '</div>'
             + '<div class="spacer"></div>'
-            + '<button class="btn btn-green" id="finishBtn" style="margin-top:16px;">' + IC.flag + 'Spiel beenden</button>';
+            + (FROM_HISTORY
+                ? '<div style="display:flex;gap:10px;margin-top:16px;"><button id="cancelBtn" style="flex:1;height:52px;border-radius:14px;background:#fff;border:1px solid #e6e7e1;color:#5b5f58;font-size:16px;font-weight:600;cursor:pointer;">Abbrechen</button><button id="saveBtn" style="flex:1;height:52px;border-radius:14px;background:#16a34a;border:none;color:#fff;font-size:16px;font-weight:600;cursor:pointer;">Speichern</button></div>'
+                : '<button class="btn btn-green" id="finishBtn" style="margin-top:16px;">' + IC.flag + 'Spiel beenden</button>');
 
         app.querySelectorAll('[data-pid]').forEach(el => {
             el.addEventListener('click', () => {
@@ -291,7 +295,12 @@
                 openDetail(pid, h);
             });
         });
-        document.getElementById('finishBtn').addEventListener('click', () => { state.view = 'winner'; render(); });
+        if (FROM_HISTORY) {
+            document.getElementById('cancelBtn').addEventListener('click', () => { if (history.length > 1) history.back(); else location.href = '/history'; });
+            document.getElementById('saveBtn').addEventListener('click', saveHistoryEdits);
+        } else {
+            document.getElementById('finishBtn').addEventListener('click', () => { state.view = 'winner'; render(); });
+        }
         document.getElementById('homeBack').addEventListener('click', () => { if (history.length > 1) history.back(); else location.href = '/'; });
     }
 
@@ -377,7 +386,25 @@
         if (v === 0) delete SCORES[pid + '-' + hole];
         else SCORES[pid + '-' + hole] = v;
         render();
-        saveScore(pid, hole, v);
+        if (!FROM_HISTORY) saveScore(pid, hole, v);  // im History-Modus erst bei "Speichern"
+    }
+
+    async function saveHistoryEdits() {
+        const changes = [];
+        PLAYERS.forEach(p => {
+            for (let h = 1; h <= TRACK_COUNT; h++) {
+                const k = p.id + '-' + h;
+                const now = SCORES[k] || 0, orig = ORIGINAL[k] || 0;
+                if (now !== orig) changes.push({ pid: p.id, track: h, value: now });
+            }
+        });
+        try {
+            for (const c of changes) {
+                await fetch('/update_score', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ player_id: c.pid, track: c.track, value: c.value }) });
+            }
+            toast(changes.length ? 'Gespeichert' : 'Keine Änderungen');
+            setTimeout(() => { if (history.length > 1) history.back(); else location.href = '/history'; }, 300);
+        } catch (e) { console.error('saveHistoryEdits', e); toast('⚠️ Nicht gespeichert'); }
     }
 
     async function saveScore(pid, track, value) {

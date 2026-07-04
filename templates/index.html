@@ -21,6 +21,12 @@
         .block { margin-bottom:20px; }
         input.in { width:100%; height:52px; border:1px solid var(--line); border-radius:14px; padding:0 15px; font-size:16px; background:var(--card); color:var(--ink); }
         input.in:focus { outline:none; border-color:var(--green); box-shadow:0 0 0 3px rgba(22,163,74,0.12); }
+        .pwrap { position:relative; }
+        .dropdown { position:absolute; left:0; right:0; top:calc(100% + 4px); z-index:20; background:#fff; border:1px solid var(--line); border-radius:12px; box-shadow:0 8px 24px rgba(0,0,0,0.10); max-height:250px; overflow-y:auto; display:none; }
+        .ditem { padding:12px 14px; font-size:15px; cursor:pointer; display:flex; justify-content:space-between; align-items:center; gap:10px; border-bottom:1px solid var(--line); }
+        .ditem:last-child { border-bottom:none; }
+        .ditem:hover, .ditem:active { background:var(--tile); }
+        .ditem .dtc { font-size:12px; color:var(--ink-3); white-space:nowrap; }
         .players { border:1px solid var(--line); border-radius:16px; padding:12px; background:#fbfcfa; }
         .prow { display:flex; align-items:center; gap:10px; margin-bottom:10px; }
         .prow .av { width:34px; height:34px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:14px; font-weight:600; flex:0 0 auto; }
@@ -50,8 +56,7 @@
 
         <div class="block">
             <div class="field-label"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8c0 4.5-6 10-6 10S6 12.5 6 8a6 6 0 0 1 12 0Z"/><circle cx="12" cy="8" r="2"/></svg>Minigolf-Platz</div>
-            <input class="in" id="place" list="placesList" placeholder="z.B. Bülach" autocomplete="off" value="Bülach">
-            <datalist id="placesList"></datalist>
+            <div class="pwrap"><input class="in" id="place" placeholder="z.B. Bülach" autocomplete="off" value="Bülach"><div id="placeDrop" class="dropdown"></div></div>
             <div class="hint">Neuen Platz einfach eintippen — er wird gemerkt.</div>
         </div>
 
@@ -114,7 +119,16 @@
     }
 
     document.getElementById('addP').addEventListener('click', function(){ if(players.length<MAX){ players.push({name:'', fixed:false}); renderPlayers(); var ins=document.querySelectorAll('#prows input[data-i]'); if(ins.length) ins[ins.length-1].focus(); } });
-    document.getElementById('place').addEventListener('input', matchPlace);
+    var placeEl = document.getElementById('place'), placeDrop = document.getElementById('placeDrop');
+    function showDrop(items){
+        if(!items.length){ placeDrop.style.display='none'; return; }
+        placeDrop.innerHTML = items.map(function(p){ return '<div class="ditem" data-name="'+esc(p.name)+'" data-id="'+p.id+'" data-tc="'+p.track_count+'"><span>'+esc(p.name)+'</span><span class="dtc">'+p.track_count+' Bahnen</span></div>'; }).join('');
+        placeDrop.style.display='block';
+        placeDrop.querySelectorAll('.ditem').forEach(function(el){ el.addEventListener('mousedown', function(ev){ ev.preventDefault(); placeEl.value=el.dataset.name; selectedPlaceId=parseInt(el.dataset.id); document.getElementById('tracks').value=el.dataset.tc; placeDrop.style.display='none'; }); });
+    }
+    placeEl.addEventListener('focus', function(){ showDrop(PLACES); });
+    placeEl.addEventListener('input', function(){ matchPlace(); var v=this.value.toLowerCase(); showDrop(PLACES.filter(function(p){return p.name.toLowerCase().indexOf(v)>=0;})); });
+    document.addEventListener('click', function(e){ if(e.target!==placeEl && !placeDrop.contains(e.target)) placeDrop.style.display='none'; });
 
     document.getElementById('start').addEventListener('click', async function(){
         clearErr();
@@ -147,7 +161,6 @@
         // Plätze für Autocomplete
         try {
             var r=await fetch('/api/places'); var data=await r.json(); PLACES=data.places||[];
-            document.getElementById('placesList').innerHTML = PLACES.map(function(p){return '<option value="'+esc(p.name)+'">';}).join('');
             matchPlace();
         } catch(e){}
     }
