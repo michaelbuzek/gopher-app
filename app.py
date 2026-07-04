@@ -290,6 +290,7 @@ class PlayerBall(db.Model):
     color_hex = db.Column(db.String(9), nullable=True)
     image_filename = db.Column(db.String(200), nullable=True)  # Legacy (Dateipfad)
     image_data = db.Column(db.Text, nullable=True)  # Foto als kompaktes data:-URL (Render-sicher, DB-persistiert)
+    description = db.Column(db.Text, nullable=True)  # freie Beschreibung (z.B. "hart, springt gut")
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
     __table_args__ = (
@@ -305,6 +306,7 @@ class PlayerBall(db.Model):
             'color_hex': self.color_hex,
             'image_filename': self.image_filename,
             'image_data': self.image_data,
+            'description': self.description,
         }
 
 
@@ -478,8 +480,11 @@ def ensure_schema_additions():
             db.session.execute(text(
                 "ALTER TABLE player_balls ADD COLUMN IF NOT EXISTS image_data TEXT"
             ))
+            db.session.execute(text(
+                "ALTER TABLE player_balls ADD COLUMN IF NOT EXISTS description TEXT"
+            ))
             db.session.commit()
-            log_action("Schema-Ergänzung geprüft: player_track_choices.slot, player_balls.image_data")
+            log_action("Schema-Ergänzung geprüft: slot, player_balls.image_data, player_balls.description")
     except Exception as e:
         db.session.rollback()
         logger.warning(f"⚠️ ensure_schema_additions übersprungen: {e}")
@@ -1755,21 +1760,26 @@ def api_balls_create():
         label = (data.get('label') or '').strip()
         color_hex = (data.get('color_hex') or '').strip() or None
         image_data = data.get('image_data') or None
+        description = data.get('description')
+        if description is not None:
+            description = description.strip() or None
 
         if not player_name or not label:
             return jsonify({'status': 'error', 'message': 'player_name und label required'}), 400
 
         existing = PlayerBall.query.filter_by(player_name=player_name, label=label).first()
         if existing:
-            # Optional: Farbe/Foto aktualisieren, wenn neu mitgegeben
+            # Optional: Farbe/Foto/Beschreibung aktualisieren, wenn neu mitgegeben
             if color_hex and existing.color_hex != color_hex:
                 existing.color_hex = color_hex
             if image_data is not None:
                 existing.image_data = image_data
+            if description is not None:
+                existing.description = description
             db.session.commit()
             return jsonify({'status': 'success', 'ball': existing.to_dict(), 'created': False})
 
-        ball = PlayerBall(player_name=player_name, label=label, color_hex=color_hex, image_data=image_data)
+        ball = PlayerBall(player_name=player_name, label=label, color_hex=color_hex, image_data=image_data, description=description)
         db.session.add(ball)
         db.session.commit()
         log_action(f"Ball created: {player_name} / {label}")
@@ -1818,6 +1828,10 @@ def api_balls_update(ball_id):
         new_image = data.get('image_data')
         if new_image is not None:
             ball.image_data = new_image or None  # leerer String -> Foto entfernen
+
+        new_desc = data.get('description')
+        if new_desc is not None:
+            ball.description = new_desc.strip() or None
 
         db.session.commit()
         log_action(f"Ball {ball.id} aktualisiert: {ball.player_name} / {ball.label}")
