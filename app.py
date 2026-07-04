@@ -343,6 +343,31 @@ class PlayerTrackChoice(db.Model):
 
 
 # ------------------------------
+# Profile (kanonische Spieler-Identität — "MEIN STUFF")
+# ------------------------------
+
+class Profile(db.Model):
+    """Feste Spieler-Profile als stabile Identität (kein Login)."""
+    __tablename__ = 'profiles'
+
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(100), nullable=False, unique=True)  # kanonisch, z.B. 'Umpa'
+    color_hex = db.Column(db.String(9), nullable=True)
+    image_filename = db.Column(db.String(200), nullable=True)  # Avatar/Foto
+    sort_order = db.Column(db.Integer, default=0)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'name': self.name,
+            'color_hex': self.color_hex,
+            'image_filename': self.image_filename,
+            'sort_order': self.sort_order,
+        }
+
+
+# ------------------------------
 # Database Management & Health Check
 # ------------------------------
 
@@ -455,6 +480,32 @@ def ensure_schema_additions():
         logger.warning(f"⚠️ ensure_schema_additions übersprungen: {e}")
 
 
+def ensure_profiles():
+    """Additiv: 'profiles'-Tabelle anlegen/seeden + bekannte Namensvarianten
+    in players kanonisieren. Idempotent, keine Löschungen (DB-Schutzregel)."""
+    canonical = [
+        {'name': 'Umpa', 'color_hex': '#16a34a', 'sort_order': 1},
+        {'name': 'Lumpa', 'color_hex': '#e0672e', 'sort_order': 2},
+    ]
+    try:
+        db.create_all()  # legt fehlende Tabellen an (z.B. profiles) — additiv
+        for p in canonical:
+            if not Profile.query.filter_by(name=p['name']).first():
+                db.session.add(Profile(**p))
+        db.session.commit()
+        # Casing-Varianten der bekannten Profile in players angleichen (idempotent)
+        for name in ('Umpa', 'Lumpa'):
+            db.session.execute(text(
+                "UPDATE players SET name = :canon "
+                "WHERE lower(name) = lower(:canon) AND name <> :canon"
+            ), {'canon': name})
+        db.session.commit()
+        log_action("Profile geseedet + Spielernamen normalisiert")
+    except Exception as e:
+        db.session.rollback()
+        logger.warning(f"⚠️ ensure_profiles übersprungen: {e}")
+
+
 def safe_database_init():
     """Updated database initialization"""
     try:
@@ -472,6 +523,7 @@ def safe_database_init():
 
         # Additive, idempotente Schema-Ergänzungen (kein Alembic)
         ensure_schema_additions()
+        ensure_profiles()
 
         # Initialize default data
         initialize_default_data()
@@ -514,6 +566,7 @@ def ensure_database():
                 else:
                     log_action("✅ Database tables verified")
                     ensure_schema_additions()
+                    ensure_profiles()
 
                 app._database_checked = True
             else:
@@ -1652,6 +1705,13 @@ def handle_exception(e):
 # ------------------------------
 # Ball Notes API (PlayerBall + PlayerTrackChoice)
 # ------------------------------
+
+@app.route('/api/profiles', methods=['GET'])
+def api_profiles_list():
+    """Alle Profile (kanonische Spieler-Identitäten)."""
+    profiles = Profile.query.order_by(Profile.sort_order, Profile.name).all()
+    return jsonify({'status': 'success', 'profiles': [p.to_dict() for p in profiles]})
+
 
 @app.route('/api/balls', methods=['GET'])
 def api_balls_list():
