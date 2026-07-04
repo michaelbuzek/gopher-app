@@ -2,919 +2,156 @@
 <html lang="de">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black">
     <meta name="apple-mobile-web-app-title" content="Gopher Minigolf">
-    <title>🏌️ Gopher Minigolf</title>
+    <title>🏌️ Neues Spiel</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-            background: linear-gradient(135deg, #f7f4f1 0%, #ede8e3 100%);
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 20px;
-        }
-
-        .container {
-            background: #3b5c6c;
-            border-radius: 24px;
-            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            width: 100%;
-            max-width: 420px;
-            overflow: hidden;
-            animation: slideUp 0.6s ease-out;
-        }
-
-        @keyframes slideUp {
-            from {
-                opacity: 0;
-                transform: translateY(30px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        .header {
-            background: #3b5c6c;
-            color: white;
-            padding: 15px 30px 12px;
-            text-align: center;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .gopher-icon {
-            width: 50px;
-            height: 50px;
-            margin: 0 auto 8px;
-            display: block;
-            filter: drop-shadow(0 4px 8px rgba(0,0,0,0.2));
-            animation: bounce 2s ease-in-out infinite;
-            position: relative;
-            z-index: 1;
-            background-color: rgba(255,255,255,0.1);
-            border-radius: 50%;
-            object-fit: contain;
-        }
-
-        @keyframes bounce {
-            0%, 20%, 50%, 80%, 100% {
-                transform: translateY(0);
-            }
-            40% {
-                transform: translateY(-10px);
-            }
-            60% {
-                transform: translateY(-5px);
-            }
-        }
-
-        .header h1 {
-            font-size: 1.8em;
-            margin-bottom: 0;
-            position: relative;
-            z-index: 1;
-            font-weight: 700;
-        }
-
-        .nav {
-            background: #3b5c6c;
-            padding: 0;
-            display: flex;
-            justify-content: center;
-            gap: 0;
-            border-bottom: none;
-        }
-
-        .nav-link {
-            text-decoration: none;
-            color: #cbd5e0;
-            font-weight: 600;
-            padding: 16px 32px;
-            transition: all 0.3s ease;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            flex: 1;
-            justify-content: center;
-            border-bottom: 3px solid transparent;
-        }
-
-        .nav-link:hover {
-            background: #3b5c6c;
-            color: #f8c098;
-        }
-
-        .nav-link.active {
-            background: #3b5c6c;
-            color: #f8c098;
-            border-bottom-color: #f8c098;
-        }
-
-        .form-container {
-            padding: 32px 24px;
-            background: #3b5c6c;
-        }
-
-        .form-group {
-            margin-bottom: 24px;
-        }
-
-        .form-label {
-            display: block;
-            margin-bottom: 8px;
-            font-weight: 600;
-            color: #f7fafc;
-            font-size: 0.95em;
-        }
-
-        .form-input {
-            width: 100%;
-            padding: 16px 20px;
-            border: 2px solid #e2e8f0;
-            border-radius: 16px;
-            font-size: 16px;
-            background: #ffffff;
-            color: #2d3748;
-            transition: all 0.3s ease;
-            -webkit-appearance: none;
-            appearance: none;
-        }
-
-        .form-input:focus {
-            outline: none;
-            border-color: #f8c098;
-            box-shadow: 0 0 0 4px rgba(248, 192, 152, 0.2);
-        }
-
-        .form-input:invalid {
-            border-color: #fc8181;
-        }
-
-        .form-input::placeholder {
-            color: #a0aec0;
-        }
-
-        /* Autocomplete Styles */
-        .autocomplete-container {
-            position: relative;
-        }
-        
-        .autocomplete-dropdown {
-            position: absolute;
-            top: 100%;
-            left: 0;
-            right: 0;
-            background: white;
-            border: 2px solid #f8c098;
-            border-top: none;
-            border-radius: 0 0 16px 16px;
-            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
-            z-index: 100;
-            max-height: 300px;
-            overflow-y: auto;
-            display: none;
-        }
-        
-        .autocomplete-dropdown.show {
-            display: block;
-        }
-        
-        .autocomplete-item {
-            padding: 12px 20px;
-            cursor: pointer;
-            border-bottom: 1px solid #f1f5f9;
-            transition: all 0.2s ease;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        
-        .autocomplete-item:hover,
-        .autocomplete-item.selected {
-            background: #fef7ed;
-            color: #f8c098;
-        }
-        
-        .autocomplete-item:last-child {
-            border-bottom: none;
-        }
-        
-        .place-name {
-            font-weight: 600;
-            color: #2d3748;
-        }
-        
-        .place-info {
-            font-size: 0.85em;
-            color: #64748b;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-        
-        .default-badge {
-            background: #f8c098;
-            color: #2d3748;
-            padding: 2px 6px;
-            border-radius: 6px;
-            font-size: 0.7em;
-            font-weight: 600;
-        }
-        
-        .no-results {
-            padding: 15px 20px;
-            text-align: center;
-            color: #64748b;
-            font-style: italic;
-        }
-        
-        .add-place-hint {
-            background: #f8fafc;
-            border-top: 1px solid #e2e8f0;
-            padding: 12px 20px;
-            font-size: 0.85em;
-            color: #64748b;
-            text-align: center;
-        }
-
-        .players-container {
-            background: #2a4a58;
-            border-radius: 16px;
-            padding: 20px;
-            margin-top: 15px;
-            border: 2px dashed #3b5c6c;
-            transition: all 0.3s ease;
-        }
-
-        .players-container.has-players {
-            border-style: solid;
-            border-color: #f8c098;
-            background: #2a4a58;
-        }
-
-        .player-input {
-            margin-bottom: 15px;
-            position: relative;
-        }
-
-        .player-input:last-child {
-            margin-bottom: 0;
-        }
-
-        .player-input input {
-            padding-left: 50px;
-        }
-
-        .player-input::before {
-            content: '👤';
-            position: absolute;
-            left: 18px;
-            top: 50%;
-            transform: translateY(-50%);
-            font-size: 1.2em;
-            z-index: 1;
-        }
-
-        .player-input input {
-            padding-right: 44px;
-        }
-
-        .player-remove-btn {
-            position: absolute;
-            right: 8px;
-            top: 50%;
-            transform: translateY(-50%);
-            width: 32px;
-            height: 32px;
-            border: none;
-            border-radius: 50%;
-            background: transparent;
-            color: #94a3b8;
-            font-size: 1.2em;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: all 0.2s ease;
-        }
-
-        .player-remove-btn:hover {
-            background: #fee2e2;
-            color: #dc2626;
-        }
-
-        .add-player-btn {
-            width: 100%;
-            background: transparent;
-            border: 2px dashed #3b5c6c;
-            color: #cbd5e1;
-            padding: 12px;
-            border-radius: 12px;
-            font-size: 0.95em;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            margin-top: 4px;
-        }
-
-        .add-player-btn:hover {
-            border-color: #f8c098;
-            color: #f8c098;
-            background: rgba(248, 192, 152, 0.05);
-        }
-
-        .add-player-btn:disabled {
-            opacity: 0.4;
-            cursor: not-allowed;
-        }
-
-        .submit-btn {
-            background: linear-gradient(135deg, #f8c098 0%, #f2bc91 100%);
-            color: #2d3748;
-            border: none;
-            padding: 18px 40px;
-            border-radius: 16px;
-            font-size: 1.1em;
-            font-weight: 700;
-            cursor: pointer;
-            width: 100%;
-            transition: all 0.3s ease;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .submit-btn::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
-            transition: left 0.5s;
-        }
-
-        .submit-btn:hover::before {
-            left: 100%;
-        }
-
-        .submit-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 12px 24px rgba(248, 192, 152, 0.3);
-        }
-
-        .submit-btn:active {
-            transform: translateY(-1px);
-        }
-
-        .submit-btn:disabled {
-            opacity: 0.7;
-            cursor: not-allowed;
-            transform: none;
-        }
-
-        .loading {
-            display: none;
-            text-align: center;
-            padding: 20px;
-            color: #f7fafc;
-        }
-
-        .loading.show {
-            display: block;
-        }
-
-        .spinner {
-            width: 40px;
-            height: 40px;
-            border: 3px solid #3b5c6c;
-            border-top: 3px solid #f8c098;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-            margin: 0 auto 15px;
-        }
-
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-
-        .error-message {
-            background: #2a4a58;
-            color: #fc8181;
-            padding: 16px;
-            border-radius: 12px;
-            margin-bottom: 20px;
-            border: 1px solid #fc8181;
-            display: none;
-            font-size: 0.9em;
-        }
-
-        .error-message.show {
-            display: block;
-        }
-
-        .fallback-icon {
-            font-size: 45px;
-            margin: 0 auto 8px;
-            text-align: center;
-            animation: bounce 2s ease-in-out infinite;
-            position: relative;
-            z-index: 1;
-        }
-
-        /* Mobile Optimierung */
-        @media (max-width: 768px) {
-            .container {
-                margin: 10px;
-                border-radius: 20px;
-            }
-            
-            .header {
-                padding: 12px 20px 10px;
-            }
-            
-            .gopher-icon {
-                width: 35px;
-                height: 35px;
-                margin-bottom: 6px;
-            }
-            
-            .header h1 {
-                font-size: 1.4em;
-                margin-bottom: 0;
-            }
-            
-            .form-container {
-                padding: 30px 20px;
-            }
-            
-            .nav {
-                gap: 0;
-            }
-            
-            .nav-link {
-                justify-content: center;
-                padding: 12px 16px;
-                font-size: 0.9em;
-            }
-
-            .fallback-icon {
-                font-size: 30px;
-                margin-bottom: 6px;
-            }
-        }
-
-        /* Touch-Optimierung für iOS */
-        @media (hover: none) {
-            .form-input {
-                font-size: 16px; /* Verhindert Zoom auf iOS */
-            }
-        }
+        * { box-sizing: border-box; }
+        :root { --bg:#f5f6f2; --card:#fff; --line:#e6e7e1; --tile:#edefe8; --ink:#1c1d1a; --ink-2:#5b5f58; --ink-3:#8a8f88; --ink-4:#a0a49d; --muted:#c2c6bf; --green:#16a34a; }
+        html, body { margin:0; padding:0; background:var(--bg); color:var(--ink); font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif; -webkit-font-smoothing:antialiased; }
+        .wrap { max-width:480px; margin:0 auto; padding:18px 18px 40px; }
+        .head { display:flex; align-items:center; gap:12px; margin-bottom:20px; }
+        .back { width:40px; height:40px; border-radius:12px; background:var(--card); border:1px solid var(--line); display:flex; align-items:center; justify-content:center; cursor:pointer; }
+        .back svg { width:20px; height:20px; }
+        .head .t { font-size:21px; font-weight:600; }
+        .field-label { display:flex; align-items:center; gap:7px; font-size:13px; letter-spacing:.3px; color:var(--ink-3); font-weight:600; margin:0 0 8px 2px; }
+        .field-label svg { width:16px; height:16px; }
+        .block { margin-bottom:20px; }
+        input.in { width:100%; height:52px; border:1px solid var(--line); border-radius:14px; padding:0 15px; font-size:16px; background:var(--card); color:var(--ink); }
+        input.in:focus { outline:none; border-color:var(--green); box-shadow:0 0 0 3px rgba(22,163,74,0.12); }
+        .players { border:1px solid var(--line); border-radius:16px; padding:12px; background:#fbfcfa; }
+        .prow { display:flex; align-items:center; gap:10px; margin-bottom:10px; }
+        .prow .av { width:34px; height:34px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:14px; font-weight:600; flex:0 0 auto; }
+        .prow input { flex:1; height:48px; border:1px solid var(--line); border-radius:12px; padding:0 13px; font-size:16px; background:var(--card); }
+        .prow input:focus { outline:none; border-color:var(--green); box-shadow:0 0 0 3px rgba(22,163,74,0.10); }
+        .prow .rm { width:34px; height:34px; border-radius:10px; border:none; background:transparent; color:var(--muted); cursor:pointer; display:flex; align-items:center; justify-content:center; flex:0 0 auto; }
+        .prow .rm svg { width:18px; height:18px; }
+        .add-p { width:100%; height:46px; border:1.5px dashed #cdd0c8; border-radius:12px; background:transparent; color:var(--green); font-size:15px; font-weight:600; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:7px; }
+        .add-p svg { width:17px; height:17px; }
+        .add-p:disabled { opacity:.45; cursor:default; }
+        .start { width:100%; height:58px; border:none; border-radius:16px; background:var(--green); color:#fff; font-size:18px; font-weight:600; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:9px; margin-top:8px; }
+        .start svg { width:20px; height:20px; }
+        .start:disabled { opacity:.6; cursor:default; }
+        .err { display:none; background:#fdecea; color:#c0392b; border-radius:12px; padding:11px 14px; font-size:14px; margin-bottom:16px; }
+        .err.show { display:block; }
+        .hint { font-size:12px; color:var(--ink-4); margin:7px 2px 0; }
     </style>
 </head>
 <body>
-    <div class="container">
-        <div class="header">
-            <!-- Gopher Icon aus static Ordner -->
-            <img src="/static/gopher_main.png" 
-                 alt="🐹 Gopher Maskottchen" 
-                 class="gopher-icon" 
-                 id="gopherIcon"
-                 onerror="console.log('Bild nicht gefunden:', this.src); this.style.display='none'; document.getElementById('fallbackIcon').style.display='block';">
-            <div id="fallbackIcon" class="fallback-icon" style="display: none;">🐹</div>
-            
-            <h1>Gopher Minigolf</h1>
+    <div class="wrap">
+        <div class="head">
+            <div class="back" onclick="location.href='/'"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg></div>
+            <div class="t">Neues Spiel</div>
         </div>
 
-        <div class="nav">
-            <a href="/" class="nav-link active">
-                🏠 Home
-            </a>
-            <a href="/history" class="nav-link">
-                📜 History
-            </a>
-            <a href="/settings" class="nav-link">
-                ⚙️ Settings
-            </a>
+        <div id="err" class="err"></div>
+
+        <div class="block">
+            <div class="field-label"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8c0 4.5-6 10-6 10S6 12.5 6 8a6 6 0 0 1 12 0Z"/><circle cx="12" cy="8" r="2"/></svg>Minigolf-Platz</div>
+            <input class="in" id="place" list="placesList" placeholder="z.B. Bülach" autocomplete="off" value="Bülach">
+            <datalist id="placesList"></datalist>
+            <div class="hint">Neuen Platz einfach eintippen — er wird gemerkt.</div>
         </div>
 
-        <div class="form-container">
-            <div class="error-message" id="errorMessage"></div>
-            
-            <form id="startForm">
-                <div class="form-group">
-                    <label class="form-label">🏌️ Minigolf-Platz</label>
-                    <div class="autocomplete-container">
-                        <input type="text" 
-                               class="form-input" 
-                               name="place" 
-                               id="placeInput"
-                               required 
-                               placeholder="Platz auswählen oder neuen eingeben..."
-                               autocomplete="off"
-                               value="Bülach">
-                        
-                        <div class="autocomplete-dropdown" id="autocompleteDropdown">
-                            <!-- Autocomplete Optionen werden hier dynamisch geladen -->
-                        </div>
-                    </div>
-                </div>
+        <div class="block">
+            <div class="field-label"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>Datum</div>
+            <input class="in" type="date" id="date">
+        </div>
 
-                <div class="form-group">
-                    <label class="form-label">📅 Datum</label>
-                    <input type="date" class="form-input" name="date" required>
-                </div>
+        <div class="block">
+            <div class="field-label"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 3v18M5 4h13l-2 4 2 4H5"/></svg>Anzahl Bahnen</div>
+            <input class="in" type="number" id="tracks" value="18" min="1" max="50" inputmode="numeric">
+        </div>
 
-                <div class="form-group">
-                    <label class="form-label">⛳ Anzahl Bahnen</label>
-                    <input type="number" class="form-input" name="tracks" required 
-                           value="18" min="1" max="50">
-                </div>
-
-                <div class="form-group">
-                    <label class="form-label">👥 Spieler</label>
-                    <div id="playersContainer" class="players-container has-players">
-                        <div id="playerInputs"></div>
-                        <button type="button" id="addPlayerBtn" class="add-player-btn">
-                            ➕ Weiterer Spieler
-                        </button>
-                    </div>
-                </div>
-
-                <button type="submit" class="submit-btn">
-                    🚀 Spiel starten
-                </button>
-            </form>
-
-            <div class="loading" id="loading">
-                <div class="spinner"></div>
-                <p>Spiel wird erstellt...</p>
+        <div class="block">
+            <div class="field-label"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>Spieler</div>
+            <div class="players">
+                <div id="prows"></div>
+                <button type="button" class="add-p" id="addP"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>Weiterer Spieler</button>
             </div>
         </div>
+
+        <button class="start" id="start"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>Spiel starten</button>
     </div>
 
     <script>
-        // Heutiges Datum setzen
-        document.querySelector('input[name="date"]').valueAsDate = new Date();
+    var PLACES = [], PROFILES = [], selectedPlaceId = null;
+    var players = []; // {name, fixed}
+    var MAX = 6;
 
-        // Debug: Prüfe ob das richtige Bild geladen wird
-        document.getElementById('gopherIcon').onload = function() {
-            console.log('✅ Gopher Icon erfolgreich geladen!');
-        };
-        
-        document.getElementById('gopherIcon').onerror = function() {
-            console.log('❌ Gopher Icon konnte nicht geladen werden. Fallback wird angezeigt.');
-            this.style.display = 'none';
-            document.getElementById('fallbackIcon').style.display = 'block';
-        };
+    function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];}); }
+    function tint(hex){ var h=(hex||'').replace('#',''); if(h.length<6) return '#eef0ea'; var r=parseInt(h.substr(0,2),16),g=parseInt(h.substr(2,2),16),b=parseInt(h.substr(4,2),16),m=function(x){return Math.round(255-(255-x)*0.16);}; return 'rgb('+m(r)+','+m(g)+','+m(b)+')'; }
+    function profileFor(name){ return PROFILES.filter(function(p){return p.name.toLowerCase()===(name||'').trim().toLowerCase();})[0]||null; }
+    function showErr(msg){ var e=document.getElementById('err'); e.textContent=msg; e.classList.add('show'); }
+    function clearErr(){ document.getElementById('err').classList.remove('show'); }
 
-        // Spieler-Eingaben: Default Umpa + Lumpa, mit "+ Weiterer Spieler"-Button
-        const DEFAULT_PLAYERS = ['Umpa', 'Lumpa'];
-        const MAX_PLAYERS = 8;
-        const playerInputsEl = document.getElementById('playerInputs');
-        const addPlayerBtn = document.getElementById('addPlayerBtn');
-
-        function renumberPlayerInputs() {
-            const rows = playerInputsEl.querySelectorAll('.player-input');
-            rows.forEach((row, idx) => {
-                const input = row.querySelector('input');
-                input.name = `player_${idx}`;
-                if (!input.value) {
-                    input.placeholder = `Spieler ${idx + 1} Name`;
-                }
-                // Erste zwei Spieler nicht entfernbar (Standard Umpa/Lumpa)
-                const removeBtn = row.querySelector('.player-remove-btn');
-                if (removeBtn) {
-                    removeBtn.style.display = idx >= 2 ? 'flex' : 'none';
-                }
-            });
-            addPlayerBtn.disabled = rows.length >= MAX_PLAYERS;
-        }
-
-        function addPlayerInput(value = '') {
-            const rows = playerInputsEl.querySelectorAll('.player-input');
-            if (rows.length >= MAX_PLAYERS) return;
-            const idx = rows.length;
-
-            const playerDiv = document.createElement('div');
-            playerDiv.className = 'player-input';
-
-            const input = document.createElement('input');
-            input.type = 'text';
-            input.className = 'form-input';
-            input.name = `player_${idx}`;
-            input.required = true;
-            input.value = value;
-            input.placeholder = `Spieler ${idx + 1} Name`;
-
-            const removeBtn = document.createElement('button');
-            removeBtn.type = 'button';
-            removeBtn.className = 'player-remove-btn';
-            removeBtn.setAttribute('aria-label', 'Spieler entfernen');
-            removeBtn.innerHTML = '✕';
-            removeBtn.addEventListener('click', () => {
-                playerDiv.remove();
-                renumberPlayerInputs();
-            });
-
-            playerDiv.appendChild(input);
-            playerDiv.appendChild(removeBtn);
-            playerInputsEl.appendChild(playerDiv);
-            renumberPlayerInputs();
-            return input;
-        }
-
-        // Initial: Umpa + Lumpa
-        DEFAULT_PLAYERS.forEach(name => addPlayerInput(name));
-
-        addPlayerBtn.addEventListener('click', () => {
-            const newInput = addPlayerInput('');
-            if (newInput) newInput.focus();
+    function renderPlayers(){
+        var box=document.getElementById('prows');
+        box.innerHTML = players.map(function(p, i){
+            var prof=profileFor(p.name);
+            var col = prof ? (prof.color_hex||'#16a34a') : '#8a8f88';
+            var initial = (p.name||'?').trim().charAt(0).toUpperCase() || '?';
+            return '<div class="prow">'
+                + '<span class="av" style="background:'+tint(col)+';color:'+col+';">'+esc(initial)+'</span>'
+                + '<input data-i="'+i+'" value="'+esc(p.name)+'" placeholder="Name" maxlength="100">'
+                + (p.fixed ? '<span style="width:34px;flex:0 0 auto;"></span>' : '<button class="rm" data-rm="'+i+'" title="Entfernen"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"/></svg></button>')
+                + '</div>';
+        }).join('');
+        box.querySelectorAll('input[data-i]').forEach(function(el){
+            el.addEventListener('input', function(){ players[parseInt(el.dataset.i)].name = el.value; var prof=profileFor(el.value); var col=prof?(prof.color_hex||'#16a34a'):'#8a8f88'; var av=el.previousElementSibling; av.style.background=tint(col); av.style.color=col; av.textContent=(el.value||'?').trim().charAt(0).toUpperCase()||'?'; });
         });
+        box.querySelectorAll('[data-rm]').forEach(function(el){ el.addEventListener('click', function(){ players.splice(parseInt(el.dataset.rm),1); renderPlayers(); }); });
+        document.getElementById('addP').disabled = players.length >= MAX;
+    }
 
-        // Places Autocomplete System
-        let availablePlaces = [];
-        let selectedPlaceId = null;
-        let currentFocus = -1;
-        
-        // Load Places für Autocomplete
-        async function loadPlaces() {
-            try {
-                const response = await fetch('/api/places');
-                const data = await response.json();
-                
-                if (data.status === 'success') {
-                    availablePlaces = data.places;
-                    console.log('✅ Places loaded for autocomplete:', availablePlaces.length);
-                } else {
-                    console.log('⚠️ Places API returned error:', data.message);
-                }
-            } catch (error) {
-                console.log('⚠️ Failed to load places (using fallback):', error);
-                // Fallback: Continue without autocomplete
-            }
-        }
-        
-        // Autocomplete Event Listeners
-        const placeInput = document.getElementById('placeInput');
-        const dropdown = document.getElementById('autocompleteDropdown');
-        
-        placeInput.addEventListener('input', function() {
-            const query = this.value.toLowerCase().trim();
-            selectedPlaceId = null; // Reset selection when typing
-            
-            if (query.length === 0) {
-                hideDropdown();
-                return;
-            }
-            
-            showAutocomplete(query);
-        });
-        
-        placeInput.addEventListener('focus', function() {
-            if (this.value.trim().length > 0) {
-                showAutocomplete(this.value.toLowerCase().trim());
-            }
-        });
-        
-        // Keyboard Navigation
-        placeInput.addEventListener('keydown', function(e) {
-            const items = dropdown.querySelectorAll('.autocomplete-item:not(.no-results):not(.add-place-hint)');
-            
-            if (e.key === 'ArrowDown') {
-                e.preventDefault();
-                currentFocus++;
-                if (currentFocus >= items.length) currentFocus = 0;
-                updateFocus(items);
-            } else if (e.key === 'ArrowUp') {
-                e.preventDefault();
-                currentFocus--;
-                if (currentFocus < 0) currentFocus = items.length - 1;
-                updateFocus(items);
-            } else if (e.key === 'Enter') {
-                e.preventDefault();
-                if (currentFocus >= 0 && items[currentFocus]) {
-                    selectPlace(items[currentFocus]);
-                }
-            } else if (e.key === 'Escape') {
-                hideDropdown();
-                this.blur();
-            }
-        });
-        
-        // Click outside to close
-        document.addEventListener('click', function(e) {
-            if (!e.target.closest('.autocomplete-container')) {
-                hideDropdown();
-            }
-        });
-        
-        function showAutocomplete(query) {
-            const matches = availablePlaces.filter(place => 
-                place.name.toLowerCase().includes(query)
-            );
-            
-            // Sort: Default places first, then alphabetically
-            matches.sort((a, b) => {
-                if (a.is_default !== b.is_default) {
-                    return b.is_default - a.is_default;
-                }
-                return a.name.localeCompare(b.name);
-            });
-            
-            renderDropdown(matches, query);
-            dropdown.classList.add('show');
-            currentFocus = -1;
-        }
-        
-        function renderDropdown(matches, query) {
-            dropdown.innerHTML = '';
-            
-            if (matches.length > 0) {
-                matches.forEach(place => {
-                    const item = document.createElement('div');
-                    item.className = 'autocomplete-item';
-                    item.dataset.placeId = place.id;
-                    item.onclick = () => selectPlace(item);
-                    
-                    item.innerHTML = `
-                        <div>
-                            <div class="place-name">${place.name}</div>
-                        </div>
-                        <div class="place-info">
-                            <span>⛳ ${place.track_count}</span>
-                            ${place.is_default ? '<span class="default-badge">Standard</span>' : ''}
-                        </div>
-                    `;
-                    
-                    dropdown.appendChild(item);
-                });
-            } else {
-                // No matches found
-                const noResults = document.createElement('div');
-                noResults.className = 'no-results';
-                noResults.innerHTML = `Kein Platz "${query}" gefunden`;
-                dropdown.appendChild(noResults);
-            }
-            
-            // Add hint for new places
-            const hint = document.createElement('div');
-            hint.className = 'add-place-hint';
-            hint.innerHTML = `💡 Neuer Platz? Einfach Name eingeben und Spiel starten!`;
-            dropdown.appendChild(hint);
-        }
-        
-        function selectPlace(item) {
-            const placeId = parseInt(item.dataset.placeId);
-            const place = availablePlaces.find(p => p.id === placeId);
-            
-            if (place) {
-                placeInput.value = place.name;
-                selectedPlaceId = place.id;
-                
-                // Update track count automatically
-                document.querySelector('input[name="tracks"]').value = place.track_count;
-                
-                console.log(`✅ Selected place: ${place.name} (${place.track_count} tracks)`);
-            }
-            
-            hideDropdown();
-            
-            // Focus next input (date or players)
-            const nextInput = document.querySelector('input[name="date"]') || 
-                             document.getElementById('playerCount');
-            if (nextInput) {
-                nextInput.focus();
-            }
-        }
-        
-        function updateFocus(items) {
-            // Remove previous focus
-            items.forEach(item => item.classList.remove('selected'));
-            
-            // Add focus to current item
-            if (currentFocus >= 0 && items[currentFocus]) {
-                items[currentFocus].classList.add('selected');
-            }
-        }
-        
-        function hideDropdown() {
-            dropdown.classList.remove('show');
-            currentFocus = -1;
-        }
+    function matchPlace(){
+        var val=(document.getElementById('place').value||'').trim().toLowerCase();
+        var pl=PLACES.filter(function(p){return p.name.toLowerCase()===val;})[0];
+        if(pl){ selectedPlaceId=pl.id; document.getElementById('tracks').value=pl.track_count; }
+        else { selectedPlaceId=null; }
+    }
 
-        // Form Submit
-        document.getElementById('startForm').addEventListener('submit', async function(e) {
-            e.preventDefault();
-            
-            const submitBtn = document.querySelector('.submit-btn');
-            const loading = document.getElementById('loading');
-            const errorMessage = document.getElementById('errorMessage');
-            
-            // UI Updates
-            submitBtn.disabled = true;
-            loading.classList.add('show');
-            errorMessage.classList.remove('show');
-            
-            try {
-                const formData = new FormData(e.target);
-                const place = formData.get('place').trim();
-                const date = formData.get('date');
-                const track_count = parseInt(formData.get('tracks'));
+    document.getElementById('addP').addEventListener('click', function(){ if(players.length<MAX){ players.push({name:'', fixed:false}); renderPlayers(); var ins=document.querySelectorAll('#prows input[data-i]'); if(ins.length) ins[ins.length-1].focus(); } });
+    document.getElementById('place').addEventListener('input', matchPlace);
 
-                // Validate place name
-                if (!place) {
-                    throw new Error('Bitte gib einen Minigolf-Platz ein');
-                }
+    document.getElementById('start').addEventListener('click', async function(){
+        clearErr();
+        var place=(document.getElementById('place').value||'').trim();
+        var date=document.getElementById('date').value;
+        var track_count=parseInt(document.getElementById('tracks').value)||18;
+        if(!place){ showErr('Bitte einen Minigolf-Platz eingeben.'); return; }
+        if(!date){ showErr('Bitte ein Datum wählen.'); return; }
+        var names = players.map(function(p){return (p.name||'').trim();}).filter(function(n){return n;});
+        if(!names.length){ showErr('Mindestens ein Spieler erforderlich.'); return; }
+        var btn=this; btn.disabled=true; btn.style.opacity='0.7';
+        try {
+            var res=await fetch('/save', { method:'POST', headers:{'Content-Type':'application/json'},
+                body: JSON.stringify({ place:place, date:date, track_count:track_count, place_id:selectedPlaceId, players:names.map(function(n){return {name:n};}) }) });
+            var data=await res.json();
+            if(data.status!=='success') throw new Error(data.message||'Fehler beim Speichern');
+            location.href='/score/'+data.game_id;
+        } catch(e){ console.error(e); showErr(e.message||'Unbekannter Fehler'); btn.disabled=false; btn.style.opacity='1'; }
+    });
 
-                // Spieler aus den tatsächlichen Inputs sammeln (Umpa, Lumpa + ggf. zusätzliche)
-                const players = [];
-                const playerInputs = playerInputsEl.querySelectorAll('input[name^="player_"]');
-                playerInputs.forEach((input, i) => {
-                    const name = (input.value || '').trim();
-                    if (!name) {
-                        throw new Error(`Bitte gib einen Namen für Spieler ${i + 1} ein`);
-                    }
-                    players.push({ name });
-                });
-                if (players.length === 0) {
-                    throw new Error('Mindestens ein Spieler erforderlich');
-                }
-
-                const data = { 
-                    place, 
-                    date, 
-                    track_count, 
-                    players,
-                    place_id: selectedPlaceId // Include selected place ID if available
-                };
-
-                const response = await fetch('/save', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify(data)
-                });
-
-                if (!response.ok) {
-                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-                }
-
-                const result = await response.json();
-
-                if (result.status === 'success') {
-                    console.log(`✅ Game created with place_id: ${result.place_id}`);
-                    // Erfolg - weiterleiten
-                    window.location.href = `/score/${result.game_id}`;
-                } else {
-                    throw new Error(result.message || 'Unbekannter Fehler');
-                }
-
-            } catch (error) {
-                console.error('Fehler:', error);
-                errorMessage.textContent = error.message;
-                errorMessage.classList.add('show');
-            } finally {
-                submitBtn.disabled = false;
-                loading.classList.remove('show');
-            }
-        });
-
-        // Eingabe-Validierung
-        document.querySelectorAll('.form-input').forEach(input => {
-            input.addEventListener('blur', function() {
-                if (this.checkValidity()) {
-                    this.style.borderColor = '#f8c098';
-                } else {
-                    this.style.borderColor = '#fc8181';
-                }
-            });
-        });
-
-        // Initialize
-        document.addEventListener('DOMContentLoaded', function() {
-            // Load places for autocomplete
-            loadPlaces();
-            
-            console.log('🚀 Index page with Places Autocomplete loaded');
-        });
+    async function init(){
+        // Datum = heute
+        var d=new Date(); var iso=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+        document.getElementById('date').value=iso;
+        // Profile (für Standard-Spieler + Farben)
+        try { var rp=await fetch('/api/profiles'); var dp=await rp.json(); PROFILES=dp.profiles||[]; } catch(e){}
+        var defaults = PROFILES.length ? PROFILES.map(function(p){return p.name;}) : ['Umpa','Lumpa'];
+        players = defaults.map(function(n){return {name:n, fixed:true};});
+        renderPlayers();
+        // Plätze für Autocomplete
+        try {
+            var r=await fetch('/api/places'); var data=await r.json(); PLACES=data.places||[];
+            document.getElementById('placesList').innerHTML = PLACES.map(function(p){return '<option value="'+esc(p.name)+'">';}).join('');
+            matchPlace();
+        } catch(e){}
+    }
+    init();
     </script>
 </body>
 </html>
