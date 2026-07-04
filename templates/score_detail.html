@@ -273,8 +273,10 @@
         });
 
         app.innerHTML =
-            '<div class="loc">' + IC.pin + '<span>' + esc(PLACE_NAME) + '</span></div>'
-            + '<div class="sub">' + TRACK_COUNT + ' Bahnen · ' + esc(GAME_DATE) + '</div>'
+            '<div style="display:flex; align-items:center; gap:12px; margin-bottom:14px;">'
+            + '<div id="homeBack" style="width:40px;height:40px;border-radius:12px;background:#fff;border:1px solid #e6e7e1;display:flex;align-items:center;justify-content:center;cursor:pointer;flex:0 0 auto;"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg></div>'
+            + '<div style="flex:1;"><div class="loc">' + IC.pin + '<span>' + esc(PLACE_NAME) + '</span></div>'
+            + '<div style="font-size:13px;color:#8a8f88;">' + TRACK_COUNT + ' Bahnen · ' + esc(GAME_DATE) + '</div></div></div>'
             + '<div class="row-between" style="margin-bottom:10px;"><span class="section-label">SCORECARD</span></div>'
             + cards
             + '<div class="section-label" style="margin:6px 0 10px;">STAND</div>'
@@ -290,6 +292,7 @@
             });
         });
         document.getElementById('finishBtn').addEventListener('click', () => { state.view = 'winner'; render(); });
+        document.getElementById('homeBack').addEventListener('click', () => { if (history.length > 1) history.back(); else location.href = '/'; });
     }
 
     // ---------- Detailansicht ----------
