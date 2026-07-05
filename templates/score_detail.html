@@ -2,7 +2,7 @@
 <html lang="de">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black">
     <meta name="apple-mobile-web-app-title" content="Gopher Minigolf">
@@ -27,7 +27,9 @@
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
             -webkit-font-smoothing: antialiased;
         }
-        .wrap { max-width: 480px; margin: 0 auto; padding: 16px 16px 28px; min-height: 100vh; display: flex; flex-direction: column; }
+        .wrap { max-width: 480px; margin: 0 auto; padding: 16px 16px 28px; min-height: 100vh; min-height: 100svh; display: flex; flex-direction: column; }
+        /* Safe-Area + sichtbare Viewport-Höhe: auf Mobile (Safari-Leiste, iPhone-Home-Indicator) wird unten nichts mehr abgeschnitten */
+        @supports (padding: max(0px)) { .wrap { padding-bottom: max(28px, calc(env(safe-area-inset-bottom) + 12px)); } }
         .loc { display: flex; align-items: center; gap: 5px; color: var(--green); font-weight: 600; font-size: 16px; }
         .loc svg { width: 18px; height: 18px; }
         .sub { font-size: 13px; color: var(--ink-3); margin: 3px 0 16px; }
