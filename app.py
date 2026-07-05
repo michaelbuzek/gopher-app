@@ -1,7 +1,7 @@
 from flask import Flask, render_template, request, jsonify, redirect, url_for
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
-from sqlalchemy import text
+from sqlalchemy import text, func
 import json
 import os
 import logging
@@ -1159,6 +1159,37 @@ def score_detail(game_id):
                 choice_by_player_track = {}
                 alt_by_player_track = {}
 
+        # Analytics: pro Anlage & Bahn aggregierte Werte über ALLE Spiele an diesem Platz
+        # (bester = Min Schläge, schlechtester = Max, Ø = Durchschnitt). Nur gespielte Bahnen (value > 0).
+        track_stats = {}
+        if game.place_id:
+            try:
+                rows = (
+                    db.session.query(
+                        Score.track,
+                        func.min(Score.value),
+                        func.max(Score.value),
+                        func.avg(Score.value),
+                        func.count(Score.value),
+                    )
+                    .join(Player, Score.player_id == Player.id)
+                    .join(Game, Player.game_id == Game.id)
+                    .filter(Game.place_id == game.place_id, Score.value > 0)
+                    .group_by(Score.track)
+                    .all()
+                )
+                for track, mn, mx, av, cnt in rows:
+                    track_stats[int(track)] = {
+                        'best': int(mn),
+                        'worst': int(mx),
+                        'avg': round(float(av), 1),
+                        'count': int(cnt),
+                    }
+            except Exception as stats_err:
+                db.session.rollback()
+                logger.warning(f"⚠️ Track-Statistik nicht verfügbar: {stats_err}")
+                track_stats = {}
+
         log_action(f"Score page accessed for game {game_id}")
 
         return render_template(
@@ -1170,6 +1201,7 @@ def score_detail(game_id):
             balls_by_player=balls_by_player,
             choice_by_player_track=choice_by_player_track,
             alt_by_player_track=alt_by_player_track,
+            track_stats=track_stats,
         )
 
     except Exception as e:

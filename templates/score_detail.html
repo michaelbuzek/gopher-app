@@ -112,6 +112,17 @@
         .note-row svg { width: 17px; height: 17px; color: var(--ink-4); margin-top: 1px; }
         .icon-pencil { width: 17px; height: 17px; color: var(--ink-4); flex: 0 0 auto; }
 
+        /* --- Bahn-Statistik (pro Anlage/Bahn) --- */
+        .tstats-wrap { margin-top: auto; padding-top: 14px; }
+        .tstats-lbl { font-size: 11px; letter-spacing: 1px; color: var(--ink-4); margin-bottom: 8px; display: flex; align-items: center; gap: 5px; }
+        .tstats-lbl svg { width: 13px; height: 13px; }
+        .tstats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+        .tstat { background: #f7f8f4; border: 1px solid var(--line); border-radius: 12px; padding: 9px 6px; text-align: center; }
+        .tstat .tk { font-size: 10px; letter-spacing: .5px; color: var(--ink-4); text-transform: uppercase; margin-bottom: 3px; }
+        .tstat .tv { font-size: 20px; font-weight: 600; line-height: 1; }
+        .tstats-meta { font-size: 11px; color: var(--ink-4); text-align: center; margin-top: 7px; }
+        .tstats-empty { font-size: 12px; color: var(--ink-4); text-align: center; padding: 10px 0; }
+
         .holebar { display: flex; gap: 3px; margin-bottom: 6px; }
         .hseg { flex: 1; border-radius: 3px; cursor: pointer; align-self: center; }
         .bar-legend { display: flex; align-items: center; justify-content: space-between; font-size: 12px; color: var(--ink-3); }
@@ -184,6 +195,9 @@
     const ALT_CHOICES = {};  // "name|track" -> Alternativ-Ball { ball, slot:1 }
     {% for (pname, track), choice in alt_by_player_track.items() %}ALT_CHOICES[{{ (pname ~ '|' ~ track) | tojson }}] = {{ choice | tojson }};
     {% endfor %}
+
+    // Analytics pro Anlage & Bahn (über alle Spiele an diesem Platz): { track: {best, worst, avg, count} }
+    const TRACK_STATS = {{ track_stats | tojson }};
 
     // ==========================================================
     // Helpers
@@ -367,6 +381,23 @@
         render();
     }
 
+    function trackStatsHTML(hole) {
+        const chartIc = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><rect x="7" y="12" width="3" height="6"/><rect x="12" y="8" width="3" height="10"/><rect x="17" y="4" width="3" height="14"/></svg>';
+        const s = TRACK_STATS[hole];
+        let inner;
+        if (!s || !s.count) {
+            inner = '<div class="tstats-empty">Noch keine Daten für diese Bahn.</div>';
+        } else {
+            inner = '<div class="tstats">'
+                + '<div class="tstat"><div class="tk">Bester</div><div class="tv" style="color:var(--green);">' + s.best + '</div></div>'
+                + '<div class="tstat"><div class="tk">Ø</div><div class="tv">' + s.avg + '</div></div>'
+                + '<div class="tstat"><div class="tk">Schlecht.</div><div class="tv" style="color:#e0672e;">' + s.worst + '</div></div>'
+                + '</div>'
+                + '<div class="tstats-meta">aus ' + s.count + ' ' + (s.count === 1 ? 'Wertung' : 'Wertungen') + ' an dieser Anlage</div>';
+        }
+        return '<div class="tstats-wrap"><div class="tstats-lbl">' + chartIc + 'BAHN ' + hole + ' · ALLE SPIELE HIER</div>' + inner + '</div>';
+    }
+
     function renderDetail() {
         const pid = state.playerId, hole = state.hole, i = playerIndex(pid), c = colorOf(i);
         const name = nameOf(pid);
@@ -414,6 +445,7 @@
             + altRowHtml
             + '<div class="field-label">NOTIZ</div>'
             + '<div class="note-row" id="noteRow">' + IC.note + '<span class="note-txt' + (note ? '' : ' empty') + '">' + (note ? esc(note) : 'Notiz hinzufügen …') + '</span></div>'
+            + (GAME_PLACE_ID ? trackStatsHTML(hole) : '')
             + '</div>'
             + '<div style="margin-top:14px;"><div class="holebar">' + seg + '</div>'
             + '<div class="bar-legend"><span>Bahn ' + hole + ' · antippen</span><span>' + playedOf(pid) + ' / ' + TRACK_COUNT + '</span><span>Bahn ' + TRACK_COUNT + '</span></div></div>'
