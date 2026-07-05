@@ -157,6 +157,11 @@
             var res=await fetch('/save', { method:'POST', headers:{'Content-Type':'application/json'},
                 body: JSON.stringify({ place:place, date:date, track_count:track_count, place_id:selectedPlaceId, players:names.map(function(n){return {name:n};}) }) });
             var data=await res.json();
+            if(data.code==='active_game_exists' && data.active_game_id){
+                // Es läuft schon eine Runde -> dorthin statt neue anzulegen
+                location.href='/score/'+data.active_game_id;
+                return;
+            }
             if(data.status!=='success') throw new Error(data.message||'Fehler beim Speichern');
             location.href='/score/'+data.game_id;
         } catch(e){ console.error(e); showErr(e.message||'Unbekannter Fehler'); btn.disabled=false; btn.style.opacity='1'; }

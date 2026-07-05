@@ -26,6 +26,26 @@
         .btn-new { height: 60px; border-radius: 16px; background: var(--green); color: #fff; border: none;
             width: 100%; font-size: 18px; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 9px; cursor: pointer; margin-bottom: 12px; }
         .btn-new svg { width: 21px; height: 21px; }
+        /* Neues Spiel gesperrt, solange eine Runde läuft */
+        .btn-new.blocked { background: #a7d3b5; cursor: default; justify-content: flex-start; gap: 12px; padding: 0 18px; text-align: left; }
+        .btn-new.blocked .ng-t { display: flex; flex-direction: column; align-items: flex-start; line-height: 1.2; }
+        .btn-new.blocked .ng-sub { font-size: 13px; font-weight: 400; opacity: .9; }
+
+        /* Laufende Runde (PLONKY-Prinzip) */
+        .run-row { display: flex; gap: 10px; margin-bottom: 20px; }
+        .run-card { flex: 1; display: flex; align-items: center; gap: 13px; background: #eaf6ee; border: 1px solid #cfe9d8; border-radius: 16px; padding: 15px; min-width: 0; }
+        .run-ic { width: 38px; height: 38px; border-radius: 11px; background: #d7ecdd; color: var(--green); display: flex; align-items: center; justify-content: center; flex: 0 0 auto; }
+        .run-ic svg { width: 20px; height: 20px; }
+        .run-txt { flex: 1; min-width: 0; }
+        .run-title { font-size: 16px; font-weight: 600; display: flex; align-items: center; gap: 7px; white-space: nowrap; }
+        .run-title .live { font-size: 9px; font-weight: 700; letter-spacing: .5px; color: var(--green); background: #d7ecdd; border-radius: 6px; padding: 2px 5px; flex: 0 0 auto; }
+        .run-sub { font-size: 13px; color: var(--ink-3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .run-arrow { color: var(--green); flex: 0 0 auto; }
+        .run-arrow svg { width: 20px; height: 20px; }
+        .run-del { width: 50px; border-radius: 16px; border: 1px solid var(--line); background: var(--card); color: var(--ink-4);
+            display: flex; align-items: center; justify-content: center; cursor: pointer; flex: 0 0 auto; }
+        .run-del svg { width: 20px; height: 20px; }
+        .run-del:hover { background: #fdecea; color: #c0392b; }
 
         .shared-row { display: flex; gap: 10px; margin-bottom: 20px; }
         .shared-tile { flex: 1; display: flex; flex-direction: column; gap: 9px; background: var(--card);
@@ -71,8 +91,9 @@
 
         <a href="/minigolf" class="btn-new" id="newGame">
             <svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
-            Neues Spiel
+            <span class="ng-t"><span>Neues Spiel</span></span>
         </a>
+        <div id="runCardWrap"></div>
 
         <div class="shared-row">
             <a href="/history" class="shared-tile">
@@ -177,7 +198,49 @@
             document.getElementById('chips').innerHTML = '<div style="color:var(--ink-4);font-size:14px;">Profile konnten nicht geladen werden</div>';
         }
     }
+    async function loadActive(){
+        const btn = document.getElementById('newGame');
+        const wrap = document.getElementById('runCardWrap');
+        try {
+            const res = await fetch('/api/active-game');
+            const data = await res.json();
+            const a = data.active;
+            if (!a){ wrap.innerHTML = ''; return; }
+
+            // "Neues Spiel" sperren
+            btn.classList.add('blocked');
+            btn.removeAttribute('href');
+            btn.querySelector('.ng-t').innerHTML = '<span>Neues Spiel</span><span class="ng-sub">Erst die laufende Runde beenden</span>';
+            btn.addEventListener('click', e => { e.preventDefault(); toast('Erst die laufende Runde beenden'); });
+
+            // Laufende-Runde-Karte
+            wrap.innerHTML =
+                '<div class="run-row">'
+                + '<a class="run-card" href="/score/' + a.id + '">'
+                + '<span class="run-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1Z"/><path d="M4 22v-7"/></svg></span>'
+                + '<div class="run-txt"><div class="run-title">Laufende Runde <span class="live">LIVE</span></div>'
+                + '<div class="run-sub">' + esc(a.place || '') + ' · weiter spielen</div></div>'
+                + '<span class="run-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg></span></a>'
+                + '<button class="run-del" id="runDel" title="Verwerfen"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/></svg></button>'
+                + '</div>';
+
+            document.getElementById('runDel').addEventListener('click', async () => {
+                if (!confirm('Laufende Runde verwerfen? Die eingetragenen Scores gehen verloren.')) return;
+                try {
+                    const r = await fetch('/delete_game/' + a.id, { method: 'POST' });
+                    const d = await r.json();
+                    if (d.status !== 'success') throw new Error(d.message || 'Fehler');
+                    location.reload();
+                } catch(e){ console.error('discard', e); toast('⚠️ Nicht verworfen'); }
+            });
+        } catch(e){
+            console.error('active-game', e);
+            wrap.innerHTML = '';
+        }
+    }
+
     loadProfiles();
-    </script>
+    loadActive();
+</script>
 </body>
 </html>

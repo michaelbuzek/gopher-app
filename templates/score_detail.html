@@ -257,8 +257,11 @@
     // ==========================================================
     // State + Router
     // ==========================================================
-    const FROM_HISTORY = new URLSearchParams(location.search).get('from') === 'history';
-    const ORIGINAL = Object.assign({}, SCORES);  // Snapshot für Abbrechen im History-Modus
+    // Modus hängt am Zustand des Spiels, NICHT am Navigationsweg:
+    // fertig -> Ansicht + Editieren; läuft -> Live-Spiel (Weiter, Auto-Save, Spiel beenden)
+    const GAME_FINISHED = {{ finished | tojson }};
+    const FROM_HISTORY = GAME_FINISHED;
+    const ORIGINAL = Object.assign({}, SCORES);  // Snapshot für Abbrechen im Editier-Modus (fertige Spiele)
     let state = { view: 'main', playerId: null, hole: 1, editMode: false, editTile: null };
 
     function revertScores() {
@@ -356,7 +359,7 @@
         });
 
         if (!FROM_HISTORY) {
-            document.getElementById('finishBtn').addEventListener('click', () => { state.view = 'winner'; render(); });
+            document.getElementById('finishBtn').addEventListener('click', finishGame);
         } else if (!state.editMode) {
             document.getElementById('editBtn').addEventListener('click', () => { state.editMode = true; render(); });
         } else {
@@ -517,6 +520,20 @@
             console.error('saveScore', e);
             toast('⚠️ Nicht gespeichert');
         }
+    }
+
+    // "Spiel beenden" (nur Hauptansicht): Runde als fertig markieren, dann Gewinner-Screen
+    async function finishGame() {
+        try {
+            const res = await fetch('/finish_game/' + GAME_ID, { method: 'POST' });
+            const d = await res.json();
+            if (d.status !== 'success') throw new Error(d.message || 'Fehler');
+        } catch (e) {
+            console.error('finishGame', e);
+            toast('⚠️ Konnte nicht beenden');
+        }
+        state.view = 'winner';
+        render();
     }
 
     // ---------- Gewinner ----------

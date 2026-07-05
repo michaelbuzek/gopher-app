@@ -175,6 +175,9 @@ class Game(db.Model):
     place_id = db.Column(db.Integer, db.ForeignKey('places.id'), nullable=True)  # NEU: Referenz zu Place
     track_count = db.Column(db.Integer, nullable=False, default=18)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    # NEU: Läuft die Runde noch? Neue Spiele starten als "läuft" (False), erst "Spiel beenden"
+    # setzt True. server_default TRUE => alle bestehenden (historischen) Spiele gelten als fertig.
+    is_finished = db.Column(db.Boolean, nullable=False, default=False, server_default=db.text('true'))
     
     # Relationships
     players = db.relationship('Player', backref='game', cascade="all, delete-orphan", lazy=True)
@@ -483,8 +486,11 @@ def ensure_schema_additions():
             db.session.execute(text(
                 "ALTER TABLE player_balls ADD COLUMN IF NOT EXISTS description TEXT"
             ))
+            db.session.execute(text(
+                "ALTER TABLE games ADD COLUMN IF NOT EXISTS is_finished BOOLEAN NOT NULL DEFAULT TRUE"
+            ))
             db.session.commit()
-            log_action("Schema-Ergänzung geprüft: slot, player_balls.image_data, player_balls.description")
+            log_action("Schema-Ergänzung geprüft: slot, player_balls.image_data, player_balls.description, games.is_finished")
     except Exception as e:
         db.session.rollback()
         logger.warning(f"⚠️ ensure_schema_additions übersprungen: {e}")
@@ -1036,9 +1042,19 @@ def save():
             if not data.get(field):
                 return jsonify({'status': 'error', 'message': f'Missing required field: {field}'}), 400
         
+        # Guard: solange eine Runde läuft, kein neues Spiel (PLONKY-Prinzip: erst beenden)
+        running = Game.query.filter_by(is_finished=False).order_by(Game.id.desc()).first()
+        if running:
+            return jsonify({
+                'status': 'error',
+                'code': 'active_game_exists',
+                'active_game_id': running.id,
+                'message': 'Es läuft bereits eine Runde. Erst beenden.'
+            }), 409
+
         place_name = data.get('place').strip()
         track_count = data.get('track_count', 18)
-        
+
         # Find or create place
         place = Place.query.filter_by(name=place_name).first()
         place_id = None
@@ -1061,7 +1077,8 @@ def save():
             date=data.get('date'),
             place=place_name,  # Keep for compatibility
             place_id=place_id,  # NEW: Reference to Place
-            track_count=track_count
+            track_count=track_count,
+            is_finished=False  # NEU: frisch angelegte Runde läuft
         )
         
         db.session.add(game)
@@ -1205,6 +1222,7 @@ def score_detail(game_id):
             choice_by_player_track=choice_by_player_track,
             alt_by_player_track=alt_by_player_track,
             track_stats=track_stats,
+            finished=bool(game.is_finished),
         )
 
     except Exception as e:
@@ -1266,11 +1284,45 @@ def update_score():
         logger.error(f"❌ Update score error: {str(e)}")
         return jsonify({'status': 'error', 'message': 'Failed to update score'}), 500
 
+@app.route('/finish_game/<int:game_id>', methods=['POST'])
+def finish_game(game_id):
+    """Beendet eine laufende Runde (nur der 'Spiel beenden'-Button in der Hauptansicht ruft das)."""
+    try:
+        game = Game.query.get_or_404(game_id)
+        game.is_finished = True
+        db.session.commit()
+        log_action(f"Game finished: {game.place} on {game.date} (id {game_id})")
+        return jsonify({'status': 'success', 'message': 'Runde beendet'})
+    except Exception as e:
+        db.session.rollback()
+        logger.error(f"❌ Finish game error: {str(e)}")
+        return jsonify({'status': 'error', 'message': 'Runde konnte nicht beendet werden'}), 500
+
+
+@app.route('/api/active-game', methods=['GET'])
+def active_game():
+    """Aktuell laufende Runde (is_finished=False) für die Home-Karte 'Laufende Runde'."""
+    try:
+        game = Game.query.filter_by(is_finished=False).order_by(Game.id.desc()).first()
+        if not game:
+            return jsonify({'active': None})
+        return jsonify({'active': {
+            'id': game.id,
+            'place': game.get_place_name(),
+            'date': game.date,
+            'track_count': game.track_count,
+            'players': [p.name for p in game.players],
+        }})
+    except Exception as e:
+        logger.error(f"❌ active-game error: {str(e)}")
+        return jsonify({'active': None})
+
+
 @app.route('/history')
 def history():
-    """Game history page with track icons support"""
+    """Game history page with track icons support (nur fertige Spiele)"""
     try:
-        games = Game.query.order_by(Game.id.desc()).all()
+        games = Game.query.filter_by(is_finished=True).order_by(Game.id.desc()).all()
         
         # Prepare games data for template
         games_data = []
