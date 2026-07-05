@@ -145,6 +145,13 @@
         .sheet-actions { display: flex; gap: 10px; }
         .sheet-actions .btn { height: 48px; font-size: 15px; }
 
+        /* --- Inline-Editor Popup (History-Edit) --- */
+        .mini-overlay { position: fixed; inset: 0; background: rgba(20,25,20,0.4); display: flex; align-items: center; justify-content: center; z-index: 50; padding: 20px; }
+        .mini-card { background: var(--card); border-radius: 20px; padding: 20px 20px 18px; width: 270px; max-width: 84vw; text-align: center; box-shadow: 0 12px 44px rgba(0,0,0,.2); }
+        .mini-title { font-size: 15px; font-weight: 600; margin-bottom: 16px; }
+        .mini-card .stepper { margin-bottom: 16px; }
+        .mini-card .btn { height: 46px; }
+
         .toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%) translateY(20px); background: var(--ink);
             color: #fff; font-size: 14px; padding: 9px 16px; border-radius: 20px; opacity: 0; transition: all .2s; z-index: 60; pointer-events: none; }
         .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
@@ -234,7 +241,12 @@
     // ==========================================================
     const FROM_HISTORY = new URLSearchParams(location.search).get('from') === 'history';
     const ORIGINAL = Object.assign({}, SCORES);  // Snapshot für Abbrechen im History-Modus
-    let state = { view: 'main', playerId: null, hole: 1 };
+    let state = { view: 'main', playerId: null, hole: 1, editMode: false, editTile: null };
+
+    function revertScores() {
+        Object.keys(SCORES).forEach(k => delete SCORES[k]);
+        Object.assign(SCORES, ORIGINAL);
+    }
     const app = document.getElementById('app');
 
     function render() {
@@ -274,33 +286,76 @@
                 + '<div class="av">Ø ' + avgOf(p.id) + ' pro Bahn</div></div>';
         });
 
+        let footer;
+        if (!FROM_HISTORY) {
+            footer = '<button class="btn btn-green" id="finishBtn" style="margin-top:16px;">' + IC.flag + 'Spiel beenden</button>';
+        } else if (!state.editMode) {
+            footer = '<button class="btn btn-ghost" id="editBtn" style="margin-top:16px;">' + IC.pencil + 'Editieren</button>';
+        } else {
+            footer = '<div style="display:flex;gap:10px;margin-top:16px;"><button id="cancelBtn" style="flex:1;height:52px;border-radius:14px;background:#fff;border:1px solid #e6e7e1;color:#5b5f58;font-size:16px;font-weight:600;cursor:pointer;">Abbrechen</button><button id="saveBtn" style="flex:1;height:52px;border-radius:14px;background:#16a34a;border:none;color:#fff;font-size:16px;font-weight:600;cursor:pointer;">Speichern</button></div>';
+        }
+
+        let popup = '';
+        if (FROM_HISTORY && state.editMode && state.editTile) {
+            const ep = state.editTile.pid, eh = state.editTile.hole, ev = scoreOf(ep, eh);
+            popup = '<div class="mini-overlay" id="miniOverlay"><div class="mini-card">'
+                + '<div class="mini-title">' + esc(nameOf(ep)) + ' · Bahn ' + eh + '</div>'
+                + '<div class="stepper"><div class="step step-minus" id="miniMinus">−</div>'
+                + '<div class="score-big">' + (ev > 0 ? ev : '–') + '</div>'
+                + '<div class="step step-plus" id="miniPlus">+</div></div>'
+                + '<button class="btn btn-green" id="miniDone">' + IC.check + 'Fertig</button>'
+                + '</div></div>';
+        }
+
         app.innerHTML =
             '<div style="display:flex; align-items:center; gap:12px; margin-bottom:14px;">'
             + '<div id="homeBack" style="width:40px;height:40px;border-radius:12px;background:#fff;border:1px solid #e6e7e1;display:flex;align-items:center;justify-content:center;cursor:pointer;flex:0 0 auto;"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg></div>'
             + '<div style="flex:1;"><div class="loc">' + IC.pin + '<span>' + esc(PLACE_NAME) + '</span></div>'
             + '<div style="font-size:13px;color:#8a8f88;">' + TRACK_COUNT + ' Bahnen · ' + esc(GAME_DATE) + '</div></div></div>'
-            + '<div class="row-between" style="margin-bottom:10px;"><span class="section-label">SCORECARD</span></div>'
+            + '<div class="row-between" style="margin-bottom:10px;"><span class="section-label">SCORECARD</span>'
+            + (FROM_HISTORY && state.editMode ? '<span style="font-size:12px;color:var(--ink-3);">Kachel antippen zum Ändern</span>' : '') + '</div>'
             + cards
             + '<div class="section-label" style="margin:6px 0 10px;">STAND</div>'
             + '<div class="stand">' + stand + '</div>'
             + '<div class="spacer"></div>'
-            + (FROM_HISTORY
-                ? '<div style="display:flex;gap:10px;margin-top:16px;"><button id="cancelBtn" style="flex:1;height:52px;border-radius:14px;background:#fff;border:1px solid #e6e7e1;color:#5b5f58;font-size:16px;font-weight:600;cursor:pointer;">Abbrechen</button><button id="saveBtn" style="flex:1;height:52px;border-radius:14px;background:#16a34a;border:none;color:#fff;font-size:16px;font-weight:600;cursor:pointer;">Speichern</button></div>'
-                : '<button class="btn btn-green" id="finishBtn" style="margin-top:16px;">' + IC.flag + 'Spiel beenden</button>');
+            + footer
+            + popup;
 
+        // Klick auf Spieler-Kopf / Bahn-Kachel
         app.querySelectorAll('[data-pid]').forEach(el => {
             el.addEventListener('click', () => {
                 const pid = parseInt(el.dataset.pid);
                 const h = el.dataset.hole ? parseInt(el.dataset.hole) : null;
-                openDetail(pid, h);
+                if (FROM_HISTORY) {
+                    // Ansichtsmodus: kein Sprung ins Spiel. Editiermodus: nur Kacheln inline bearbeiten.
+                    if (!state.editMode || h === null) return;
+                    state.editTile = { pid: pid, hole: h };
+                    render();
+                } else {
+                    openDetail(pid, h);
+                }
             });
         });
-        if (FROM_HISTORY) {
-            document.getElementById('cancelBtn').addEventListener('click', () => { if (history.length > 1) history.back(); else location.href = '/history'; });
-            document.getElementById('saveBtn').addEventListener('click', saveHistoryEdits);
-        } else {
+
+        if (!FROM_HISTORY) {
             document.getElementById('finishBtn').addEventListener('click', () => { state.view = 'winner'; render(); });
+        } else if (!state.editMode) {
+            document.getElementById('editBtn').addEventListener('click', () => { state.editMode = true; render(); });
+        } else {
+            document.getElementById('cancelBtn').addEventListener('click', () => { revertScores(); state.editMode = false; state.editTile = null; render(); });
+            document.getElementById('saveBtn').addEventListener('click', saveHistoryEdits);
         }
+
+        // Inline-Stepper Popup
+        if (FROM_HISTORY && state.editMode && state.editTile) {
+            const ep = state.editTile.pid, eh = state.editTile.hole;
+            const closeMini = () => { state.editTile = null; render(); };
+            document.getElementById('miniMinus').addEventListener('click', () => changeScore(ep, eh, -1));
+            document.getElementById('miniPlus').addEventListener('click', () => changeScore(ep, eh, +1));
+            document.getElementById('miniDone').addEventListener('click', closeMini);
+            document.getElementById('miniOverlay').addEventListener('click', e => { if (e.target.id === 'miniOverlay') closeMini(); });
+        }
+
         document.getElementById('homeBack').addEventListener('click', () => { if (history.length > 1) history.back(); else location.href = '/'; });
     }
 
@@ -402,8 +457,13 @@
             for (const c of changes) {
                 await fetch('/update_score', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ player_id: c.pid, track: c.track, value: c.value }) });
             }
+            // Snapshot auf neuen Stand ziehen, zurück in den Ansichtsmodus (auf der Seite bleiben)
+            Object.keys(ORIGINAL).forEach(k => delete ORIGINAL[k]);
+            Object.assign(ORIGINAL, SCORES);
+            state.editMode = false;
+            state.editTile = null;
+            render();
             toast(changes.length ? 'Gespeichert' : 'Keine Änderungen');
-            setTimeout(() => { if (history.length > 1) history.back(); else location.href = '/history'; }, 300);
         } catch (e) { console.error('saveHistoryEdits', e); toast('⚠️ Nicht gespeichert'); }
     }
 
