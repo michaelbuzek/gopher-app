@@ -225,6 +225,16 @@
     function altOf(name, track) { return ALT_CHOICES[name + '|' + track] || null; }
     function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 
+    // Avatar: bekanntes Profil (Umpa/Lumpa) -> Foto, sonst farbiges Initial. Fällt bei Ladefehler aufs Initial zurück.
+    function avatarFile(name) { const n = (name || '').trim().toLowerCase(); return (n === 'umpa' || n === 'lumpa') ? '/static/avatars/' + n + '.png' : null; }
+    function avatarHTML(name, c) {
+        const initial = esc((name || '').charAt(0).toUpperCase());
+        const style = 'background:' + c.tint + ';color:' + c.main + ';';
+        const f = avatarFile(name);
+        if (f) return '<div class="avatar" style="' + style + '"><img src="' + f + '" alt="" onerror="this.parentNode.textContent=\'' + initial + '\'"></div>';
+        return '<div class="avatar" style="' + style + '">' + initial + '</div>';
+    }
+
     function leaderId() {
         const active = PLAYERS.filter(p => playedOf(p.id) > 0);
         if (!active.length) return null;
@@ -292,7 +302,7 @@
             cards += '<div class="pcard' + (p.id === lead ? ' lead' : '') + '"' + (p.id === lead ? ' style="border-color:' + c.main + ';"' : '') + '>'
                 + '<div class="pcard-head" data-pid="' + p.id + '">'
                 + '<span class="rank">' + (i + 1) + '</span>'
-                + '<div class="avatar" style="background:' + c.tint + ';color:' + c.main + ';">' + esc(p.name.charAt(0).toUpperCase()) + '</div>'
+                + avatarHTML(p.name, c)
                 + '<div class="pname">' + esc(p.name) + '</div>'
                 + '<div class="pmeta"><span class="tot" style="color:' + c.main + ';">' + totalOf(p.id) + '</span>'
                 + '<span class="frac">· ' + playedOf(p.id) + '/' + TRACK_COUNT + '</span></div></div>'
@@ -435,7 +445,7 @@
             + '<div class="loc">' + IC.pin + '<span style="font-size:15px;">' + esc(PLACE_NAME) + '</span></div>'
             + '<div class="pill-btn" id="backBtn">' + IC.grid + 'Übersicht</div></div>'
             + '<div class="dhead">'
-            + '<div class="dhead-id"><div class="avatar" style="background:' + c.tint + ';color:' + c.main + ';">' + esc(name.charAt(0).toUpperCase()) + '</div><div class="pname">' + esc(name) + '</div></div>'
+            + '<div class="dhead-id">' + avatarHTML(name, c) + '<div class="pname">' + esc(name) + '</div></div>'
             + '<div class="holenav">'
             + '<div class="navbtn' + (hole <= 1 ? ' off' : '') + '" id="prevBtn">' + IC.left + '</div>'
             + '<div class="holenum"><div class="k">BAHN</div><div class="n">' + hole + '</div><div class="v">von ' + TRACK_COUNT + '</div></div>'

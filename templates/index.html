@@ -29,7 +29,8 @@
         .ditem .dtc { font-size:12px; color:var(--ink-3); white-space:nowrap; }
         .players { border:1px solid var(--line); border-radius:16px; padding:12px; background:#fbfcfa; }
         .prow { display:flex; align-items:center; gap:10px; margin-bottom:10px; }
-        .prow .av { width:34px; height:34px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:14px; font-weight:600; flex:0 0 auto; }
+        .prow .av { width:34px; height:34px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:14px; font-weight:600; flex:0 0 auto; overflow:hidden; }
+        .prow .av img { width:100%; height:100%; object-fit:cover; }
         .prow.prof { cursor:pointer; user-select:none; }
         .prow .pname { flex:1; font-size:16px; font-weight:500; }
         .prow .chk { width:26px; height:26px; border-radius:50%; border:1.5px solid var(--muted); display:flex; align-items:center; justify-content:center; flex:0 0 auto; color:#fff; }
@@ -93,6 +94,8 @@
     var MAX = 6;
 
     function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];}); }
+    function avatarFile(name){ var n=(name||'').trim().toLowerCase(); return (n==='umpa'||n==='lumpa') ? '/static/avatars/'+n+'.png' : null; }
+    function avInner(name){ var initial=esc((name||'').charAt(0).toUpperCase()); var f=avatarFile(name); return f ? '<img src="'+f+'" alt="" onerror="this.parentNode.textContent=\''+initial+'\'">' : initial; }
     function tint(hex){ var h=(hex||'').replace('#',''); if(h.length<6) return '#eef0ea'; var r=parseInt(h.substr(0,2),16),g=parseInt(h.substr(2,2),16),b=parseInt(h.substr(4,2),16),m=function(x){return Math.round(255-(255-x)*0.16);}; return 'rgb('+m(r)+','+m(g)+','+m(b)+')'; }
     function profileFor(name){ return PROFILES.filter(function(p){return p.name.toLowerCase()===(name||'').trim().toLowerCase();})[0]||null; }
     function showErr(msg){ var e=document.getElementById('err'); e.textContent=msg; e.classList.add('show'); }
@@ -104,7 +107,7 @@
         PROFILES.forEach(function(p){
             var sel=PROFILE_SEL[p.name], c=p.color_hex||'#16a34a';
             html += '<div class="prow prof" data-prof="'+esc(p.name)+'" style="opacity:'+(sel?1:0.5)+';">'
-                + '<span class="av" style="background:'+tint(c)+';color:'+c+';">'+esc(p.name.charAt(0).toUpperCase())+'</span>'
+                + '<span class="av" style="background:'+tint(c)+';color:'+c+';">'+avInner(p.name)+'</span>'
                 + '<span class="pname">'+esc(p.name)+'</span>'
                 + '<span class="chk" style="'+(sel?'background:'+c+';border-color:'+c+';':'')+'">'+(sel?CHK:'')+'</span></div>';
         });
