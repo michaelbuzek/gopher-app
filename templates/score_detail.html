@@ -75,17 +75,18 @@
 
         /* --- Detail view --- */
         /* Kopfzeile: Name links, BAHN-Navigation mittig hochgezogen, Gesamt rechts (eine Zeile) */
-        .dhead { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; margin-bottom: 10px; }
-        .dhead-id { display: flex; align-items: center; gap: 10px; min-width: 0; padding-top: 6px; }
+        /* 3-Spalten-Grid: mittlere (auto) Spalte ist immer bildschirm-mittig -> BAHN echt zentriert */
+        .dhead { display: grid; grid-template-columns: 1fr auto 1fr; align-items: start; gap: 6px; margin-bottom: 10px; }
+        .dhead-id { display: flex; align-items: center; gap: 9px; min-width: 0; padding-top: 8px; }
         .dhead .pname { font-size: 21px; }
-        .dhead .gesamt { text-align: right; flex: 0 0 auto; padding-top: 6px; }
+        .dhead .gesamt { justify-self: end; text-align: right; min-width: 0; padding-top: 8px; }
         .dhead .gesamt .lbl { font-size: 11px; color: var(--ink-4); }
         .dhead .gesamt .val { font-size: 20px; font-weight: 600; }
 
-        .holenav { display: flex; align-items: center; gap: 8px; }
-        .navbtn { width: 50px; height: 50px; border-radius: 15px; background: var(--card); border: 1px solid var(--line);
+        .holenav { display: flex; align-items: center; gap: 6px; justify-self: center; }
+        .navbtn { width: 44px; height: 44px; border-radius: 13px; background: var(--card); border: 1px solid var(--line);
             display: flex; align-items: center; justify-content: center; cursor: pointer; }
-        .navbtn svg { width: 24px; height: 24px; }
+        .navbtn svg { width: 22px; height: 22px; }
         .navbtn.off { opacity: 0.4; pointer-events: none; }
         .holenum { text-align: center; }
         .holenum .k { font-size: 12px; letter-spacing: 2px; color: var(--ink-3); }
