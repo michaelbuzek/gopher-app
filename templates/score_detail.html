@@ -74,13 +74,15 @@
         .btn-text { background: transparent; color: var(--ink-3); font-weight: 400; font-size: 14px; height: 46px; }
 
         /* --- Detail view --- */
-        .idbadge { display: flex; align-items: center; gap: 11px; margin-bottom: 14px; }
-        .idbadge .pname { font-size: 21px; }
-        .idbadge .gesamt { margin-left: auto; text-align: right; }
-        .idbadge .gesamt .lbl { font-size: 11px; color: var(--ink-4); }
-        .idbadge .gesamt .val { font-size: 20px; font-weight: 600; }
+        /* Kopfzeile: Name links, BAHN-Navigation mittig hochgezogen, Gesamt rechts (eine Zeile) */
+        .dhead { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; margin-bottom: 10px; }
+        .dhead-id { display: flex; align-items: center; gap: 10px; min-width: 0; padding-top: 6px; }
+        .dhead .pname { font-size: 21px; }
+        .dhead .gesamt { text-align: right; flex: 0 0 auto; padding-top: 6px; }
+        .dhead .gesamt .lbl { font-size: 11px; color: var(--ink-4); }
+        .dhead .gesamt .val { font-size: 20px; font-weight: 600; }
 
-        .holenav { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
+        .holenav { display: flex; align-items: center; gap: 8px; }
         .navbtn { width: 50px; height: 50px; border-radius: 15px; background: var(--card); border: 1px solid var(--line);
             display: flex; align-items: center; justify-content: center; cursor: pointer; }
         .navbtn svg { width: 24px; height: 24px; }
@@ -428,14 +430,14 @@
             '<div class="row-between" style="margin-bottom:10px;">'
             + '<div class="loc">' + IC.pin + '<span style="font-size:15px;">' + esc(PLACE_NAME) + '</span></div>'
             + '<div class="pill-btn" id="backBtn">' + IC.grid + 'Übersicht</div></div>'
-            + '<div class="idbadge">'
-            + '<div class="avatar" style="background:' + c.tint + ';color:' + c.main + ';">' + esc(name.charAt(0).toUpperCase()) + '</div>'
-            + '<div class="pname">' + esc(name) + '</div>'
-            + '<div class="gesamt"><div class="lbl">Gesamt</div><div class="val" style="color:' + c.main + ';">' + totalOf(pid) + '</div></div></div>'
+            + '<div class="dhead">'
+            + '<div class="dhead-id"><div class="avatar" style="background:' + c.tint + ';color:' + c.main + ';">' + esc(name.charAt(0).toUpperCase()) + '</div><div class="pname">' + esc(name) + '</div></div>'
             + '<div class="holenav">'
             + '<div class="navbtn' + (hole <= 1 ? ' off' : '') + '" id="prevBtn">' + IC.left + '</div>'
             + '<div class="holenum"><div class="k">BAHN</div><div class="n">' + hole + '</div><div class="v">von ' + TRACK_COUNT + '</div></div>'
             + '<div class="navbtn' + (hole >= TRACK_COUNT ? ' off' : '') + '" id="nextBtn">' + IC.right + '</div></div>'
+            + '<div class="gesamt"><div class="lbl">Gesamt</div><div class="val" style="color:' + c.main + ';">' + totalOf(pid) + '</div></div>'
+            + '</div>'
             + '<div class="dcard">'
             + '<div class="caption">Schläge auf Bahn ' + hole + '</div>'
             + '<div class="stepper"><div class="step step-minus" id="minus">−</div>'
