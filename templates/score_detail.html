@@ -112,16 +112,15 @@
         .note-row svg { width: 17px; height: 17px; color: var(--ink-4); margin-top: 1px; }
         .icon-pencil { width: 17px; height: 17px; color: var(--ink-4); flex: 0 0 auto; }
 
-        /* --- Bahn-Statistik (pro Anlage/Bahn) --- */
-        .tstats-wrap { margin-top: auto; padding-top: 14px; }
-        .tstats-lbl { font-size: 11px; letter-spacing: 1px; color: var(--ink-4); margin-bottom: 8px; display: flex; align-items: center; gap: 5px; }
+        /* --- Bahn-Statistik (pro Anlage, pro Spieler) --- */
+        .tstats-wrap { margin-top: auto; padding-top: 12px; }
+        .tstats-lbl { font-size: 11px; letter-spacing: 1px; color: var(--ink-4); margin-bottom: 7px; display: flex; align-items: center; gap: 5px; }
         .tstats-lbl svg { width: 13px; height: 13px; }
-        .tstats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
-        .tstat { background: #f7f8f4; border: 1px solid var(--line); border-radius: 12px; padding: 9px 6px; text-align: center; }
-        .tstat .tk { font-size: 10px; letter-spacing: .5px; color: var(--ink-4); text-transform: uppercase; margin-bottom: 3px; }
+        .tstats { display: flex; align-items: baseline; gap: 20px; }
+        .tstat { display: flex; align-items: baseline; gap: 6px; }
+        .tstat .tk { font-size: 11px; letter-spacing: .5px; color: var(--ink-4); text-transform: uppercase; }
         .tstat .tv { font-size: 20px; font-weight: 600; line-height: 1; }
-        .tstats-meta { font-size: 11px; color: var(--ink-4); text-align: center; margin-top: 7px; }
-        .tstats-empty { font-size: 12px; color: var(--ink-4); text-align: center; padding: 10px 0; }
+        .tstats-empty { font-size: 12px; color: var(--ink-4); }
 
         .holebar { display: flex; gap: 3px; margin-bottom: 6px; }
         .hseg { flex: 1; border-radius: 3px; cursor: pointer; align-self: center; }
@@ -381,21 +380,21 @@
         render();
     }
 
-    function trackStatsHTML(hole) {
+    function trackStatsHTML(name, hole) {
         const chartIc = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><rect x="7" y="12" width="3" height="6"/><rect x="12" y="8" width="3" height="10"/><rect x="17" y="4" width="3" height="14"/></svg>';
-        const s = TRACK_STATS[hole];
+        const s = (TRACK_STATS[name] || {})[hole];
+        const head = 'BAHN ' + hole + ' · ' + esc((name || '').toUpperCase()) + (s && s.count ? ' · ' + s.count + '×' : '');
         let inner;
         if (!s || !s.count) {
-            inner = '<div class="tstats-empty">Noch keine Daten für diese Bahn.</div>';
+            inner = '<div class="tstats-empty">Noch keine eigenen Werte hier.</div>';
         } else {
             inner = '<div class="tstats">'
-                + '<div class="tstat"><div class="tk">Bester</div><div class="tv" style="color:var(--green);">' + s.best + '</div></div>'
-                + '<div class="tstat"><div class="tk">Ø</div><div class="tv">' + s.avg + '</div></div>'
-                + '<div class="tstat"><div class="tk">Schlecht.</div><div class="tv" style="color:#e0672e;">' + s.worst + '</div></div>'
-                + '</div>'
-                + '<div class="tstats-meta">aus ' + s.count + ' ' + (s.count === 1 ? 'Wertung' : 'Wertungen') + ' an dieser Anlage</div>';
+                + '<span class="tstat"><span class="tk">Bester</span><span class="tv" style="color:var(--green);">' + s.best + '</span></span>'
+                + '<span class="tstat"><span class="tk">Ø</span><span class="tv">' + s.avg + '</span></span>'
+                + '<span class="tstat"><span class="tk">Schlecht.</span><span class="tv" style="color:#e0672e;">' + s.worst + '</span></span>'
+                + '</div>';
         }
-        return '<div class="tstats-wrap"><div class="tstats-lbl">' + chartIc + 'BAHN ' + hole + ' · ALLE SPIELE HIER</div>' + inner + '</div>';
+        return '<div class="tstats-wrap"><div class="tstats-lbl">' + chartIc + head + '</div>' + inner + '</div>';
     }
 
     function renderDetail() {
@@ -445,7 +444,7 @@
             + altRowHtml
             + '<div class="field-label">NOTIZ</div>'
             + '<div class="note-row" id="noteRow">' + IC.note + '<span class="note-txt' + (note ? '' : ' empty') + '">' + (note ? esc(note) : 'Notiz hinzufügen …') + '</span></div>'
-            + (GAME_PLACE_ID ? trackStatsHTML(hole) : '')
+            + (GAME_PLACE_ID ? trackStatsHTML(name, hole) : '')
             + '</div>'
             + '<div style="margin-top:14px;"><div class="holebar">' + seg + '</div>'
             + '<div class="bar-legend"><span>Bahn ' + hole + ' · antippen</span><span>' + playedOf(pid) + ' / ' + TRACK_COUNT + '</span><span>Bahn ' + TRACK_COUNT + '</span></div></div>'

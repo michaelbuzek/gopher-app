@@ -1159,27 +1159,30 @@ def score_detail(game_id):
                 choice_by_player_track = {}
                 alt_by_player_track = {}
 
-        # Analytics: pro Anlage & Bahn aggregierte Werte über ALLE Spiele an diesem Platz
+        # Analytics: pro Anlage, pro Spieler & Bahn aggregierte Werte über ALLE Spiele an diesem Platz
         # (bester = Min Schläge, schlechtester = Max, Ø = Durchschnitt). Nur gespielte Bahnen (value > 0).
+        # Struktur: { spielername: { bahn: {best, worst, avg, count} } }
         track_stats = {}
         if game.place_id:
             try:
                 rows = (
                     db.session.query(
+                        Player.name,
                         Score.track,
                         func.min(Score.value),
                         func.max(Score.value),
                         func.avg(Score.value),
                         func.count(Score.value),
                     )
+                    .select_from(Score)
                     .join(Player, Score.player_id == Player.id)
                     .join(Game, Player.game_id == Game.id)
                     .filter(Game.place_id == game.place_id, Score.value > 0)
-                    .group_by(Score.track)
+                    .group_by(Player.name, Score.track)
                     .all()
                 )
-                for track, mn, mx, av, cnt in rows:
-                    track_stats[int(track)] = {
+                for name, track, mn, mx, av, cnt in rows:
+                    track_stats.setdefault(name, {})[int(track)] = {
                         'best': int(mn),
                         'worst': int(mx),
                         'avg': round(float(av), 1),
