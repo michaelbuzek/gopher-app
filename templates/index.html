@@ -137,8 +137,18 @@
         placeDrop.style.display='block';
         placeDrop.querySelectorAll('.ditem').forEach(function(el){ el.addEventListener('mousedown', function(ev){ ev.preventDefault(); placeEl.value=el.dataset.name; selectedPlaceId=parseInt(el.dataset.id); document.getElementById('tracks').value=el.dataset.tc; placeDrop.style.display='none'; }); });
     }
-    placeEl.addEventListener('focus', function(){ showDrop(PLACES); });
-    placeEl.addEventListener('input', function(){ matchPlace(); var v=this.value.toLowerCase(); showDrop(PLACES.filter(function(p){return p.name.toLowerCase().indexOf(v)>=0;})); });
+    var placeStash = '';
+    placeEl.addEventListener('focus', function(){
+        // Beim Reinklicken das vorausgewählte Wort (z.B. Bülach) leeren -> gleich Dropdown/eigene Eingabe
+        if(this.value){ placeStash=this.value; this.value=''; selectedPlaceId=null; }
+        showDrop(PLACES);
+    });
+    placeEl.addEventListener('blur', function(){
+        // Nichts gewählt/getippt -> Default (Bülach) wiederherstellen, damit er nicht verloren geht
+        if(!placeEl.value && placeStash){ placeEl.value=placeStash; matchPlace(); }
+        placeStash='';
+    });
+    placeEl.addEventListener('input', function(){ placeStash=''; matchPlace(); var v=this.value.toLowerCase(); showDrop(PLACES.filter(function(p){return p.name.toLowerCase().indexOf(v)>=0;})); });
     document.addEventListener('click', function(e){ if(e.target!==placeEl && !placeDrop.contains(e.target)) placeDrop.style.display='none'; });
 
     document.getElementById('start').addEventListener('click', async function(){
