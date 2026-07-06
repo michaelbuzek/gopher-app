@@ -7,7 +7,7 @@
     <title>🏌️ Statistik</title>
     <style>
         * { box-sizing: border-box; }
-        :root { --bg:#f5f6f2; --card:#fff; --line:#e6e7e1; --tile:#edefe8; --ink:#1c1d1a; --ink-2:#5b5f58; --ink-3:#8a8f88; --ink-4:#a0a49d; --muted:#c2c6bf; --green:#16a34a; }
+        :root { --bg: #FAFAF7; --card:#fff; --line:#e6e7e1; --tile:#edefe8; --ink: #222222; --ink-2:#5b5f58; --ink-3:#8a8f88; --ink-4:#a0a49d; --muted:#c2c6bf; --green: #21B458; }
         html, body { margin:0; padding:0; background:var(--bg); color:var(--ink); font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif; -webkit-font-smoothing:antialiased; }
         .wrap { max-width:480px; margin:0 auto; padding:16px 16px 40px; }
         .head { display:flex; align-items:center; gap:12px; margin-bottom:16px; }
@@ -59,13 +59,13 @@
     <div id="app" class="wrap"></div>
     <div id="toast" class="toast"></div>
     <script>
-    const PALETTE = { 'umpa': '#16a34a', 'lumpa': '#e0672e' };
+    const PALETTE = { 'umpa': '#2E86C1', 'lumpa': '#e0672e' };
     const params = new URLSearchParams(location.search);
     let PLAYER = (params.get('player') || localStorage.getItem('gopher_profile') || 'Umpa').trim();
     const app = document.getElementById('app');
 
     function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
-    function colorOf(name){ return PALETTE[(name||'').toLowerCase()] || '#16a34a'; }
+    function colorOf(name){ return PALETTE[(name||'').toLowerCase()] || '#2E86C1'; }
     function avatarFile(name){ const n=(name||'').trim().toLowerCase(); return (n==='umpa'||n==='lumpa') ? '/static/avatars/'+n+'.png' : null; }
     function shortDate(d){ const p=(d||'').split('-'); return p.length===3 ? (parseInt(p[2])+'.'+parseInt(p[1])+'.') : (d||''); }
     function tint(hex){ const h=(hex||'').replace('#',''); if(h.length<6) return '#eef0ea'; const r=parseInt(h.substr(0,2),16),g=parseInt(h.substr(2,2),16),b=parseInt(h.substr(4,2),16),m=x=>Math.round(255-(255-x)*0.16); return 'rgb('+m(r)+','+m(g)+','+m(b)+')'; }

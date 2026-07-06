@@ -10,17 +10,17 @@
     <style>
         * { box-sizing: border-box; }
         :root {
-            --bg: #f5f6f2;
+            --bg: #FAFAF7;
             --card: #ffffff;
             --line: #e6e7e1;
             --line-soft: #eef0ea;
             --tile: #edefe8;
-            --ink: #1c1d1a;
+            --ink: #222222;
             --ink-2: #5b5f58;
             --ink-3: #8a8f88;
             --ink-4: #a0a49d;
             --muted: #c2c6bf;
-            --green: #16a34a;
+            --green: #21B458;
         }
         html, body {
             margin: 0; padding: 0; background: var(--bg); color: var(--ink);
@@ -207,7 +207,7 @@
     // Helpers
     // ==========================================================
     const PALETTE = [
-        { main: '#16a34a', tint: '#d7ecdd', lite: '#9fd8b4' },
+        { main: '#2E86C1', tint: '#dbeefb', lite: '#a9d5f0' },
         { main: '#e0672e', tint: '#fbe7da', lite: '#f2c4a6' },
         { main: '#2563eb', tint: '#dbe7fb', lite: '#a9c6f4' },
         { main: '#0d9488', tint: '#d3f0eb', lite: '#8fd7cd' }
@@ -323,7 +323,7 @@
         } else if (!state.editMode) {
             footer = '<button class="btn btn-ghost" id="editBtn" style="margin-top:16px;">' + IC.pencil + 'Editieren</button>';
         } else {
-            footer = '<div style="display:flex;gap:10px;margin-top:16px;"><button id="cancelBtn" style="flex:1;height:52px;border-radius:14px;background:#fff;border:1px solid #e6e7e1;color:#5b5f58;font-size:16px;font-weight:600;cursor:pointer;">Abbrechen</button><button id="saveBtn" style="flex:1;height:52px;border-radius:14px;background:#16a34a;border:none;color:#fff;font-size:16px;font-weight:600;cursor:pointer;">Speichern</button></div>';
+            footer = '<div style="display:flex;gap:10px;margin-top:16px;"><button id="cancelBtn" style="flex:1;height:52px;border-radius:14px;background:#fff;border:1px solid #e6e7e1;color:#5b5f58;font-size:16px;font-weight:600;cursor:pointer;">Abbrechen</button><button id="saveBtn" style="flex:1;height:52px;border-radius:14px;background:var(--green);border:none;color:#fff;font-size:16px;font-weight:600;cursor:pointer;">Speichern</button></div>';
         }
 
         let popup = '';

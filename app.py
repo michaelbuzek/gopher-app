@@ -514,14 +514,17 @@ def ensure_profiles():
     """Additiv: 'profiles'-Tabelle anlegen/seeden + bekannte Namensvarianten
     in players kanonisieren. Idempotent, keine Löschungen (DB-Schutzregel)."""
     canonical = [
-        {'name': 'Umpa', 'color_hex': '#16a34a', 'sort_order': 1},
-        {'name': 'Lumpa', 'color_hex': '#e0672e', 'sort_order': 2},
+        {'name': 'Umpa', 'color_hex': '#2E86C1', 'sort_order': 1},   # Gopher-Blau (neues Farbkonzept)
+        {'name': 'Lumpa', 'color_hex': '#e0672e', 'sort_order': 2},  # Terrakotta
     ]
     try:
         db.create_all()  # legt fehlende Tabellen an (z.B. profiles) — additiv
         for p in canonical:
-            if not Profile.query.filter_by(name=p['name']).first():
+            existing = Profile.query.filter_by(name=p['name']).first()
+            if not existing:
                 db.session.add(Profile(**p))
+            else:
+                existing.color_hex = p['color_hex']  # Farbe mit Konzept synchronisieren (feste Profile)
         db.session.commit()
         # Casing-Varianten der bekannten Profile in players angleichen (idempotent)
         for name in ('Umpa', 'Lumpa'):

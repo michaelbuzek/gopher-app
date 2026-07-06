@@ -9,7 +9,7 @@
     <title>🏌️ Neues Spiel</title>
     <style>
         * { box-sizing: border-box; }
-        :root { --bg:#f5f6f2; --card:#fff; --line:#e6e7e1; --tile:#edefe8; --ink:#1c1d1a; --ink-2:#5b5f58; --ink-3:#8a8f88; --ink-4:#a0a49d; --muted:#c2c6bf; --green:#16a34a; }
+        :root { --bg: #FAFAF7; --card:#fff; --line:#e6e7e1; --tile:#edefe8; --ink: #222222; --ink-2:#5b5f58; --ink-3:#8a8f88; --ink-4:#a0a49d; --muted:#c2c6bf; --green: #21B458; }
         html, body { margin:0; padding:0; background:var(--bg); color:var(--ink); font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif; -webkit-font-smoothing:antialiased; }
         .wrap { max-width:480px; margin:0 auto; padding:18px 18px 40px; }
         .head { display:flex; align-items:center; gap:12px; margin-bottom:20px; }
@@ -186,7 +186,7 @@
         document.getElementById('date').value=iso;
         // Profile (für Standard-Spieler + Farben)
         try { var rp=await fetch('/api/profiles'); var dp=await rp.json(); PROFILES=dp.profiles||[]; } catch(e){}
-        if(!PROFILES.length) PROFILES = [{name:'Umpa',color_hex:'#16a34a'},{name:'Lumpa',color_hex:'#e0672e'}];
+        if(!PROFILES.length) PROFILES = [{name:'Umpa',color_hex:'#2E86C1'},{name:'Lumpa',color_hex:'#e0672e'}];
         PROFILES.forEach(function(p){ PROFILE_SEL[p.name]=true; });
         renderPlayers();
         // Plätze für Autocomplete
