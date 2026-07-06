@@ -49,6 +49,12 @@
         .ptoggle button { flex:1; font-size:12px; font-weight:600; padding:6px 0; border-radius:9px; border:1px solid var(--line); background:var(--card); color:var(--ink-3); cursor:pointer; font-family:inherit; }
         .ptoggle button.on { background:var(--tile); color:var(--ink); border-color:var(--tile); }
         .legend .band { display:inline-block; width:14px; height:8px; border-radius:2px; margin-right:5px; vertical-align:middle; opacity:.3; }
+        .hinfo { display:flex; align-items:baseline; justify-content:space-between; gap:10px; background:var(--tile); border-radius:9px; padding:7px 12px; margin:0 2px 8px; font-size:13px; }
+        .hinfo .hint { color:var(--ink-4); font-size:12px; }
+        .hinfo .hl { font-weight:700; font-size:11px; letter-spacing:.5px; color:var(--ink-3); }
+        .hinfo b { font-size:15px; font-weight:600; }
+        .hinfo .lbl { font-size:10px; color:var(--ink-4); text-transform:uppercase; letter-spacing:.3px; margin-left:3px; }
+        .hole-hit { cursor:pointer; }
         .prow .pn { flex:1; min-width:0; }
         .prow .pn .nm { font-size:15px; font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
         .prow .pn .meta { font-size:12px; color:var(--ink-3); }
@@ -117,7 +123,7 @@
     }
 
     // ---- Loch-Line: X = Bahn 1..N, Ø-Linie in Profilfarbe + Min–Max-Band, Partner-Ø blass ----
-    function holeChart(holes, color, trackCount){
+    function holeChart(holes, color, trackCount, idx){
         if (!holes || !holes.length) return '';
         const W = 320, H = 160, padL = 12, padR = 12, padT = 22, padB = 22;
         const plotW = W - padL - padR, plotH = H - padT - padB;
@@ -173,16 +179,16 @@
             const ly = Math.max(y(h.max) - 7, 9).toFixed(1);
             svg += '<text x="'+x(t).toFixed(1)+'" y="'+ly+'" text-anchor="middle" font-size="'+(n>9?8.5:10)+'" font-weight="600" fill="var(--ink-2)">'+(Math.round(h.avg*10)/10)+'</text>';
         }
-        // X-Labels: Bahn-Nummern
+        // X-Labels: Bahn-Nummern (antippbar, gewählte wird hervorgehoben)
         for (let t = 1; t <= n; t++){
-            svg += '<text x="'+x(t).toFixed(1)+'" y="'+(H-6)+'" text-anchor="middle" font-size="'+(n>9?8:9)+'" fill="#a0a49d">'+t+'</text>';
+            svg += '<text class="xlab" data-track="'+t+'" x="'+x(t).toFixed(1)+'" y="'+(H-6)+'" text-anchor="middle" font-size="'+(n>9?8:9)+'" fill="#a0a49d">'+t+'</text>';
         }
-        // Unsichtbare Tap-Flächen: Bahn antippen -> Toast mit Min/Ø/Max
+        // Unsichtbare Tap-Flächen: Bahn antippen -> Details bleiben im Panel über dem Chart stehen
         const spacing = n === 1 ? plotW : plotW/(n-1);
         for (let t = 1; t <= n; t++){
             const h = byTrack[t]; if (!h) continue;
-            const info = 'Bahn '+t+': Min '+h.min+' · Ø '+(Math.round(h.avg*10)/10)+' · Max '+h.max+' ('+h.count+'×)';
-            svg += '<rect class="hole-hit" data-info="'+esc(info)+'" x="'+(x(t)-spacing/2).toFixed(1)+'" y="0" width="'+spacing.toFixed(1)+'" height="'+H+'" fill="transparent"/>';
+            svg += '<rect class="hole-hit" data-idx="'+idx+'" data-track="'+t+'" data-min="'+h.min+'" data-avg="'+(Math.round(h.avg*10)/10)+'" data-max="'+h.max+'" data-count="'+h.count+'"'
+                + ' x="'+(x(t)-spacing/2).toFixed(1)+'" y="0" width="'+spacing.toFixed(1)+'" height="'+H+'" fill="transparent"/>';
         }
         svg += '</svg>';
         return svg;
@@ -257,7 +263,8 @@
             if (hasHoles){
                 const hasHolePartner = p.holes.some(h => h.partner_avg != null);
                 holeView = '<div id="pview-holes-'+idx+'"'+(hasTime?' style="display:none;"':'')+'>'
-                    + holeChart(p.holes, color, p.track_count)
+                    + '<div class="hinfo" id="hinfo-'+idx+'"><span class="hint">Bahn antippen für Details</span></div>'
+                    + holeChart(p.holes, color, p.track_count, idx)
                     + holeLegend(color, hasHolePartner ? partner : null) + '</div>';
             }
             chart = '<div class="pchart" id="pchart-'+idx+'" style="display:none;">' + toggle + timeView + holeView + '</div>';
@@ -322,10 +329,24 @@
             if (hv) hv.style.display = view === 'holes' ? '' : 'none';
         }));
 
-        // Loch-Line: Bahn antippen -> Detail-Toast (Min/Ø/Max)
+        // Loch-Line: Bahn antippen -> Details bleiben im Panel unter den Buttons stehen
         app.querySelectorAll('.hole-hit').forEach(el => el.addEventListener('click', (e) => {
             e.stopPropagation();
-            toast(el.dataset.info);
+            const d = el.dataset;
+            const panel = document.getElementById('hinfo-' + d.idx);
+            if (panel){
+                panel.innerHTML = '<span class="hl">BAHN ' + d.track + ' · ' + d.count + '×</span>'
+                    + '<span><b style="color:var(--green)">' + d.min + '</b><span class="lbl">Min</span></span>'
+                    + '<span><b>' + d.avg + '</b><span class="lbl">Ø</span></span>'
+                    + '<span><b style="color:#e0672e">' + d.max + '</b><span class="lbl">Max</span></span>';
+            }
+            // gewählte Bahn-Nummer im Chart hervorheben
+            const svg = el.ownerSVGElement;
+            if (svg) svg.querySelectorAll('.xlab').forEach(tx => {
+                const on = tx.dataset.track === d.track;
+                tx.setAttribute('fill', on ? 'var(--ink)' : '#a0a49d');
+                tx.setAttribute('font-weight', on ? '700' : '400');
+            });
         }));
     }
 
