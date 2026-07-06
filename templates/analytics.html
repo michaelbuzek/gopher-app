@@ -45,6 +45,10 @@
         .pchev svg { width:18px; height:18px; display:block; }
         .pitem.open .pchev { transform:rotate(90deg); }
         .pchart { padding:0 10px 12px; }
+        .ptoggle { display:flex; gap:6px; padding:2px 2px 10px; }
+        .ptoggle button { flex:1; font-size:12px; font-weight:600; padding:6px 0; border-radius:9px; border:1px solid var(--line); background:var(--card); color:var(--ink-3); cursor:pointer; font-family:inherit; }
+        .ptoggle button.on { background:var(--tile); color:var(--ink); border-color:var(--tile); }
+        .legend .band { display:inline-block; width:14px; height:8px; border-radius:2px; margin-right:5px; vertical-align:middle; opacity:.3; }
         .prow .pn { flex:1; min-width:0; }
         .prow .pn .nm { font-size:15px; font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
         .prow .pn .meta { font-size:12px; color:var(--ink-3); }
@@ -112,6 +116,77 @@
         return svg;
     }
 
+    // ---- Loch-Line: X = Bahn 1..N, Ø-Linie in Profilfarbe + Min–Max-Band, Partner-Ø blass ----
+    function holeChart(holes, color, trackCount){
+        if (!holes || !holes.length) return '';
+        const W = 320, H = 160, padL = 12, padR = 12, padT = 22, padB = 22;
+        const plotW = W - padL - padR, plotH = H - padT - padB;
+        const byTrack = {}; holes.forEach(h => byTrack[h.track] = h);
+        const n = Math.max(trackCount || 0, ...holes.map(h => h.track));
+        let vals = [];
+        holes.forEach(h => { vals.push(h.min, h.max, h.avg); if (h.partner_avg != null) vals.push(h.partner_avg); });
+        let mn = Math.min(...vals), mx = Math.max(...vals);
+        if (mn === mx){ mn -= 1; mx += 1; }
+        const x = t => padL + (n === 1 ? plotW/2 : (t-1)/(n-1)*plotW);
+        const y = v => padT + (1 - (v - mn)/(mx - mn)) * plotH;
+
+        // zusammenhängende Abschnitte (Lücke, wenn eine Bahn keine eigenen Werte hat)
+        const runs = []; let run = [];
+        for (let t = 1; t <= n; t++){
+            if (byTrack[t]) run.push(t);
+            else if (run.length){ runs.push(run); run = []; }
+        }
+        if (run.length) runs.push(run);
+
+        let svg = '<svg viewBox="0 0 '+W+' '+H+'" preserveAspectRatio="xMidYMid meet">';
+        // Min–Max-Band
+        runs.forEach(r => {
+            if (r.length === 1){
+                const h = byTrack[r[0]];
+                svg += '<line x1="'+x(r[0]).toFixed(1)+'" y1="'+y(h.min).toFixed(1)+'" x2="'+x(r[0]).toFixed(1)+'" y2="'+y(h.max).toFixed(1)+'" stroke="'+color+'" stroke-opacity="0.22" stroke-width="4" stroke-linecap="round"/>';
+            } else {
+                let d = '';
+                r.forEach((t,i) => { d += (i?' L':'M') + x(t).toFixed(1) + ' ' + y(byTrack[t].max).toFixed(1); });
+                for (let i = r.length-1; i >= 0; i--){ d += ' L' + x(r[i]).toFixed(1) + ' ' + y(byTrack[r[i]].min).toFixed(1); }
+                svg += '<path d="'+d+' Z" fill="'+color+'" fill-opacity="0.14" stroke="none"/>';
+            }
+        });
+        // Partner-Ø blass gestrichelt
+        let pd = '', started = false;
+        for (let t = 1; t <= n; t++){
+            const v = byTrack[t] && byTrack[t].partner_avg != null ? byTrack[t].partner_avg : null;
+            if (v == null){ started = false; continue; }
+            pd += (started?' L':'M') + x(t).toFixed(1) + ' ' + y(v).toFixed(1);
+            started = true;
+        }
+        if (pd) svg += '<path d="'+pd+'" fill="none" stroke="#c2c6bf" stroke-width="1.6" stroke-dasharray="3 3" stroke-linejoin="round" stroke-linecap="round"/>';
+        // Eigene Ø-Linie + Punkte
+        runs.forEach(r => {
+            let d = '';
+            r.forEach((t,i) => { d += (i?' L':'M') + x(t).toFixed(1) + ' ' + y(byTrack[t].avg).toFixed(1); });
+            svg += '<path d="'+d+'" fill="none" stroke="'+color+'" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>';
+        });
+        for (let t = 1; t <= n; t++){
+            const h = byTrack[t]; if (!h) continue;
+            svg += '<circle cx="'+x(t).toFixed(1)+'" cy="'+y(h.avg).toFixed(1)+'" r="2.6" fill="'+color+'"/>';
+            if (n <= 9) svg += '<text x="'+x(t).toFixed(1)+'" y="'+(y(h.max)-7).toFixed(1)+'" text-anchor="middle" font-size="10" font-weight="600" fill="var(--ink-2)">'+(Math.round(h.avg*10)/10)+'</text>';
+        }
+        // X-Labels: Bahn-Nummern
+        for (let t = 1; t <= n; t++){
+            svg += '<text x="'+x(t).toFixed(1)+'" y="'+(H-6)+'" text-anchor="middle" font-size="'+(n>9?8:9)+'" fill="#a0a49d">'+t+'</text>';
+        }
+        svg += '</svg>';
+        return svg;
+    }
+
+    function holeLegend(color, partner){
+        return '<div class="legend">'
+            + '<span><span class="dot" style="background:'+color+';"></span>Ø '+esc(PLAYER)+'</span>'
+            + '<span><span class="band" style="background:'+color+';"></span>Min–Max</span>'
+            + (partner ? '<span><span class="dot" style="background:#c2c6bf;"></span>Ø '+esc(partner)+'</span>' : '')
+            + '</div>';
+    }
+
     function legendHTML(color, partner){
         return '<div class="legend"><span><span class="dot" style="background:'+color+';"></span>'+esc(PLAYER)+'</span>'
             + '<span><span class="dot" style="background:#c2c6bf;"></span>'+esc(partner||'Partner')+'</span></div>';
@@ -145,7 +220,9 @@
 
     function placeRow(p, idx, color, partner){
         const badge = p.system==='DE' ? '<span class="badge de">DE</span>' : '<span class="badge ch">CH</span>';
-        const expandable = p.series && p.series.length >= 2;   // Verlauf erst ab 2 Runden sinnvoll
+        const hasTime = p.series && p.series.length >= 2;      // Verlauf erst ab 2 Runden sinnvoll
+        const hasHoles = p.holes && p.holes.length > 0;        // Loch-Line geht schon ab 1 Runde
+        const expandable = hasTime || hasHoles;
         const chev = expandable ? '<span class="pchev"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg></span>' : '';
         const row = '<div class="prow'+(expandable?' clickable" data-idx="'+idx:'')+'">'
             + '<div class="pn"><div class="nm">'+esc(p.name)+'</div>'
@@ -155,10 +232,26 @@
             + chev + '</div>';
         let chart = '';
         if (expandable){
-            const hasPartner = p.series.some(s => s.partner_total != null);
-            chart = '<div class="pchart" id="pchart-'+idx+'" style="display:none;">'
-                + lineChart(p.series, color, {showLabels: p.series.length <= 12})
-                + (hasPartner ? legendHTML(color, partner) : '') + '</div>';
+            const toggle = (hasTime && hasHoles)
+                ? '<div class="ptoggle" data-idx="'+idx+'">'
+                  + '<button type="button" class="on" data-view="time">Verlauf</button>'
+                  + '<button type="button" data-view="holes">Pro Bahn</button></div>'
+                : '';
+            let timeView = '';
+            if (hasTime){
+                const hasPartner = p.series.some(s => s.partner_total != null);
+                timeView = '<div id="pview-time-'+idx+'">'
+                    + lineChart(p.series, color, {showLabels: p.series.length <= 12})
+                    + (hasPartner ? legendHTML(color, partner) : '') + '</div>';
+            }
+            let holeView = '';
+            if (hasHoles){
+                const hasHolePartner = p.holes.some(h => h.partner_avg != null);
+                holeView = '<div id="pview-holes-'+idx+'"'+(hasTime?' style="display:none;"':'')+'>'
+                    + holeChart(p.holes, color, p.track_count)
+                    + holeLegend(color, hasHolePartner ? partner : null) + '</div>';
+            }
+            chart = '<div class="pchart" id="pchart-'+idx+'" style="display:none;">' + toggle + timeView + holeView + '</div>';
         }
         return '<div class="pitem" id="pitem-'+idx+'">'+row+chart+'</div>';
     }
@@ -206,6 +299,18 @@
             const open = chart.style.display !== 'none';
             chart.style.display = open ? 'none' : 'block';
             item.classList.toggle('open', !open);
+        }));
+
+        // Umschalter „Verlauf ⟷ Pro Bahn" in der aufgeklappten Anlagen-Ansicht
+        app.querySelectorAll('.ptoggle').forEach(tg => tg.addEventListener('click', (e) => {
+            const btn = e.target.closest('button');
+            if (!btn) return;
+            const idx = tg.dataset.idx, view = btn.dataset.view;
+            tg.querySelectorAll('button').forEach(b => b.classList.toggle('on', b === btn));
+            const tv = document.getElementById('pview-time-' + idx);
+            const hv = document.getElementById('pview-holes-' + idx);
+            if (tv) tv.style.display = view === 'time' ? '' : 'none';
+            if (hv) hv.style.display = view === 'holes' ? '' : 'none';
         }));
     }
 

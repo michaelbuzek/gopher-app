@@ -702,10 +702,13 @@ def reset_dev_db():
         logger.error(f"❌ Reset error: {str(e)}")
         return f"<h1>Reset Error</h1><p>{str(e)}</p>", 500
 
-# 🔥 NEW: Force Reset Track Types für Production (Render.com)
+# 🔥 NEW: Force Reset Track Types (nur Development — löscht Daten!)
 @app.route('/force-reset-track-types')
 def force_reset_track_types():
-    """Force reset only TrackTypes - safe for production"""
+    """Force reset only TrackTypes - development only (destruktiv, daher auf Prod gesperrt)"""
+    if is_production():
+        log_action("Unauthorized track-type reset attempt blocked")
+        return jsonify({'error': 'Only available in development environment'}), 403
     try:
         log_action("Force resetting TrackTypes only")
         
@@ -1264,7 +1267,7 @@ def update_score():
         
         # Validate score value
         if value < 0 or value > 999:  # Reasonable limits
-            return jsonify({'status': 'error', 'message': 'Score must be between 0 and 20'}), 400
+            return jsonify({'status': 'error', 'message': 'Score must be between 0 and 999'}), 400
         
         # Find and update score
         score = Score.query.filter_by(player_id=player_id, track=track).first()
@@ -1373,6 +1376,7 @@ def api_analytics():
                     p_total = None
             rounds.append({
                 'game_id': g.id, 'date': g.date, 'place': g.get_place_name(),
+                'place_id': g.place_id,
                 'system': system or 'CH', 'track_count': g.track_count,
                 'total': total, 'partner_total': p_total,
             })
@@ -1402,6 +1406,41 @@ def api_analytics():
             {'key': 'de9',  'label': '9 Bahnen · DE',  **bucket('DE', 9)},
         ]
 
+        # Loch-Statistik pro Anlage: Min/Max/Ø/Anzahl pro Bahn über ALLE fertigen Spiele
+        # an diesem Platz (nur gespielte Bahnen value > 0 — gleiche Logik wie die
+        # Bahn-Statistik im Score-Screen). Partner-Ø fürs blasse Vergleichs-Overlay.
+        names = [player] + ([partner] if partner else [])
+        holes_by_place = {}  # place_id -> track -> {min,max,avg,count,partner_avg}
+        try:
+            hole_rows = (
+                db.session.query(
+                    Game.place_id, Player.name, Score.track,
+                    func.min(Score.value), func.max(Score.value),
+                    func.avg(Score.value), func.count(Score.value),
+                )
+                .select_from(Score)
+                .join(Player, Score.player_id == Player.id)
+                .join(Game, Player.game_id == Game.id)
+                .filter(
+                    Game.is_finished == True,
+                    Game.place_id.isnot(None),
+                    Player.name.in_(names),
+                    Score.value > 0,
+                )
+                .group_by(Game.place_id, Player.name, Score.track)
+                .all()
+            )
+            for pid, name, track, mn, mx, av, cnt in hole_rows:
+                d = holes_by_place.setdefault(pid, {}).setdefault(int(track), {})
+                if name == player:
+                    d.update({'min': int(mn), 'max': int(mx), 'avg': round(float(av), 2), 'count': int(cnt)})
+                elif partner and name == partner:
+                    d['partner_avg'] = round(float(av), 2)
+        except Exception as hole_err:
+            db.session.rollback()
+            logger.warning(f"⚠️ Loch-Statistik nicht verfügbar: {hole_err}")
+            holes_by_place = {}
+
         # Pro Anlage, meistgespielte oben
         by_place = {}
         for r in rounds:
@@ -1412,6 +1451,9 @@ def api_analytics():
             s['name'] = name
             s['system'] = rs[0]['system']
             s['track_count'] = rs[0]['track_count']
+            ph = holes_by_place.get(rs[0]['place_id']) or {}
+            # nur Bahnen mit eigenen Werten (Partner allein reicht nicht)
+            s['holes'] = [{'track': t, **ph[t]} for t in sorted(ph) if 'avg' in ph[t]]
             places.append(s)
         places.sort(key=lambda x: (-x['rounds'], x['name']))
 
