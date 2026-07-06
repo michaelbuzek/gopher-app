@@ -342,7 +342,9 @@
             '<div style="display:flex; align-items:center; gap:12px; margin-bottom:14px;">'
             + '<div id="homeBack" style="width:40px;height:40px;border-radius:12px;background:#fff;border:1px solid #e6e7e1;display:flex;align-items:center;justify-content:center;cursor:pointer;flex:0 0 auto;"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg></div>'
             + '<div style="flex:1;"><div class="loc">' + IC.pin + '<span>' + esc(PLACE_NAME) + '</span></div>'
-            + '<div style="font-size:13px;color:#8a8f88;">' + TRACK_COUNT + ' Bahnen · ' + esc(GAME_DATE) + '</div></div></div>'
+            + '<div style="font-size:13px;color:#8a8f88;">' + TRACK_COUNT + ' Bahnen · ' + esc(GAME_DATE) + '</div></div>'
+            + (!GAME_FINISHED ? '<div id="shareBtn" class="pill-btn" style="flex:0 0 auto;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="M8.6 13.5l6.8 4M15.4 6.5l-6.8 4"/></svg>Teilen</div>' : '')
+            + '</div>'
             + '<div class="row-between" style="margin-bottom:10px;"><span class="section-label">SCORECARD</span>'
             + (FROM_HISTORY && state.editMode ? '<span style="font-size:12px;color:var(--ink-3);">Kachel antippen zum Ändern</span>' : '') + '</div>'
             + cards
@@ -388,6 +390,8 @@
         }
 
         document.getElementById('homeBack').addEventListener('click', () => { if (history.length > 1) history.back(); else location.href = '/'; });
+        const _shareBtn = document.getElementById('shareBtn');
+        if (_shareBtn) _shareBtn.addEventListener('click', () => { if (window.gopherQRShare) window.gopherQRShare.openModal(); else toast('Teilen lädt …'); });
     }
 
     // ---------- Detailansicht ----------
@@ -687,5 +691,6 @@
 
     render();
     </script>
+    {% if not finished %}<script src="/static/js/qr-share.js"></script>{% endif %}
 </body>
 </html>
