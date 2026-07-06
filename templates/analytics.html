@@ -169,11 +169,20 @@
         for (let t = 1; t <= n; t++){
             const h = byTrack[t]; if (!h) continue;
             svg += '<circle cx="'+x(t).toFixed(1)+'" cy="'+y(h.avg).toFixed(1)+'" r="2.6" fill="'+color+'"/>';
-            if (n <= 9) svg += '<text x="'+x(t).toFixed(1)+'" y="'+(y(h.max)-7).toFixed(1)+'" text-anchor="middle" font-size="10" font-weight="600" fill="var(--ink-2)">'+(Math.round(h.avg*10)/10)+'</text>';
+            // Ø-Zahl über dem Band — immer, damit die Linie eine klare Aussage hat
+            const ly = Math.max(y(h.max) - 7, 9).toFixed(1);
+            svg += '<text x="'+x(t).toFixed(1)+'" y="'+ly+'" text-anchor="middle" font-size="'+(n>9?8.5:10)+'" font-weight="600" fill="var(--ink-2)">'+(Math.round(h.avg*10)/10)+'</text>';
         }
         // X-Labels: Bahn-Nummern
         for (let t = 1; t <= n; t++){
             svg += '<text x="'+x(t).toFixed(1)+'" y="'+(H-6)+'" text-anchor="middle" font-size="'+(n>9?8:9)+'" fill="#a0a49d">'+t+'</text>';
+        }
+        // Unsichtbare Tap-Flächen: Bahn antippen -> Toast mit Min/Ø/Max
+        const spacing = n === 1 ? plotW : plotW/(n-1);
+        for (let t = 1; t <= n; t++){
+            const h = byTrack[t]; if (!h) continue;
+            const info = 'Bahn '+t+': Min '+h.min+' · Ø '+(Math.round(h.avg*10)/10)+' · Max '+h.max+' ('+h.count+'×)';
+            svg += '<rect class="hole-hit" data-info="'+esc(info)+'" x="'+(x(t)-spacing/2).toFixed(1)+'" y="0" width="'+spacing.toFixed(1)+'" height="'+H+'" fill="transparent"/>';
         }
         svg += '</svg>';
         return svg;
@@ -311,6 +320,12 @@
             const hv = document.getElementById('pview-holes-' + idx);
             if (tv) tv.style.display = view === 'time' ? '' : 'none';
             if (hv) hv.style.display = view === 'holes' ? '' : 'none';
+        }));
+
+        // Loch-Line: Bahn antippen -> Detail-Toast (Min/Ø/Max)
+        app.querySelectorAll('.hole-hit').forEach(el => el.addEventListener('click', (e) => {
+            e.stopPropagation();
+            toast(el.dataset.info);
         }));
     }
 
