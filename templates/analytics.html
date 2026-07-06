@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <title>🏌️ Statistik</title>
+    <style>
+        * { box-sizing: border-box; }
+        :root { --bg:#f5f6f2; --card:#fff; --line:#e6e7e1; --tile:#edefe8; --ink:#1c1d1a; --ink-2:#5b5f58; --ink-3:#8a8f88; --ink-4:#a0a49d; --muted:#c2c6bf; --green:#16a34a; }
+        html, body { margin:0; padding:0; background:var(--bg); color:var(--ink); font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif; -webkit-font-smoothing:antialiased; }
+        .wrap { max-width:480px; margin:0 auto; padding:16px 16px 40px; }
+        .head { display:flex; align-items:center; gap:12px; margin-bottom:16px; }
+        .back { width:40px; height:40px; border-radius:12px; background:var(--card); border:1px solid var(--line); display:flex; align-items:center; justify-content:center; cursor:pointer; flex:0 0 auto; }
+        .back svg { width:20px; height:20px; }
+        .avatar { width:40px; height:40px; border-radius:50%; overflow:hidden; display:flex; align-items:center; justify-content:center; font-size:16px; font-weight:600; flex:0 0 auto; }
+        .avatar img { width:100%; height:100%; object-fit:cover; }
+        .head .t { font-size:21px; font-weight:600; }
+        .head .s { font-size:13px; color:var(--ink-3); }
+
+        .section-label { font-size:12px; letter-spacing:1px; color:var(--ink-3); font-weight:600; margin:18px 0 10px; }
+        .card { background:var(--card); border:1px solid var(--line); border-radius:16px; padding:15px; margin-bottom:12px; }
+        .card-top { display:flex; align-items:center; justify-content:space-between; margin-bottom:10px; }
+        .card-title { font-size:16px; font-weight:600; }
+        .badge { font-size:10px; font-weight:700; letter-spacing:.5px; border-radius:6px; padding:2px 7px; }
+        .badge.ch { color:#0d9488; background:#d3f0eb; }
+        .badge.de { color:#2563eb; background:#dbe7fb; }
+
+        .kpis { display:grid; grid-template-columns:repeat(4,1fr); gap:8px; margin-bottom:6px; }
+        .kpi { text-align:center; }
+        .kpi .k { font-size:10px; letter-spacing:.4px; color:var(--ink-4); text-transform:uppercase; margin-bottom:2px; }
+        .kpi .v { font-size:19px; font-weight:600; line-height:1; }
+        .kpi .v.small { font-size:14px; }
+
+        .chart { margin-top:10px; }
+        .chart svg { width:100%; height:auto; display:block; }
+        .legend { display:flex; gap:14px; margin-top:6px; font-size:11px; color:var(--ink-3); }
+        .legend .dot { display:inline-block; width:9px; height:9px; border-radius:50%; margin-right:5px; vertical-align:middle; }
+        .empty { font-size:13px; color:var(--ink-4); padding:8px 0 4px; }
+
+        .prow { display:flex; align-items:center; gap:12px; padding:12px 14px; }
+        .prow + .prow { border-top:1px solid var(--line-soft, #eef0ea); }
+        .prow .pn { flex:1; min-width:0; }
+        .prow .pn .nm { font-size:15px; font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+        .prow .pn .meta { font-size:12px; color:var(--ink-3); }
+        .prow .pv { text-align:right; flex:0 0 auto; }
+        .prow .pv .a { font-size:17px; font-weight:600; }
+        .prow .pv .b { font-size:11px; color:var(--ink-4); }
+        .toast { position:fixed; bottom:22px; left:50%; transform:translateX(-50%) translateY(20px); background:var(--ink); color:#fff; font-size:14px; padding:9px 16px; border-radius:20px; opacity:0; transition:all .2s; z-index:60; pointer-events:none; }
+        .toast.show { opacity:1; transform:translateX(-50%) translateY(0); }
+    </style>
+</head>
+<body>
+    <div id="app" class="wrap"></div>
+    <div id="toast" class="toast"></div>
+    <script>
+    const PALETTE = { 'umpa': '#16a34a', 'lumpa': '#e0672e' };
+    const params = new URLSearchParams(location.search);
+    let PLAYER = (params.get('player') || localStorage.getItem('gopher_profile') || 'Umpa').trim();
+    const app = document.getElementById('app');
+
+    function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+    function colorOf(name){ return PALETTE[(name||'').toLowerCase()] || '#16a34a'; }
+    function avatarFile(name){ const n=(name||'').trim().toLowerCase(); return (n==='umpa'||n==='lumpa') ? '/static/avatars/'+n+'.png' : null; }
+    function shortDate(d){ const p=(d||'').split('-'); return p.length===3 ? (parseInt(p[2])+'.'+parseInt(p[1])+'.') : (d||''); }
+    function tint(hex){ const h=(hex||'').replace('#',''); if(h.length<6) return '#eef0ea'; const r=parseInt(h.substr(0,2),16),g=parseInt(h.substr(2,2),16),b=parseInt(h.substr(4,2),16),m=x=>Math.round(255-(255-x)*0.16); return 'rgb('+m(r)+','+m(g)+','+m(b)+')'; }
+    function toast(msg){ const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show'); clearTimeout(window._tt); window._tt=setTimeout(()=>t.classList.remove('show'),1600); }
+
+    // ---- SVG-Liniendiagramm: eigene Linie (Farbe) + Partner blass ----
+    function lineChart(series, color, opts){
+        opts = opts || {};
+        const showLabels = opts.showLabels !== false;
+        const W = 320, H = opts.h || 150, padL = 12, padR = 12, padT = 24, padB = 20;
+        const plotW = W - padL - padR, plotH = H - padT - padB;
+        const own = series.map(s => s.total);
+        const par = series.map(s => (s.partner_total == null ? null : s.partner_total));
+        const all = own.concat(par.filter(v => v != null));
+        if (!all.length) return '';
+        let mn = Math.min(...all), mx = Math.max(...all);
+        if (mn === mx){ mn -= 1; mx += 1; }
+        const n = series.length;
+        const x = i => padL + (n === 1 ? plotW/2 : i/(n-1)*plotW);
+        const y = v => padT + (1 - (v - mn)/(mx - mn)) * plotH;
+
+        function path(vals){
+            let d = '', started = false;
+            vals.forEach((v,i) => { if (v == null){ started = false; return; } d += (started?' L':'M') + x(i).toFixed(1) + ' ' + y(v).toFixed(1); started = true; });
+            return d;
+        }
+        let svg = '<svg viewBox="0 0 '+W+' '+H+'" preserveAspectRatio="xMidYMid meet">';
+        // Partner blass
+        const parPath = path(par);
+        if (parPath) svg += '<path d="'+parPath+'" fill="none" stroke="#c2c6bf" stroke-width="1.6" stroke-dasharray="3 3" stroke-linejoin="round" stroke-linecap="round"/>';
+        par.forEach((v,i)=>{ if(v!=null) svg += '<circle cx="'+x(i).toFixed(1)+'" cy="'+y(v).toFixed(1)+'" r="2" fill="#c2c6bf"/>'; });
+        // Eigene Linie
+        svg += '<path d="'+path(own)+'" fill="none" stroke="'+color+'" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>';
+        own.forEach((v,i)=>{
+            svg += '<circle cx="'+x(i).toFixed(1)+'" cy="'+y(v).toFixed(1)+'" r="3.2" fill="'+color+'"/>';
+            if (showLabels) svg += '<text x="'+x(i).toFixed(1)+'" y="'+(y(v)-8).toFixed(1)+'" text-anchor="middle" font-size="10" font-weight="600" fill="var(--ink-2)">'+v+'</text>';
+        });
+        // X-Datumslabels: erstes + letztes
+        if (n){
+            svg += '<text x="'+x(0).toFixed(1)+'" y="'+(H-6)+'" text-anchor="start" font-size="9" fill="#a0a49d">'+esc(shortDate(series[0].date))+'</text>';
+            if (n>1) svg += '<text x="'+x(n-1).toFixed(1)+'" y="'+(H-6)+'" text-anchor="end" font-size="9" fill="#a0a49d">'+esc(shortDate(series[n-1].date))+'</text>';
+        }
+        svg += '</svg>';
+        return svg;
+    }
+
+    function kpiRow(b){
+        const cell = (k,v,small)=>'<div class="kpi"><div class="k">'+k+'</div><div class="v'+(small?' small':'')+'">'+v+'</div></div>';
+        return '<div class="kpis">'
+            + cell('Runden', b.rounds)
+            + cell('Ø', b.avg==null?'–':b.avg)
+            + cell('Bester', b.best==null?'–':'<span style="color:var(--green)">'+b.best+'</span>')
+            + cell('Schlecht.', b.worst==null?'–':'<span style="color:#e0672e">'+b.worst+'</span>')
+            + '</div>'
+            + '<div style="text-align:center;font-size:11px;color:var(--ink-4);margin-top:2px;">Ø '+(b.avg_per_hole==null?'–':b.avg_per_hole)+' pro Bahn</div>';
+    }
+
+    function bucketCard(b, color, partner){
+        const badge = b.key.indexOf('de')===0 ? '<span class="badge de">DE</span>' : '<span class="badge ch">CH</span>';
+        let body;
+        if (!b.rounds){
+            body = '<div class="empty">Noch keine vollständige Runde hier.</div>';
+        } else {
+            const showChart = b.series.length >= 2;   // 1 Punkt = kein Verlauf
+            const hasPartner = showChart && b.series.some(s => s.partner_total != null);
+            body = kpiRow(b)
+                + (showChart ? '<div class="chart">' + lineChart(b.series, color, {showLabels: b.series.length <= 12}) + '</div>' : '')
+                + (hasPartner ? '<div class="legend"><span><span class="dot" style="background:'+color+';"></span>'+esc(PLAYER)+'</span><span><span class="dot" style="background:#c2c6bf;"></span>'+esc(partner||'Partner')+'</span></div>' : '');
+        }
+        return '<div class="card"><div class="card-top"><span class="card-title">'+esc(b.label)+'</span>'+badge+'</div>'+body+'</div>';
+    }
+
+    function placeRow(p, color){
+        const badge = p.system==='DE' ? '<span class="badge de">DE</span>' : '<span class="badge ch">CH</span>';
+        return '<div class="prow">'
+            + '<div class="pn"><div class="nm">'+esc(p.name)+'</div>'
+            + '<div class="meta">'+badge+' &nbsp;'+p.track_count+' Bahnen · '+p.rounds+' '+(p.rounds===1?'Runde':'Runden')+'</div></div>'
+            + '<div class="pv"><div class="a">Ø '+(p.avg==null?'–':p.avg)+'</div>'
+            + '<div class="b"><span style="color:var(--green)">'+p.best+'</span> / <span style="color:#e0672e">'+p.worst+'</span></div></div>'
+            + '</div>';
+    }
+
+    async function load(){
+        const color = colorOf(PLAYER);
+        const initial = esc((PLAYER||'?').charAt(0).toUpperCase());
+        const avImg = avatarFile(PLAYER);
+        const avInner = avImg ? '<img src="'+avImg+'" alt="" onerror="this.parentNode.textContent=\''+initial+'\'">' : initial;
+        let html = '<div class="head">'
+            + '<div class="back" id="back"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg></div>'
+            + '<div class="avatar" style="background:'+tint(color)+';color:'+color+';">'+avInner+'</div>'
+            + '<div><div class="t">Statistik</div><div class="s">'+esc(PLAYER)+'</div></div></div>';
+
+        let data;
+        try {
+            const res = await fetch('/api/analytics?player=' + encodeURIComponent(PLAYER));
+            data = await res.json();
+            if (data.status !== 'success') throw new Error(data.message||'Fehler');
+        } catch(e){ console.error('analytics', e); app.innerHTML = html + '<div class="empty">Konnte Statistik nicht laden.</div>'; wireBack(); return; }
+
+        const anyRounds = data.buckets.some(b => b.rounds > 0);
+        if (!anyRounds){
+            html += '<div class="card"><div class="empty">Noch keine ausgewerteten Runden. Spiel ein paar Runden zu Ende — dann erscheint hier deine Statistik. 🏌️</div></div>';
+            app.innerHTML = html; wireBack(); return;
+        }
+
+        html += '<div class="section-label">GESAMT NACH SYSTEM</div>';
+        data.buckets.forEach(b => { html += bucketCard(b, color, data.partner); });
+
+        if (data.places && data.places.length){
+            html += '<div class="section-label">PRO ANLAGE · MEISTGESPIELT OBEN</div>';
+            html += '<div class="card" style="padding:2px 0;">' + data.places.map(p => placeRow(p, color)).join('') + '</div>';
+        }
+
+        app.innerHTML = html;
+        wireBack();
+    }
+
+    function wireBack(){ const b=document.getElementById('back'); if(b) b.addEventListener('click', ()=>{ if(history.length>1) history.back(); else location.href='/'; }); }
+
+    load();
+    </script>
+</body>
+</html>

@@ -36,6 +36,12 @@
         .sheet-title { font-size:18px; font-weight:600; }
         .sheet-x { width:30px; height:30px; display:flex; align-items:center; justify-content:center; color:var(--ink-3); cursor:pointer; }
         .sheet-x svg { width:22px; height:22px; }
+        .sysbadge { font-size:10px; font-weight:700; letter-spacing:.5px; border-radius:6px; padding:1px 6px; margin-left:6px; }
+        .sysbadge.ch { color:#0d9488; background:#d3f0eb; }
+        .sysbadge.de { color:#2563eb; background:#dbe7fb; }
+        .seg { display:flex; gap:8px; margin-bottom:4px; }
+        .seg-btn { flex:1; height:46px; border-radius:12px; border:1.5px solid var(--line); background:var(--card); font-size:15px; font-weight:600; color:var(--ink-3); cursor:pointer; }
+        .seg-btn.on { border-color:var(--green); background:#eaf6ee; color:var(--green); }
         .field-label { font-size:12px; letter-spacing:1px; color:var(--ink-4); margin:2px 0 7px; }
         input.in { width:100%; height:48px; border:1px solid var(--line); border-radius:12px; padding:0 13px; font-size:16px; margin-bottom:16px; }
         input.in:focus { outline:none; border-color:var(--green); box-shadow:0 0 0 3px rgba(22,163,74,0.12); }
@@ -64,7 +70,7 @@
     <div id="toast" class="toast"></div>
 
     <script>
-    var PLACES = [], editing = null;
+    var PLACES = [], editing = null, selSys = 'CH';
     function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];}); }
     function toast(msg){ var t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show'); clearTimeout(window._tt); window._tt=setTimeout(function(){t.classList.remove('show');},1500); }
     function pinSvg(){ return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8c0 4.5-6 10-6 10S6 12.5 6 8a6 6 0 0 1 12 0Z"/><circle cx="12" cy="8" r="2"/></svg>'; }
@@ -76,7 +82,7 @@
             return '<div class="prow" data-id="'+p.id+'">'
                 +'<span class="pin">'+pinSvg()+'</span>'
                 +'<div class="pinfo"><div class="pname">'+esc(p.name)+(p.is_default?'<span class="badge">Standard</span>':'')+'</div>'
-                +'<div class="psub">'+p.track_count+' Bahnen</div></div>'
+                +'<div class="psub">'+p.track_count+' Bahnen<span class="sysbadge '+((p.system==='DE')?'de">DE':'ch">CH')+'</span></div></div>'
                 +'<span class="chev"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg></span></div>';
         }).join('');
         list.querySelectorAll('[data-id]').forEach(function(el){ el.onclick=function(){ openSheet(PLACES.filter(function(x){return x.id==el.dataset.id;})[0]); }; });
@@ -84,13 +90,20 @@
 
     function openSheet(place){
         editing = place;
+        selSys = (place && place.system==='DE') ? 'DE' : 'CH';
         var sheet=document.getElementById('sheet');
         sheet.innerHTML =
             '<div class="sheet-head"><div class="sheet-title">'+(place?'Anlage bearbeiten':'Neue Anlage')+'</div><div class="sheet-x" id="sx"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"/></svg></div></div>'
             +'<div class="field-label">NAME</div><input class="in" id="pn" placeholder="z.B. Bülach" maxlength="100" value="'+(place?esc(place.name):'')+'">'
             +'<div class="field-label">ANZAHL BAHNEN</div><input class="in" id="pc" type="number" min="1" max="50" inputmode="numeric" value="'+(place?place.track_count:18)+'">'
+            +'<div class="field-label">SYSTEM / TYP</div><div class="seg" id="seg">'
+            +  '<button type="button" class="seg-btn" data-sys="CH">CH · Beton</button>'
+            +  '<button type="button" class="seg-btn" data-sys="DE">DE · Eternit</button></div>'
             +'<div class="actions"><button class="btn btn-ghost" id="cancel">Abbrechen</button><button class="btn btn-green" id="save">Speichern</button></div>'
             +(place && !place.is_default ? '<div style="text-align:center;margin-top:14px;"><button class="link del" id="del">Anlage löschen</button></div>' : '');
+        function paintSeg(){ sheet.querySelectorAll('.seg-btn').forEach(function(b){ b.classList.toggle('on', b.dataset.sys===selSys); }); }
+        sheet.querySelectorAll('.seg-btn').forEach(function(b){ b.onclick=function(){ selSys=b.dataset.sys; paintSeg(); }; });
+        paintSeg();
         document.getElementById('sx').onclick=closeSheet;
         document.getElementById('cancel').onclick=closeSheet;
         document.getElementById('save').onclick=save;
@@ -106,9 +119,9 @@
         try {
             var res, data;
             if(editing){
-                res=await fetch('/api/places/'+editing.id, { method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify({name:name, track_count:count}) });
+                res=await fetch('/api/places/'+editing.id, { method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify({name:name, track_count:count, system:selSys}) });
             } else {
-                res=await fetch('/api/places', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({name:name, track_count:count}) });
+                res=await fetch('/api/places', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({name:name, track_count:count, system:selSys}) });
             }
             data=await res.json();
             if(data.status!=='success') throw new Error(data.message||'Fehler');

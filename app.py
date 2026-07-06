@@ -85,6 +85,8 @@ class Place(db.Model):
     name = db.Column(db.String(100), nullable=False, unique=True)
     track_count = db.Column(db.Integer, nullable=False, default=18)
     is_default = db.Column(db.Boolean, default=False)  # Für "Bülach" Standard
+    # NEU: Bahn-System/Typ für Analytics-Gruppierung. 'CH' = Beton/Miniaturgolf, 'DE' = Eternit/Minigolf.
+    system = db.Column(db.String(2), nullable=False, default='CH', server_default='CH')
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     
     # Relationships
@@ -489,8 +491,20 @@ def ensure_schema_additions():
             db.session.execute(text(
                 "ALTER TABLE games ADD COLUMN IF NOT EXISTS is_finished BOOLEAN NOT NULL DEFAULT TRUE"
             ))
+            # places.system (CH/DE) — beim ERSTEN Anlegen der Spalte bekannte DE-Anlagen seeden.
+            # Nur einmalig, damit spätere manuelle Umschaltungen (Settings) erhalten bleiben.
+            col = db.session.execute(text(
+                "SELECT 1 FROM information_schema.columns WHERE table_name='places' AND column_name='system'"
+            )).first()
+            if not col:
+                db.session.execute(text("ALTER TABLE places ADD COLUMN system VARCHAR(2) NOT NULL DEFAULT 'CH'"))
+                db.session.execute(text(
+                    "UPDATE places SET system='DE' "
+                    "WHERE name ILIKE 'Rapperswil%' OR name ILIKE 'Zug%' OR name ILIKE '%Davos%'"
+                ))
+                log_action("places.system angelegt + DE-Anlagen geseedet (Rapperswil/Zug/Davos)")
             db.session.commit()
-            log_action("Schema-Ergänzung geprüft: slot, player_balls.image_data, player_balls.description, games.is_finished")
+            log_action("Schema-Ergänzung geprüft: slot, image_data, description, games.is_finished, places.system")
     except Exception as e:
         db.session.rollback()
         logger.warning(f"⚠️ ensure_schema_additions übersprungen: {e}")
@@ -1318,6 +1332,98 @@ def active_game():
         return jsonify({'active': None})
 
 
+@app.route('/analytics')
+def analytics_page():
+    """Statistik-Seite pro Profil (Umpa/Lumpa) — Spieler kommt per ?player= oder localStorage."""
+    return render_template('analytics.html')
+
+
+@app.route('/api/analytics', methods=['GET'])
+def api_analytics():
+    """Auswertung pro Spieler: Runden gruppiert nach Bahn-System & -Anzahl (18er CH, 18er DE, 9er DE),
+    Verlauf pro Runde inkl. Partner-Vergleich, plus Aufschlüsselung pro Anlage (meistgespielte oben)."""
+    try:
+        player = (request.args.get('player') or '').strip()
+        if not player:
+            return jsonify({'status': 'error', 'message': 'player fehlt'}), 400
+        pl_low = player.lower()
+        partner = 'Lumpa' if pl_low == 'umpa' else ('Umpa' if pl_low == 'lumpa' else None)
+
+        def totals(game, name):
+            """(total, complete) für Spieler 'name' in diesem Spiel; complete = alle Bahnen gewertet."""
+            pobj = next((p for p in game.players if p.name == name), None)
+            if not pobj:
+                return None, False
+            vals = [s.value for s in pobj.scores if s.value and s.value > 0]
+            return sum(vals), (len(vals) >= game.track_count)
+
+        rounds = []  # nur vollständige Runden des Spielers
+        for g in Game.query.filter_by(is_finished=True).all():
+            total, complete = totals(g, player)
+            if total is None or not complete:
+                continue
+            system = getattr(g.place_config, 'system', 'CH') if g.place_config else 'CH'
+            p_total, p_complete = (None, False)
+            if partner:
+                p_total, p_complete = totals(g, partner)
+                if not p_complete:
+                    p_total = None
+            rounds.append({
+                'game_id': g.id, 'date': g.date, 'place': g.get_place_name(),
+                'system': system or 'CH', 'track_count': g.track_count,
+                'total': total, 'partner_total': p_total,
+            })
+        rounds.sort(key=lambda r: (r['date'], r['game_id']))
+
+        def summarize(rs):
+            if not rs:
+                return {'rounds': 0, 'avg': None, 'best': None, 'worst': None, 'avg_per_hole': None, 'series': []}
+            tot = [r['total'] for r in rs]
+            tc = rs[0]['track_count']
+            avg = round(sum(tot) / len(tot), 1)
+            return {
+                'rounds': len(rs),
+                'avg': avg,
+                'best': min(tot),
+                'worst': max(tot),
+                'avg_per_hole': round(avg / tc, 2) if tc else None,
+                'series': [{'date': r['date'], 'total': r['total'], 'partner_total': r['partner_total'], 'place': r['place']} for r in rs],
+            }
+
+        def bucket(system, tc):
+            return summarize([r for r in rounds if r['system'] == system and r['track_count'] == tc])
+
+        buckets = [
+            {'key': 'ch18', 'label': '18 Bahnen · CH', **bucket('CH', 18)},
+            {'key': 'de18', 'label': '18 Bahnen · DE', **bucket('DE', 18)},
+            {'key': 'de9',  'label': '9 Bahnen · DE',  **bucket('DE', 9)},
+        ]
+
+        # Pro Anlage, meistgespielte oben
+        by_place = {}
+        for r in rounds:
+            by_place.setdefault(r['place'], []).append(r)
+        places = []
+        for name, rs in by_place.items():
+            s = summarize(rs)
+            s['name'] = name
+            s['system'] = rs[0]['system']
+            s['track_count'] = rs[0]['track_count']
+            places.append(s)
+        places.sort(key=lambda x: (-x['rounds'], x['name']))
+
+        return jsonify({
+            'status': 'success',
+            'player': player,
+            'partner': partner,
+            'buckets': buckets,
+            'places': places,
+        })
+    except Exception as e:
+        logger.error(f"❌ analytics error: {str(e)}")
+        return jsonify({'status': 'error', 'message': 'Analytics fehlgeschlagen'}), 500
+
+
 @app.route('/history')
 def history():
     """Game history page with track icons support (nur fertige Spiele)"""
@@ -1441,6 +1547,7 @@ def get_places():
                 'name': place.name,
                 'track_count': place.track_count,
                 'is_default': place.is_default,
+                'system': getattr(place, 'system', 'CH') or 'CH',
                 'has_custom_config': len(place.place_tracks) > 0
             })
         
@@ -1471,7 +1578,8 @@ def create_place():
         place = Place(
             name=data['name'],
             track_count=data.get('track_count', 18),
-            is_default=data.get('is_default', False)
+            is_default=data.get('is_default', False),
+            system=('DE' if str(data.get('system', 'CH')).upper() == 'DE' else 'CH')
         )
         
         db.session.add(place)
@@ -1543,9 +1651,12 @@ def update_place(place_id):
         
         if 'is_default' in data:
             place.is_default = bool(data['is_default'])
-        
+
+        if 'system' in data:
+            place.system = 'DE' if str(data['system']).upper() == 'DE' else 'CH'
+
         db.session.commit()
-        
+
         log_action(f"Place updated via API: {place.name}")
         
         return jsonify({
