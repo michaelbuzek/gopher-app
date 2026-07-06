@@ -91,13 +91,13 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0, 0, 0, 0.7);
+            background: rgba(20, 25, 20, 0.45);
             display: none;
             justify-content: center;
             align-items: center;
             z-index: 3000;
-            backdrop-filter: blur(5px);
-            -webkit-backdrop-filter: blur(5px);
+            backdrop-filter: blur(3px);
+            -webkit-backdrop-filter: blur(3px);
         }
 
         .qr-modal-overlay.show {
@@ -137,10 +137,10 @@
         }
 
         .qr-modal-title {
-            font-size: 1.4em;
-            font-weight: 700;
-            color: #3b5c6c;
-            margin-bottom: 8px;
+            font-size: 1.3em;
+            font-weight: 600;
+            color: #222222;
+            margin-bottom: 6px;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -149,15 +149,15 @@
 
         .qr-modal-subtitle {
             font-size: 0.9em;
-            color: #64748b;
+            color: #8a8f88;
         }
 
         .qr-code-container {
-            background: #f8fafc;
+            background: #FAFAF7;
             border-radius: 16px;
             padding: 20px;
-            margin-bottom: 20px;
-            border: 2px solid #e2e8f0;
+            margin-bottom: 18px;
+            border: 1px solid #e6e7e1;
         }
 
         .qr-code-container canvas,
@@ -168,15 +168,15 @@
         }
 
         .qr-url-display {
-            background: #f1f5f9;
+            background: #f1f1f4;
             border-radius: 10px;
             padding: 12px 15px;
-            margin-bottom: 20px;
+            margin-bottom: 18px;
             font-family: monospace;
             font-size: 0.8em;
-            color: #64748b;
+            color: #86868b;
             word-break: break-all;
-            border: 1px solid #e2e8f0;
+            border: 1px solid #e6e7e1;
         }
 
         .qr-modal-actions {
@@ -200,36 +200,35 @@
         }
 
         .qr-btn-primary {
-            background: #f8c098;
-            color: #2d3748;
+            background: #21B458;
+            color: #ffffff;
         }
 
         .qr-btn-primary:hover {
-            background: #f2bc91;
-            transform: translateY(-2px);
+            background: #169545;
         }
 
         .qr-btn-secondary {
-            background: #f1f5f9;
-            color: #64748b;
+            background: #f1f1f4;
+            color: #222222;
         }
 
         .qr-btn-secondary:hover {
-            background: #e2e8f0;
+            background: #e6e7e1;
         }
 
         .qr-btn-close {
-            background: #3b5c6c;
-            color: white;
+            background: transparent;
+            color: #8a8f88;
         }
 
         .qr-btn-close:hover {
-            background: #2a4a58;
+            background: #f1f1f4;
         }
 
         /* Copy Success Animation */
         .qr-copy-success {
-            color: #10b981;
+            color: #21B458;
             font-weight: 600;
         }
 
@@ -239,7 +238,7 @@
             bottom: 80px;
             left: 50%;
             transform: translateX(-50%) translateY(100px);
-            background: #10b981;
+            background: #21B458;
             color: white;
             padding: 12px 24px;
             border-radius: 10px;
@@ -427,10 +426,10 @@
                 <div class="qr-modal">
                     <div class="qr-modal-header">
                         <div class="qr-modal-title">
-                            📱 Spiel teilen
+                            Spiel teilen
                         </div>
                         <div class="qr-modal-subtitle">
-                            Mitspieler können diesen QR-Code scannen
+                            Mitspieler scannt den Code und ist direkt dabei
                         </div>
                     </div>
 
@@ -444,13 +443,13 @@
 
                     <div class="qr-modal-actions">
                         <button class="qr-action-btn qr-btn-primary" id="qr-copy-btn">
-                            📋 Link kopieren
+                            Link kopieren
                         </button>
                         <button class="qr-action-btn qr-btn-secondary" id="qr-share-native-btn" style="display: none;">
-                            🔗 Teilen...
+                            Teilen …
                         </button>
                         <button class="qr-action-btn qr-btn-close" id="qr-close-btn">
-                            ✕ Schliessen
+                            Schliessen
                         </button>
                     </div>
                 </div>
@@ -494,7 +493,7 @@
                 text: this.gameUrl,
                 width: size,
                 height: size,
-                colorDark: '#3b5c6c',
+                colorDark: '#222222',
                 colorLight: '#ffffff',
                 correctLevel: QRCode.CorrectLevel.M
             });
@@ -573,13 +572,13 @@
         async copyLink() {
             try {
                 await navigator.clipboard.writeText(this.gameUrl);
-                this.showToast('✅ Link kopiert!');
+                this.showToast('Link kopiert');
 
                 // Button kurz ändern
                 const btn = document.getElementById('qr-copy-btn');
                 if (btn) {
                     const originalText = btn.innerHTML;
-                    btn.innerHTML = '✅ Kopiert!';
+                    btn.innerHTML = 'Kopiert';
                     btn.classList.add('qr-copy-success');
                     setTimeout(() => {
                         btn.innerHTML = originalText;
@@ -596,7 +595,7 @@
                 textArea.select();
                 document.execCommand('copy');
                 document.body.removeChild(textArea);
-                this.showToast('✅ Link kopiert!');
+                this.showToast('Link kopiert');
             }
         }
 
